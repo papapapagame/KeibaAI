@@ -1,0 +1,21 @@
+{
+  "ai": {
+    "precision": "standard",
+    "evFocus": true,
+    "popularityOrder": false,
+    "upsetHighlight": true,
+    "dangerDisplay": true
+  },
+  "theme": {
+    "mode": "dark",
+    "locked": true
+  },
+  "notifications": {
+    "aiComplete": true,
+    "roiUpdate": true,
+    "gradeRace": false
+  },
+  "lastUpdated": "2026-07-28 03:50",
+  "displayVersion": "Ver3.0.0",
+  "appName": "PAPAPA IQ KEIBA"
+}

@@ -1,0 +1,103 @@
+{
+  "defaultType": "三連複",
+  "defaultAmount": 1000,
+  "ticketTypes": ["三連単", "三連複", "馬連", "ワイド", "単勝"],
+  "types": {
+    "三連複": {
+      "type": "三連複",
+      "points": 5,
+      "amount": 1000,
+      "bets": [
+        { "mark": "◎", "combo": "1-3-5", "stars": 5, "confidence": 95 },
+        { "mark": "〇", "combo": "1-5-7", "stars": 4, "confidence": 88 },
+        { "mark": "▲", "combo": "1-2-5", "stars": 4, "confidence": 84 },
+        { "mark": "△", "combo": "2-3-5", "stars": 3, "confidence": 76 },
+        { "mark": "☆", "combo": "3-5-7", "stars": 3, "confidence": 72 }
+      ],
+      "allocation": "各100円",
+      "comment": [
+        "三連複が最も期待値が高い構成です。",
+        "",
+        "本命馬を軸に",
+        "穴馬候補を組み合わせています。"
+      ],
+      "payoutRate": 8.5
+    },
+    "三連単": {
+      "type": "三連単",
+      "points": 5,
+      "amount": 1000,
+      "bets": [
+        { "mark": "◎", "combo": "1→3→5", "stars": 5, "confidence": 91 },
+        { "mark": "〇", "combo": "1→5→3", "stars": 4, "confidence": 85 },
+        { "mark": "▲", "combo": "3→1→5", "stars": 3, "confidence": 78 },
+        { "mark": "△", "combo": "1→2→5", "stars": 3, "confidence": 74 },
+        { "mark": "☆", "combo": "5→1→3", "stars": 2, "confidence": 68 }
+      ],
+      "allocation": "各100円",
+      "comment": [
+        "三連単は配当魅力が高い構成です。",
+        "",
+        "本命1番からの流しを中心に組んでいます。"
+      ],
+      "payoutRate": 12.0
+    },
+    "馬連": {
+      "type": "馬連",
+      "points": 5,
+      "amount": 1000,
+      "bets": [
+        { "mark": "◎", "combo": "1-5", "stars": 5, "confidence": 93 },
+        { "mark": "〇", "combo": "1-3", "stars": 4, "confidence": 87 },
+        { "mark": "▲", "combo": "3-5", "stars": 4, "confidence": 81 },
+        { "mark": "△", "combo": "1-7", "stars": 3, "confidence": 74 },
+        { "mark": "☆", "combo": "2-5", "stars": 2, "confidence": 69 }
+      ],
+      "allocation": "各200円",
+      "comment": [
+        "馬連は点数を抑えつつ期待値を確保する構成です。",
+        "",
+        "本命と対抗の軸で組み立てています。"
+      ],
+      "payoutRate": 5.2
+    },
+    "ワイド": {
+      "type": "ワイド",
+      "points": 5,
+      "amount": 1000,
+      "bets": [
+        { "mark": "◎", "combo": "1-5", "stars": 5, "confidence": 96 },
+        { "mark": "〇", "combo": "1-3", "stars": 4, "confidence": 90 },
+        { "mark": "▲", "combo": "3-5", "stars": 4, "confidence": 86 },
+        { "mark": "△", "combo": "1-7", "stars": 3, "confidence": 79 },
+        { "mark": "☆", "combo": "5-7", "stars": 3, "confidence": 73 }
+      ],
+      "allocation": "各200円",
+      "comment": [
+        "ワイドは安定回収を狙う構成です。",
+        "",
+        "上位人気と穴馬の組み合わせを採用しています。"
+      ],
+      "payoutRate": 3.8
+    },
+    "単勝": {
+      "type": "単勝",
+      "points": 5,
+      "amount": 1000,
+      "bets": [
+        { "mark": "◎", "combo": "1", "stars": 5, "confidence": 97 },
+        { "mark": "〇", "combo": "5", "stars": 4, "confidence": 86 },
+        { "mark": "▲", "combo": "3", "stars": 3, "confidence": 78 },
+        { "mark": "△", "combo": "2", "stars": 2, "confidence": 70 },
+        { "mark": "☆", "combo": "7", "stars": 2, "confidence": 65 }
+      ],
+      "allocation": "各200円",
+      "comment": [
+        "単勝は本命寄りで堅実に狙う構成です。",
+        "",
+        "勝率最上位の馬を中心に配分しています。"
+      ],
+      "payoutRate": 2.6
+    }
+  }
+}

@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PAPAPA IQ KEIBAのレース詳細。出馬表・AI評価・勝率・期待値を確認できます。">
+  <title>レース詳細 | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">AI Analyzing...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page page--list page--detail">
+    <header class="hero hero--compact">
+      <h1 class="title title--page">レース詳細</h1>
+      <p class="subtitle subtitle--small">RACE DETAIL</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="meta-panel meta-panel--detail" aria-label="レース情報">
+      <div class="meta-item">
+        <span class="meta-label">開催日</span>
+        <span class="meta-value" id="detail-date">未選択</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">開催場</span>
+        <span class="meta-value" id="detail-venue">未選択</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">レース番号</span>
+        <span class="meta-value" id="detail-race-number">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">レース名</span>
+        <span class="meta-value" id="detail-race-name">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">発走時刻</span>
+        <span class="meta-value" id="detail-race-time">-</span>
+      </div>
+    </section>
+
+    <section class="entry-section" aria-label="出馬表">
+      <h2 class="section-title">出馬表</h2>
+      <div class="entry-table-wrap">
+        <table class="entry-table">
+          <thead>
+            <tr>
+              <th>枠</th>
+              <th>馬番</th>
+              <th>馬名</th>
+              <th>騎手</th>
+              <th>AI評価</th>
+              <th>勝率</th>
+              <th>期待値</th>
+            </tr>
+          </thead>
+          <tbody id="entry-table-body">
+            <!-- script.js でダミーデータを描画 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="page-actions page-actions--stack">
+      <button type="button" class="btn-primary" id="go-analysis">AI分析を見る</button>
+      <a href="race-list.html" class="btn-secondary" id="back-to-race-list">レース一覧へ戻る</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 0.9.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

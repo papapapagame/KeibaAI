@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PAPAPA IQ KEIBAのトップ画面。開催日・開催場を選んでAI競馬分析を開始します。">
+  <title>PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">AI Analyzing...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">CENTRAL RACING AI</p>
+      <h1 class="title">PAPAPA IQ KEIBA</h1>
+      <p class="subtitle">AI競馬分析システム</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="panel" aria-label="開催条件の選択">
+      <div class="field">
+        <label for="race-date">開催日選択</label>
+        <input type="date" id="race-date" name="race-date">
+      </div>
+
+      <div class="field">
+        <label for="race-venue">開催場選択</label>
+        <select id="race-venue" name="race-venue">
+          <!-- data/race.json から描画 -->
+        </select>
+      </div>
+
+      <button type="button" id="go-race-list" class="btn-primary">
+        レース一覧へ進む
+      </button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 0.9.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

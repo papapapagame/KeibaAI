@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PAPAPA IQ KEIBAの収支管理。購入履歴・月別グラフで成績と回収率を確認できます。">
+  <title>収支管理 | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">AI Analyzing...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page page--list page--balance">
+    <header class="hero hero--compact">
+      <h1 class="title title--page">収支管理</h1>
+      <p class="subtitle subtitle--small">BALANCE</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="balance-summary" aria-label="収支サマリー">
+      <div class="balance-summary__item">
+        <span class="balance-summary__label">総購入額</span>
+        <span class="balance-summary__value" id="summary-purchase"></span>
+      </div>
+      <div class="balance-summary__item">
+        <span class="balance-summary__label">総払戻</span>
+        <span class="balance-summary__value" id="summary-payout"></span>
+      </div>
+      <div class="balance-summary__item">
+        <span class="balance-summary__label">収支</span>
+        <span class="balance-summary__value balance-summary__value--plus" id="summary-balance"></span>
+      </div>
+      <div class="balance-summary__item">
+        <span class="balance-summary__label">回収率</span>
+        <span class="balance-summary__value" id="summary-roi"></span>
+      </div>
+      <div class="balance-summary__item">
+        <span class="balance-summary__label">AI評価</span>
+        <span class="ai-grade" id="summary-grade"></span>
+      </div>
+    </section>
+
+    <section class="balance-section" aria-label="月別グラフ">
+      <h2 class="section-title">月別グラフ</h2>
+      <div class="chart-card">
+        <canvas id="balance-chart" width="800" height="320" aria-label="月別収支棒グラフ"></canvas>
+      </div>
+    </section>
+
+    <section class="balance-section" aria-label="最近の購入履歴">
+      <h2 class="section-title">最近の購入履歴</h2>
+      <div class="entry-table-wrap">
+        <table class="entry-table history-table">
+          <thead>
+            <tr>
+              <th>日時</th>
+              <th>レース</th>
+              <th>券種</th>
+              <th>金額</th>
+              <th>払戻</th>
+              <th>収支</th>
+              <th>AI評価</th>
+            </tr>
+          </thead>
+          <tbody id="balance-history-body">
+            <!-- script.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ai-comment-card" aria-label="AIコメント">
+      <h2 class="section-title">AIコメント</h2>
+      <p class="ai-comment-card__text" id="balance-ai-comment"></p>
+    </section>
+
+    <section class="improve-card" aria-label="おすすめ改善点">
+      <h2 class="section-title">おすすめ改善点</h2>
+      <ul class="improve-list" id="improve-list">
+        <!-- data/balance.json から描画 -->
+      </ul>
+    </section>
+
+    <div class="page-actions page-actions--stack">
+      <button type="button" class="btn-primary" id="export-csv">CSV出力</button>
+      <button type="button" class="btn-secondary" id="go-settings">設定</button>
+      <a href="index.html" class="btn-secondary" id="back-to-top-balance">トップへ戻る</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 0.9.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
