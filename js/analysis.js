@@ -214,17 +214,23 @@ function enrichMarks(list) {
               : mark === "☆"
                 ? "人気薄だが期待値あり。穴印。"
                 : "今回は評価を抑えめ。見送り寄り。");
+    const indexFromTotal = Math.round((horse.indexes?.total || 0) / 10);
+    const indexFromThinking = Math.round(horse.thinking?.score || 0);
+    const aiIndex =
+      horse.aiIndex != null
+        ? horse.aiIndex
+        : indexFromTotal || indexFromThinking;
+    const expectedValuePercent =
+      horse.expectedValuePercent != null
+        ? horse.expectedValuePercent
+        : Math.round(((horse.indexes?.expectedValue || 500) / 10) * 1.5);
+
     return {
       ...horse,
       paperMark: mark,
       markReason: reason,
-      aiIndex:
-        horse.aiIndex ??
-        Math.round((horse.indexes?.total || 0) / 10) ||
-        Math.round(horse.thinking?.score || 0),
-      expectedValuePercent:
-        horse.expectedValuePercent ??
-        Math.round(((horse.indexes?.expectedValue || 500) / 10) * 1.5),
+      aiIndex,
+      expectedValuePercent,
       risk: horse.risk || horse.riskLabel || "Medium",
       runningStyle: horse.runningStyle || "差し",
       popularity: horse.popularity || "-",
