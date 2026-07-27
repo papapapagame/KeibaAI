@@ -2,8 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="PAPAPA IQ KEIBA プロ仕様AI競馬新聞。展開・印・指数・買い目を一目で把握。">
+  <meta name="theme-color" content="#070707">
   <title>AI分析新聞 | PAPAPA IQ KEIBA</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,10 +12,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading">
-  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+<body class="is-loading page-analysis">
+  <div class="loading-screen loading-screen--lux" id="loading-screen" aria-hidden="true" aria-busy="true">
+    <div class="lux-loader" aria-hidden="true">
+      <div class="lux-loader__orbit lux-loader__orbit--outer"></div>
+      <div class="lux-loader__orbit lux-loader__orbit--mid"></div>
+      <div class="lux-loader__ring">
+        <svg viewBox="0 0 120 120" class="lux-loader__svg">
+          <circle class="lux-loader__track" cx="60" cy="60" r="52"></circle>
+          <circle class="lux-loader__progress" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="lux-loader__core">
+          <span class="lux-loader__mark">IQ</span>
+        </div>
+      </div>
+      <div class="lux-loader__sparkles">
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </div>
     <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
-    <p class="loading-screen__text">AI Analyzing...</p>
+    <p class="loading-screen__text">AI Analyzing</p>
+    <div class="lux-loader__bar" aria-hidden="true"><span></span></div>
   </div>
 
   <div class="bg-layer" aria-hidden="true"></div>
@@ -25,7 +43,7 @@
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper">
+  <main class="page page--analysis page--paper page--v31">
     <header class="paper-masthead reveal">
       <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
@@ -33,46 +51,92 @@
       <div class="gold-line" aria-hidden="true"></div>
     </header>
 
-    <!-- 1. 総合評価 -->
-    <section class="paper-section paper-overall reveal" aria-label="総合評価">
-      <h2 class="paper-section__title">総合評価</h2>
-      <div class="paper-overall__grid">
-        <div class="paper-overall__grade-wrap">
-          <p class="paper-overall__label">AI Grade</p>
-          <p class="paper-overall__grade" id="overall-grade">-</p>
-        </div>
-        <div class="paper-overall__stats">
-          <div class="paper-stat">
-            <span class="paper-stat__label">信頼度</span>
-            <span class="paper-stat__value" id="overall-confidence">0%</span>
-            <div class="paper-meter"><span class="paper-meter__fill" id="overall-confidence-bar"></span></div>
+    <!-- 1. AI総合評価ゲージ + 信頼度リング -->
+    <section class="paper-section paper-overall reveal" aria-label="AI総合評価">
+      <h2 class="paper-section__title">AI総合評価</h2>
+      <div class="v31-overall">
+        <div class="v31-gauge-stack">
+          <div class="confidence-ring" id="confidence-ring" data-value="0">
+            <svg class="confidence-ring__svg" viewBox="0 0 160 160" aria-hidden="true">
+              <circle class="confidence-ring__track" cx="80" cy="80" r="68"></circle>
+              <circle class="confidence-ring__value" id="confidence-ring-value" cx="80" cy="80" r="68"></circle>
+            </svg>
+            <div class="confidence-ring__center">
+              <p class="confidence-ring__label">信頼度</p>
+              <p class="confidence-ring__pct" id="overall-confidence">0%</p>
+            </div>
           </div>
+          <div class="overall-gauge" aria-label="AIグレード">
+            <div class="overall-gauge__arc" id="overall-gauge-arc" data-value="0">
+              <svg viewBox="0 0 200 120" class="overall-gauge__svg" aria-hidden="true">
+                <path class="overall-gauge__track" d="M20 100 A80 80 0 0 1 180 100"></path>
+                <path class="overall-gauge__fill" id="overall-gauge-fill" d="M20 100 A80 80 0 0 1 180 100"></path>
+              </svg>
+              <div class="overall-gauge__readout">
+                <p class="overall-gauge__label">AI Grade</p>
+                <p class="paper-overall__grade" id="overall-grade">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="v31-overall__meta">
           <div class="paper-stat">
             <span class="paper-stat__label">期待回収</span>
             <span class="paper-stat__value" id="overall-return">0%</span>
+            <div class="paper-meter"><span class="paper-meter__fill" id="overall-return-bar"></span></div>
           </div>
           <div class="paper-stat">
             <span class="paper-stat__label">リスク</span>
             <span class="paper-stat__value" id="overall-risk">-</span>
           </div>
+          <div class="paper-stat paper-stat--full">
+            <span class="paper-stat__label">信頼度メーター</span>
+            <div class="paper-meter"><span class="paper-meter__fill" id="overall-confidence-bar"></span></div>
+          </div>
+          <p class="paper-overall__comment" id="overall-comment"></p>
         </div>
-        <p class="paper-overall__comment" id="overall-comment"></p>
       </div>
     </section>
 
-    <!-- 2. 展開予想 -->
+    <!-- 2. AIコメント -->
+    <section class="paper-section paper-comment v31-ai-comment reveal" aria-label="AIコメント">
+      <h2 class="paper-section__title">AIコメント</h2>
+      <div class="v31-comment-card">
+        <p class="paper-comment__text" id="analysis-ai-comment"></p>
+        <p class="paper-comment__text paper-comment__scenario" id="pace-scenario-text"></p>
+        <p class="paper-comment__text paper-comment__final" id="final-comment-text"></p>
+      </div>
+    </section>
+
+    <!-- 3. 勝率ランキング -->
+    <section class="paper-section reveal" aria-label="勝率ランキング">
+      <h2 class="paper-section__title">勝率ランキング</h2>
+      <p class="paper-section__lead">AI推定勝率（上位）</p>
+      <div class="win-rank" id="win-rank"></div>
+    </section>
+
+    <!-- 4. 展開予想 -->
     <section class="paper-section reveal" aria-label="展開予想">
       <h2 class="paper-section__title">展開予想</h2>
+      <div class="pace-badges" id="pace-badges"></div>
       <p class="paper-section__lead" id="pace-summary"></p>
       <div class="paper-course-wrap">
         <canvas id="course-canvas" width="900" height="420" aria-label="コース展開図"></canvas>
       </div>
       <div class="pace-lanes paper-pace-lanes" id="pace-lanes"></div>
+      <div class="paper-timeline" id="race-timeline"></div>
     </section>
 
-    <!-- 3. 印 -->
+    <!-- 5. 印（カラー） -->
     <section class="paper-section reveal" aria-label="印">
       <h2 class="paper-section__title">印</h2>
+      <div class="mark-legend" aria-hidden="true">
+        <span class="mark-chip mark--honmei">◎ 本命</span>
+        <span class="mark-chip mark--taikou">○ 対抗</span>
+        <span class="mark-chip mark--ana">▲ 単穴</span>
+        <span class="mark-chip mark--ren">△ 連下</span>
+        <span class="mark-chip mark--hoshi">☆ 穴</span>
+      </div>
       <div class="paper-marks" id="paper-marks"></div>
     </section>
 
@@ -101,10 +165,10 @@
       </div>
     </section>
 
-    <!-- 4. 指数ランキング -->
+    <!-- 指数ランキング -->
     <section class="paper-section reveal" aria-label="指数ランキング">
       <h2 class="paper-section__title">指数ランキング</h2>
-      <p class="paper-section__lead">行をクリックすると詳細を表示します</p>
+      <p class="paper-section__lead">行をタップすると詳細を表示</p>
       <div class="paper-table-wrap">
         <table class="paper-table" id="index-rank-table">
           <thead>
@@ -123,6 +187,7 @@
           <tbody id="index-rank-body"></tbody>
         </table>
       </div>
+      <div class="index-cards" id="index-cards" aria-label="指数カード（スマホ）"></div>
       <div class="paper-detail is-hidden" id="horse-detail" hidden>
         <h3 class="paper-detail__title" id="detail-title">詳細</h3>
         <div class="paper-detail__bars" id="detail-bars"></div>
@@ -131,7 +196,7 @@
       </div>
     </section>
 
-    <!-- 5. 能力比較グラフ -->
+    <!-- 能力比較グラフ -->
     <section class="paper-section reveal" aria-label="能力比較グラフ">
       <h2 class="paper-section__title">能力比較グラフ</h2>
       <div class="paper-charts">
@@ -143,27 +208,21 @@
           <h3 class="paper-chart-card__title">指数バー</h3>
           <canvas id="bar-chart" width="420" height="320" aria-label="指数棒グラフ"></canvas>
         </div>
-        <div class="paper-chart-card">
+        <div class="paper-chart-card paper-chart-card--desktop">
           <h3 class="paper-chart-card__title">期待値トレンド</h3>
           <canvas id="line-chart" width="420" height="320" aria-label="期待値折れ線"></canvas>
         </div>
-        <div class="paper-chart-card">
+        <div class="paper-chart-card paper-chart-card--desktop">
           <h3 class="paper-chart-card__title">脚質分布</h3>
           <canvas id="pie-chart" width="360" height="320" aria-label="脚質円グラフ"></canvas>
         </div>
       </div>
     </section>
 
-    <!-- 6. 脚質分布テキスト -->
+    <!-- 脚質分布 -->
     <section class="paper-section reveal" aria-label="脚質分布">
       <h2 class="paper-section__title">脚質分布</h2>
       <div class="paper-style-grid" id="style-distribution"></div>
-    </section>
-
-    <!-- タイムライン -->
-    <section class="paper-section reveal" aria-label="レースタイムライン">
-      <h2 class="paper-section__title">レースタイムライン</h2>
-      <div class="paper-timeline" id="race-timeline"></div>
     </section>
 
     <!-- 能力バー -->
@@ -172,21 +231,13 @@
       <div class="paper-ability" id="ability-bars"></div>
     </section>
 
-    <!-- 7. 買い目 -->
-    <section class="paper-section reveal" aria-label="買い目">
+    <!-- 買い目タブ -->
+    <section class="paper-section paper-tickets reveal" aria-label="買い目">
       <h2 class="paper-section__title">買い目</h2>
-      <div class="paper-tabs" id="ticket-type-tabs" role="tablist"></div>
-      <div class="paper-tabs paper-tabs--sub" id="ticket-strategy-tabs" role="tablist"></div>
+      <div class="paper-tabs paper-tabs--sticky" id="ticket-strategy-tabs" role="tablist" aria-label="戦略"></div>
+      <div class="paper-tabs paper-tabs--sub" id="ticket-type-tabs" role="tablist" aria-label="券種"></div>
       <div class="ticket-bet-list" id="paper-ticket-bets"></div>
       <p class="paper-ticket-note" id="paper-ticket-note"></p>
-    </section>
-
-    <!-- 8. AIコメント -->
-    <section class="paper-section paper-comment reveal" aria-label="AIコメント">
-      <h2 class="paper-section__title">AIコメント</h2>
-      <p class="paper-comment__text" id="analysis-ai-comment"></p>
-      <p class="paper-comment__text paper-comment__scenario" id="pace-scenario-text"></p>
-      <p class="paper-comment__text paper-comment__final" id="final-comment-text"></p>
     </section>
 
     <div class="page-actions page-actions--stack reveal">
@@ -197,7 +248,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 3.0.0</p>
+    <p>Version 3.1.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>

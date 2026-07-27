@@ -1,6 +1,6 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver3.0.0 AI競馬新聞レイアウト（表示のみ強化）
+   Ver3.1.0 AI競馬新聞（表示強化 / モバイル最優先）
    AIロジックは ai-engine.js をそのまま利用
    ======================================== */
 
@@ -24,10 +24,20 @@ const GOLD_FILL = "rgba(201, 162, 39, 0.32)";
 const TICKET_TYPES = ["単勝", "馬連", "ワイド", "三連複", "三連単"];
 const STRATEGY_UI = [
   { label: "本命", key: "本命型" },
+  { label: "穴", key: "高配当型" },
   { label: "バランス", key: "バランス型" },
-  { label: "穴狙い", key: "高配当型" },
-  { label: "AI対抗", key: "AI対抗" },
+  { label: "AIおすすめ", key: "AIおすすめ" },
 ];
+
+const MARK_CLASS = {
+  "◎": "honmei",
+  "○": "taikou",
+  "〇": "taikou",
+  "▲": "ana",
+  "△": "ren",
+  "☆": "hoshi",
+  "×": "x",
+};
 
 const ABILITY_KEYS = [
   ["speed", "スピード", "gold"],
@@ -38,8 +48,12 @@ const ABILITY_KEYS = [
   ["distance", "距離", "green"],
 ];
 
+const CONF_RING_CIRC = 2 * Math.PI * 68;
+const GAUGE_LEN = 251.2;
+
 let selectedTicketType = "三連複";
-let selectedStrategy = "バランス型";
+let selectedStrategy = "AIおすすめ";
+let cachedTickets = null;
 
 export async function initAnalysisPage() {
   const params = getSearchParams();
@@ -110,8 +124,12 @@ export async function initAnalysisPage() {
 }
 
 export function renderAnalysis(result, race = {}) {
-  const reports = enrichMarks(result.horseReports || result.horses || []);
+  const reports = enrichMarks(
+    result.horseReports || result.horses || [],
+    result.horses || []
+  );
   const overall = result.overall || {};
+  cachedTickets = result.tickets || null;
 
   const meta = document.getElementById("paper-race-meta");
   if (meta) {
@@ -134,31 +152,42 @@ export function renderAnalysis(result, race = {}) {
     "%",
     900
   );
-  const bar = document.getElementById("overall-confidence-bar");
-  if (bar) {
+  animateConfidenceRing(Number(overall.confidence) || 0);
+  animateOverallGauge(gradeToGauge(overall.grade), Number(overall.confidence) || 0);
+
+  const confBar = document.getElementById("overall-confidence-bar");
+  if (confBar) {
     requestAnimationFrame(() => {
-      bar.style.width = `${clamp(overall.confidence || 0, 0, 100)}%`;
+      confBar.style.width = `${clamp(overall.confidence || 0, 0, 100)}%`;
     });
   }
+
   animateCount(
     document.getElementById("overall-return"),
     Number(overall.expectedReturn) || 0,
     "%",
     1000
   );
+  const returnBar = document.getElementById("overall-return-bar");
+  if (returnBar) {
+    requestAnimationFrame(() => {
+      returnBar.style.width = `${clamp(overall.expectedReturn || 0, 0, 100)}%`;
+    });
+  }
+
   document.getElementById("overall-risk").textContent = overall.risk || "-";
   document.getElementById("overall-comment").textContent =
     overall.comment || "";
 
-  const pace = result.paceForecast || {};
-  document.getElementById("pace-summary").textContent =
-    `${pace.pace || "平均"} ／ ${pace.advantage || "先行有利"} ／ 逃げ${pace.nige || 0} 先行${pace.senkou || 0} 差し${pace.sashi || 0} 追込${pace.oikomi || 0}`;
-
+  renderPaceForecast(result);
+  renderWinRank(reports);
   renderPaceLanes(result.paceLanes || []);
   drawCourseMap(document.getElementById("course-canvas"), result);
+  renderTimeline(result, reports);
   renderMarks(reports);
   renderSpotlight(result, reports);
   renderIndexTable(reports);
+  renderIndexCards(reports);
 
   drawRadarChart(document.getElementById("radar-chart"), result.radar);
   drawBarChart(document.getElementById("bar-chart"), reports.slice(0, 8));
@@ -166,15 +195,17 @@ export function renderAnalysis(result, race = {}) {
   drawPieChart(document.getElementById("pie-chart"), result.paceForecast);
 
   renderStyleDistribution(result.paceLanes || [], result.paceForecast);
-  renderTimeline(result, reports);
   renderAbilityBars(reports.slice(0, 6));
 
   selectedTicketType = result.tickets?.defaultType || "三連複";
-  selectedStrategy = result.tickets?.defaultStrategy || "バランス型";
+  selectedStrategy = "AIおすすめ";
   renderTicketTabs(result.tickets);
   renderTicketBets(result.tickets);
 
-  appendLines(document.getElementById("analysis-ai-comment"), result.aiComment || []);
+  appendLines(
+    document.getElementById("analysis-ai-comment"),
+    result.aiComment || []
+  );
   document.getElementById("pace-scenario-text").textContent =
     result.paceScenario || "";
   document.getElementById("final-comment-text").textContent =
@@ -183,7 +214,7 @@ export function renderAnalysis(result, race = {}) {
   applyCardStagger();
 }
 
-function enrichMarks(list) {
+function enrichMarks(list, sourceHorses = []) {
   const ranked = [...list].sort(
     (a, b) =>
       (b.thinking?.score || b.aiIndex || 0) -
@@ -192,6 +223,8 @@ function enrichMarks(list) {
   );
   const marks = ["◎", "○", "▲", "△", "☆"];
   return ranked.map((horse, index) => {
+    const source =
+      sourceHorses.find((h) => h.number === horse.number) || horse;
     let mark =
       horse.mark && ["◎", "〇", "○", "▲", "△", "☆", "注"].includes(horse.mark)
         ? horse.mark
@@ -224,17 +257,144 @@ function enrichMarks(list) {
       horse.expectedValuePercent != null
         ? horse.expectedValuePercent
         : Math.round(((horse.indexes?.expectedValue || 500) / 10) * 1.5);
+    const winPct =
+      horse.probability?.win != null
+        ? Number(horse.probability.win)
+        : Number(horse.winRate) || Math.max(1, aiIndex / 4);
 
     return {
       ...horse,
       paperMark: mark,
+      markClass: MARK_CLASS[mark] || "x",
       markReason: reason,
       aiIndex,
       expectedValuePercent,
+      winPct,
       risk: horse.risk || horse.riskLabel || "Medium",
-      runningStyle: horse.runningStyle || "差し",
-      popularity: horse.popularity || "-",
+      runningStyle:
+        horse.runningStyle || source.runningStyle || "差し",
+      popularity: horse.popularity || source.popularity || "-",
     };
+  });
+}
+
+function markClassName(mark) {
+  return MARK_CLASS[mark] || "x";
+}
+
+function gradeToGauge(grade) {
+  const map = { S: 96, A: 84, B: 70, C: 55, D: 38, E: 22 };
+  return map[String(grade || "").toUpperCase()] ?? 50;
+}
+
+function animateConfidenceRing(value) {
+  const ring = document.getElementById("confidence-ring");
+  const arc = document.getElementById("confidence-ring-value");
+  if (!arc) return;
+  const pct = clamp(value, 0, 100);
+  arc.style.strokeDasharray = String(CONF_RING_CIRC);
+  arc.style.strokeDashoffset = String(CONF_RING_CIRC);
+  requestAnimationFrame(() => {
+    arc.style.strokeDashoffset = String(
+      CONF_RING_CIRC * (1 - pct / 100)
+    );
+    ring?.classList.add("is-animated");
+  });
+}
+
+function animateOverallGauge(score, confidence) {
+  const fill = document.getElementById("overall-gauge-fill");
+  if (!fill) return;
+  const pct = clamp(Math.max(score, confidence * 0.9), 0, 100);
+  fill.style.strokeDasharray = String(GAUGE_LEN);
+  fill.style.strokeDashoffset = String(GAUGE_LEN);
+  requestAnimationFrame(() => {
+    fill.style.strokeDashoffset = String(GAUGE_LEN * (1 - pct / 100));
+  });
+}
+
+function renderPaceForecast(result) {
+  const pace = result.paceForecast || {};
+  const badges = document.getElementById("pace-badges");
+  if (badges) {
+    clearElement(badges);
+    [
+      { text: `ペース ${pace.pace || "平均"}`, cls: "pace-badge--pace" },
+      {
+        text: pace.advantage || "先行有利",
+        cls: "pace-badge--adv",
+      },
+      {
+        text: `逃${pace.nige || 0} 先${pace.senkou || 0} 差${pace.sashi || 0} 追${pace.oikomi || 0}`,
+        cls: "pace-badge--count",
+      },
+    ].forEach((item) => {
+      badges.appendChild(
+        createElement("span", {
+          className: `pace-badge ${item.cls}`,
+          text: item.text,
+        })
+      );
+    });
+  }
+
+  const summary = document.getElementById("pace-summary");
+  if (summary) {
+    summary.textContent =
+      result.paceScenario ||
+      `${pace.pace || "平均"}ペース想定。${pace.advantage || "先行有利"}の展開をベースに位置取りを整理しています。`;
+  }
+}
+
+function renderWinRank(reports) {
+  const root = document.getElementById("win-rank");
+  if (!root) return;
+  clearElement(root);
+
+  const sorted = [...reports].sort(
+    (a, b) => (b.winPct || 0) - (a.winPct || 0)
+  );
+  const max = Math.max(...sorted.map((h) => h.winPct || 0), 1);
+
+  sorted.slice(0, 10).forEach((horse, index) => {
+    const fill = createElement("span", { className: "win-rank__fill" });
+    const track = createElement("div", {
+      className: "win-rank__track",
+      children: [fill],
+    });
+    const body = createElement("div", {
+      className: "win-rank__body",
+      children: [
+        createElement("p", {
+          className: "win-rank__name",
+          text: `${horse.number}番 ${horse.horse}`,
+        }),
+        track,
+      ],
+    });
+    root.appendChild(
+      createElement("div", {
+        className: "win-rank__row",
+        children: [
+          createElement("span", {
+            className: "win-rank__pos",
+            text: `${index + 1}`,
+          }),
+          createElement("span", {
+            className: `win-rank__mark mark--${horse.markClass}`,
+            text: horse.paperMark,
+          }),
+          body,
+          createElement("span", {
+            className: "win-rank__pct",
+            text: `${Number(horse.winPct || 0).toFixed(1)}%`,
+          }),
+        ],
+      })
+    );
+    requestAnimationFrame(() => {
+      fill.style.width = `${clamp(((horse.winPct || 0) / max) * 100, 4, 100)}%`;
+    });
   });
 }
 
@@ -264,7 +424,7 @@ function renderMarks(reports) {
   reports.slice(0, 12).forEach((horse) => {
     root.appendChild(
       createElement("article", {
-        className: "paper-mark-row",
+        className: `paper-mark-row paper-mark-row--${horse.markClass}`,
         children: [
           createElement("div", {
             className: "paper-mark-row__mark",
@@ -338,12 +498,80 @@ function renderIndexTable(reports) {
       horse.runningStyle,
       `${horse.popularity}番人気`,
     ]);
+    const markCell = tr.children[1];
+    if (markCell) {
+      markCell.className = `td-mark mark--${horse.markClass}`;
+    }
     tr.addEventListener("click", () => {
       body.querySelectorAll("tr").forEach((row) => row.classList.remove("is-active"));
       tr.classList.add("is-active");
+      document
+        .querySelectorAll(".index-card")
+        .forEach((card) => card.classList.remove("is-active"));
       showDetail(horse);
     });
     body.appendChild(tr);
+  });
+}
+
+function renderIndexCards(reports) {
+  const root = document.getElementById("index-cards");
+  if (!root) return;
+  clearElement(root);
+
+  reports.forEach((horse, index) => {
+    const card = createElement("article", {
+      className: "index-card",
+      children: [
+        createElement("div", {
+          className: "index-card__left",
+          children: [
+            createElement("span", {
+              className: "index-card__rank",
+              text: `${index + 1}位`,
+            }),
+            createElement("span", {
+              className: `index-card__mark mark--${horse.markClass}`,
+              text: horse.paperMark,
+            }),
+          ],
+        }),
+        createElement("div", {
+          className: "index-card__main",
+          children: [
+            createElement("p", {
+              className: "index-card__name",
+              text: `${horse.number}番 ${horse.horse}`,
+            }),
+            createElement("p", {
+              className: "index-card__meta",
+              text: `${horse.runningStyle} ／ ${horse.popularity}人気 ／ 危険度 ${horse.risk}`,
+            }),
+          ],
+        }),
+        createElement("div", {
+          className: "index-card__score",
+          children: [
+            createElement("span", {
+              className: "index-card__ai",
+              text: String(horse.aiIndex),
+            }),
+            createElement("span", {
+              className: "index-card__ev",
+              text: `EV ${horse.expectedValuePercent}%`,
+            }),
+          ],
+        }),
+      ],
+    });
+    card.addEventListener("click", () => {
+      root
+        .querySelectorAll(".index-card")
+        .forEach((el) => el.classList.remove("is-active"));
+      card.classList.add("is-active");
+      showDetail(horse);
+    });
+    root.appendChild(card);
   });
 }
 
@@ -352,13 +580,22 @@ function showDetail(horse) {
   if (!panel) return;
   panel.hidden = false;
   panel.classList.remove("is-hidden");
-  setText("detail-title", `${horse.paperMark} ${horse.number}番 ${horse.horse}`);
+  setText(
+    "detail-title",
+    `${horse.paperMark} ${horse.number}番 ${horse.horse}`
+  );
 
   const bars = document.getElementById("detail-bars");
   clearElement(bars);
   const breakdown = horse.breakdown || {};
   ABILITY_KEYS.forEach(([key, label, color]) => {
-    const value = Number(breakdown[key] ?? horse.thinking?.factors?.[key] ?? 60);
+    const value = Number(
+      breakdown[key] != null
+        ? breakdown[key]
+        : horse.thinking?.factors?.[key] != null
+          ? horse.thinking.factors[key]
+          : 60
+    );
     bars.appendChild(buildAbilityRow(label, value, color));
   });
   requestAnimationFrame(() => animateAbilityBars(bars));
@@ -370,6 +607,7 @@ function showDetail(horse) {
       "",
       horse.markReason || "",
       horse.oddsLabel ? `オッズ判定: ${horse.oddsLabel}` : "",
+      horse.winPct != null ? `推定勝率: ${Number(horse.winPct).toFixed(1)}%` : "",
     ].filter(Boolean)
   );
   panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -414,13 +652,15 @@ function renderStyleDistribution(lanes, pace) {
   ["逃げ", "先行", "差し", "追込"].forEach((label) => {
     const lane = lanes.find((l) => l.label === label);
     const horses = (lane?.horses || []).filter((h) => h && h !== "-");
+    const count =
+      counts[label] != null ? counts[label] : horses.length;
     root.appendChild(
       createElement("div", {
         className: "paper-style-item",
         children: [
           createElement("p", {
             className: "paper-style-item__label",
-            text: `${label}（${counts[label] ?? horses.length}）`,
+            text: `${label}（${count}）`,
           }),
           createElement("p", {
             className: "paper-style-item__horses",
@@ -464,10 +704,9 @@ function renderTimeline(result, reports) {
     },
     {
       label: "4角",
-      text:
-        String(pace).includes("スロー")
-          ? "逃げ先行が残る展開。捲りは厳しい。"
-          : "後方勢が一気に進出開始。",
+      text: String(pace).includes("スロー")
+        ? "逃げ先行が残る展開。捲りは厳しい。"
+        : "後方勢が一気に進出開始。",
     },
     {
       label: "直線",
@@ -509,10 +748,13 @@ function renderAbilityBars(reports) {
   reports.forEach((horse) => {
     const rows = createElement("div", { className: "paper-detail__bars" });
     ABILITY_KEYS.forEach(([key, label, color]) => {
-      const value = Number(
-        horse.breakdown?.[key] ?? horse.thinking?.factors?.[key] ?? 60
-      );
-      rows.appendChild(buildAbilityRow(label, value, color));
+      const raw =
+        horse.breakdown?.[key] != null
+          ? horse.breakdown[key]
+          : horse.thinking?.factors?.[key] != null
+            ? horse.thinking.factors[key]
+            : 60;
+      rows.appendChild(buildAbilityRow(label, Number(raw), color));
     });
     root.appendChild(
       createElement("div", {
@@ -530,27 +772,20 @@ function renderAbilityBars(reports) {
   requestAnimationFrame(() => animateAbilityBars(root));
 }
 
+function resolveStrategyKey(strategy, tickets) {
+  if (strategy !== "AIおすすめ") return strategy;
+  return (
+    tickets?.defaultStrategy ||
+    (tickets?.bias === "穴狙い" ? "高配当型" : "バランス型")
+  );
+}
+
 function renderTicketTabs(tickets) {
   const typeTabs = document.getElementById("ticket-type-tabs");
   const strategyTabs = document.getElementById("ticket-strategy-tabs");
   if (!typeTabs || !strategyTabs) return;
   clearElement(typeTabs);
   clearElement(strategyTabs);
-
-  TICKET_TYPES.forEach((type) => {
-    typeTabs.appendChild(
-      createElement("button", {
-        type: "button",
-        className: `paper-tab${type === selectedTicketType ? " is-active" : ""}`,
-        text: type,
-        onClick: () => {
-          selectedTicketType = type;
-          renderTicketTabs(tickets);
-          renderTicketBets(tickets);
-        },
-      })
-    );
-  });
 
   STRATEGY_UI.forEach((strategy) => {
     strategyTabs.appendChild(
@@ -560,8 +795,23 @@ function renderTicketTabs(tickets) {
         text: strategy.label,
         onClick: () => {
           selectedStrategy = strategy.key;
-          renderTicketTabs(tickets);
-          renderTicketBets(tickets);
+          renderTicketTabs(tickets || cachedTickets);
+          renderTicketBets(tickets || cachedTickets);
+        },
+      })
+    );
+  });
+
+  TICKET_TYPES.forEach((type) => {
+    typeTabs.appendChild(
+      createElement("button", {
+        type: "button",
+        className: `paper-tab${type === selectedTicketType ? " is-active" : ""}`,
+        text: type,
+        onClick: () => {
+          selectedTicketType = type;
+          renderTicketTabs(tickets || cachedTickets);
+          renderTicketBets(tickets || cachedTickets);
         },
       })
     );
@@ -571,25 +821,31 @@ function renderTicketTabs(tickets) {
 function resolveTicketData(tickets, type, strategy) {
   const node = tickets?.types?.[type];
   if (!node) return null;
-  if (strategy === "AI対抗") {
-    const base = node["バランス型"] || node["本命型"] || node;
+  const resolved = resolveStrategyKey(strategy, tickets);
+  if (strategy === "AIおすすめ") {
+    const base =
+      node[resolved] || node["バランス型"] || node["本命型"] || node;
     return {
       ...base,
       comment: [
-        "AI対抗表示: 思考評価2番手以降を意識した見方です。",
+        `AIおすすめ（${resolved}）を自動選択しています。`,
         "",
         ...(base.comment || []),
       ],
     };
   }
-  return node[strategy] || node["バランス型"] || node;
+  return node[resolved] || node["バランス型"] || node;
 }
 
 function renderTicketBets(tickets) {
   const list = document.getElementById("paper-ticket-bets");
   if (!list) return;
   clearElement(list);
-  const data = resolveTicketData(tickets, selectedTicketType, selectedStrategy);
+  const data = resolveTicketData(
+    tickets || cachedTickets,
+    selectedTicketType,
+    selectedStrategy
+  );
   if (!data?.bets?.length) {
     list.appendChild(
       createElement("p", {
@@ -601,8 +857,9 @@ function renderTicketBets(tickets) {
   }
 
   data.bets.slice(0, 8).forEach((bet) => {
+    const markCls = markClassName(bet.mark);
     const mark = createElement("span", {
-      className: "ticket-bet-card__mark",
+      className: `ticket-bet-card__mark mark--${markCls}`,
       text: bet.mark,
     });
     const combo = createElement("span", {
@@ -966,7 +1223,7 @@ function initRevealObserver() {
         }
       });
     },
-    { threshold: 0.12 }
+    { threshold: 0.08 }
   );
   nodes.forEach((n) => io.observe(n));
 }
