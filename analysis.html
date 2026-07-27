@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="PAPAPA IQ KEIBA プロ仕様AI競馬新聞。展開・印・指数・買い目を一目で把握。">
+  <meta name="description" content="PAPAPA IQ KEIBA プロ仕様AI競馬新聞。シミュレーション・レーダー・適性・危険アラートまで一気に把握。">
   <meta name="theme-color" content="#070707">
   <title>AI分析新聞 | PAPAPA IQ KEIBA</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -13,6 +13,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="is-loading page-analysis">
+  <div class="ai-scan-overlay" id="ai-scan-overlay" aria-hidden="true">
+    <div class="ai-scan-overlay__glow"></div>
+    <div class="ai-scan-overlay__line"></div>
+    <p class="ai-scan-overlay__text">AI DEEP ANALYSIS</p>
+  </div>
+
   <div class="loading-screen loading-screen--lux" id="loading-screen" aria-hidden="true" aria-busy="true">
     <div class="lux-loader" aria-hidden="true">
       <div class="lux-loader__orbit lux-loader__orbit--outer"></div>
@@ -43,7 +49,7 @@
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper page--v31">
+  <main class="page page--analysis page--paper page--v31 page--v32">
     <header class="paper-masthead reveal">
       <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
@@ -51,7 +57,40 @@
       <div class="gold-line" aria-hidden="true"></div>
     </header>
 
-    <!-- 1. AI総合評価ゲージ + 信頼度リング -->
+    <!-- ① AIシミュレーション -->
+    <section class="paper-section v32-sim reveal" aria-label="AIシミュレーション">
+      <h2 class="paper-section__title">AIシミュレーション ×1000</h2>
+      <p class="paper-section__lead" id="sim-lead">AI評価値を基に1000回レースを想定した分布です</p>
+      <div class="sim-focus glass-card" id="sim-focus">
+        <p class="sim-focus__label">基準馬</p>
+        <h3 class="sim-focus__horse" id="sim-focus-horse">—</h3>
+      </div>
+      <div class="sim-grid" id="sim-grid">
+        <article class="glass-card sim-card">
+          <p class="sim-card__label">勝率</p>
+          <p class="sim-card__value"><span id="sim-win">0</span><small>%</small></p>
+          <div class="paper-meter"><span class="paper-meter__fill" id="sim-win-bar"></span></div>
+        </article>
+        <article class="glass-card sim-card">
+          <p class="sim-card__label">連対率</p>
+          <p class="sim-card__value"><span id="sim-place">0</span><small>%</small></p>
+          <div class="paper-meter"><span class="paper-meter__fill" id="sim-place-bar"></span></div>
+        </article>
+        <article class="glass-card sim-card">
+          <p class="sim-card__label">複勝率</p>
+          <p class="sim-card__value"><span id="sim-show">0</span><small>%</small></p>
+          <div class="paper-meter"><span class="paper-meter__fill" id="sim-show-bar"></span></div>
+        </article>
+        <article class="glass-card sim-card">
+          <p class="sim-card__label">期待値(EV)</p>
+          <p class="sim-card__value"><span id="sim-ev">0</span><small>%</small></p>
+          <div class="paper-meter"><span class="paper-meter__fill" id="sim-ev-bar"></span></div>
+        </article>
+      </div>
+      <div class="sim-rows" id="sim-rows"></div>
+    </section>
+
+    <!-- AI総合評価 -->
     <section class="paper-section paper-overall reveal" aria-label="AI総合評価">
       <h2 class="paper-section__title">AI総合評価</h2>
       <div class="v31-overall">
@@ -98,24 +137,44 @@
       </div>
     </section>
 
-    <!-- 2. AIコメント -->
-    <section class="paper-section paper-comment v31-ai-comment reveal" aria-label="AIコメント">
-      <h2 class="paper-section__title">AIコメント</h2>
+    <!-- ⑦ AI総合コメント -->
+    <section class="paper-section paper-comment v31-ai-comment v32-deep-comment reveal" aria-label="AI総合コメント">
+      <h2 class="paper-section__title">AI総合コメント</h2>
       <div class="v31-comment-card">
-        <p class="paper-comment__text" id="analysis-ai-comment"></p>
-        <p class="paper-comment__text paper-comment__scenario" id="pace-scenario-text"></p>
+        <div class="deep-comment" id="deep-ai-comment"></div>
+        <p class="paper-comment__text is-visually-hidden" id="analysis-ai-comment"></p>
+        <p class="paper-comment__text paper-comment__scenario is-visually-hidden" id="pace-scenario-text"></p>
         <p class="paper-comment__text paper-comment__final" id="final-comment-text"></p>
       </div>
     </section>
 
-    <!-- 3. 勝率ランキング -->
+    <!-- ⑤ AI注目穴馬 -->
+    <section class="paper-section reveal" aria-label="AI注目穴馬">
+      <h2 class="paper-section__title">AI注目穴馬</h2>
+      <div class="upset-spotlight" id="upset-spotlight"></div>
+    </section>
+
+    <!-- ④ AI危険馬アラート -->
+    <section class="paper-section reveal" aria-label="AI危険馬アラート">
+      <h2 class="paper-section__title">AI危険馬アラート</h2>
+      <div class="danger-alert-list" id="danger-alert-list"></div>
+    </section>
+
+    <!-- 勝率ランキング -->
     <section class="paper-section reveal" aria-label="勝率ランキング">
       <h2 class="paper-section__title">勝率ランキング</h2>
       <p class="paper-section__lead">AI推定勝率（上位）</p>
       <div class="win-rank" id="win-rank"></div>
     </section>
 
-    <!-- 4. 展開予想 -->
+    <!-- ⑥ AI期待値(EV) -->
+    <section class="paper-section reveal" aria-label="AI期待値">
+      <h2 class="paper-section__title">AI期待値(EV)</h2>
+      <p class="paper-section__lead">AI勝率 × オッズから算出（緑=買い / 黄=様子見 / 赤=見送り）</p>
+      <div class="ev-list" id="ev-list"></div>
+    </section>
+
+    <!-- 展開予想 -->
     <section class="paper-section reveal" aria-label="展開予想">
       <h2 class="paper-section__title">展開予想</h2>
       <div class="pace-badges" id="pace-badges"></div>
@@ -127,7 +186,7 @@
       <div class="paper-timeline" id="race-timeline"></div>
     </section>
 
-    <!-- 5. 印（カラー） -->
+    <!-- 印 -->
     <section class="paper-section reveal" aria-label="印">
       <h2 class="paper-section__title">印</h2>
       <div class="mark-legend" aria-hidden="true">
@@ -165,6 +224,13 @@
       </div>
     </section>
 
+    <!-- ②③ 馬別ディープ分析（レーダー / 適性） -->
+    <section class="paper-section reveal" aria-label="AI馬別ディープ分析">
+      <h2 class="paper-section__title">AI馬別ディープ分析</h2>
+      <p class="paper-section__lead">能力レーダー・コース/馬場適性・危険バッジ</p>
+      <div class="horse-deep-list" id="horse-deep-list"></div>
+    </section>
+
     <!-- 指数ランキング -->
     <section class="paper-section reveal" aria-label="指数ランキング">
       <h2 class="paper-section__title">指数ランキング</h2>
@@ -190,7 +256,12 @@
       <div class="index-cards" id="index-cards" aria-label="指数カード（スマホ）"></div>
       <div class="paper-detail is-hidden" id="horse-detail" hidden>
         <h3 class="paper-detail__title" id="detail-title">詳細</h3>
+        <div class="detail-radar-wrap">
+          <svg id="detail-radar" class="mini-radar-svg" viewBox="0 0 200 200" aria-label="詳細レーダー"></svg>
+        </div>
         <div class="paper-detail__bars" id="detail-bars"></div>
+        <div class="aptitude-block" id="detail-aptitude"></div>
+        <div class="alert-badges" id="detail-alerts"></div>
         <p class="paper-detail__text" id="detail-text"></p>
         <button type="button" class="btn-secondary" id="detail-close">閉じる</button>
       </div>
@@ -231,7 +302,7 @@
       <div class="paper-ability" id="ability-bars"></div>
     </section>
 
-    <!-- 買い目タブ -->
+    <!-- 買い目 -->
     <section class="paper-section paper-tickets reveal" aria-label="買い目">
       <h2 class="paper-section__title">買い目</h2>
       <div class="paper-tabs paper-tabs--sticky" id="ticket-strategy-tabs" role="tablist" aria-label="戦略"></div>
@@ -248,7 +319,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 3.1.0</p>
+    <p>Version 3.2.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
