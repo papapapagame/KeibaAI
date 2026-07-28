@@ -56,6 +56,8 @@ import {
   mergeRaceWithWeather,
   getWeatherDashboard,
   applyWeatherTrackAdjustments,
+  getWeatherMode,
+  setWeatherMode,
 } from "../services/weather/index.js";
 import {
   loadNewsForAi,
@@ -396,7 +398,11 @@ export async function initAnalysisPage() {
           entryBundle?.confidenceHint ??
           82,
       }),
-    { ok: false, message: "Weather 取得失敗" }
+    {
+      ok: false,
+      message: "天候情報を取得できませんでした",
+      userMessage: "天候情報を取得できませんでした",
+    }
   );
 
   // Ver8.0 News Intelligence — 構造化メタデータのみ（本文なし）
@@ -1827,6 +1833,8 @@ function bindOddsModeControls() {
 function bindWeatherStatusUi(weatherBundle) {
   const wc = weatherBundle?.weatherCompleteness || {};
   const w = weatherBundle?.weather || {};
+  const intel = weatherBundle?.trackIntel || weatherBundle?.scores || {};
+  const mode = getWeatherMode();
   setText("wc-weather", wc.weather != null ? `${wc.weather}%` : "—");
   setText("wc-track", wc.track != null ? `${wc.track}%` : "—");
   setText("wc-wind", wc.wind != null ? `${wc.wind}%` : "—");
@@ -1844,12 +1852,37 @@ function bindWeatherStatusUi(weatherBundle) {
       : "—"
   );
   setText(
+    "weather-temp",
+    w.temperature != null ? `${w.temperature}℃` : "—"
+  );
+  setText(
+    "weather-humidity",
+    w.humidity != null ? `${w.humidity}%` : "—"
+  );
+  setText(
+    "weather-provider-kind",
+    weatherBundle?.providerKind || (mode === "real" ? "Real" : "Mock")
+  );
+  setText(
+    "weather-score",
+    intel.weatherScore != null
+      ? String(intel.weatherScore)
+      : w.weatherScore != null
+        ? String(w.weatherScore)
+        : "—"
+  );
+  setText(
     "weather-updated",
     weatherBundle?.fetchedAt
       ? formatUpdateTime(weatherBundle.fetchedAt)
       : "—"
   );
-  setText("weather-stage-note", weatherBundle?.stageNote || "");
+  setText(
+    "weather-stage-note",
+    weatherBundle?.ok === false
+      ? weatherBundle?.userMessage || "天候情報を取得できませんでした"
+      : weatherBundle?.stageNote || ""
+  );
 }
 
 function bindWeatherAiPanel(weatherBundle, stage) {
@@ -1909,17 +1942,24 @@ function bindWeatherDevUi(weatherBundle) {
   const dash = getWeatherDashboard();
   const w = weatherBundle?.weather || dash.weather || {};
   const intel = weatherBundle?.trackIntel || dash.trackIntel || {};
+  const mode = getWeatherMode();
   setText(
     "dev-weather-status",
-    weatherBundle?.ok
-      ? `${w.weather || "—"} / ${w.temperature ?? "—"}℃ / ${weatherBundle.phase || "—"}`
-      : "—"
+    weatherBundle?.ok === false
+      ? "ERROR"
+      : weatherBundle?.ok
+        ? `${w.weather || "—"} / ${w.temperature ?? "—"}℃ / ${weatherBundle.phase || "—"}`
+        : "—"
   );
   setText(
     "dev-track-status",
     weatherBundle?.ok
       ? `${w.trackCondition || "—"} T${intel.trackScore ?? "—"} W${intel.weatherScore ?? "—"} S${intel.surfaceScore ?? "—"}`
       : "—"
+  );
+  setText(
+    "dev-weather-count",
+    String(weatherBundle?.count ?? (weatherBundle?.ok ? 1 : 0))
   );
   setText(
     "dev-weather-validation",
@@ -1949,6 +1989,63 @@ function bindWeatherDevUi(weatherBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+  setText(
+    "dev-real-weather-status",
+    weatherBundle?.ok === false
+      ? "ERROR"
+      : weatherBundle?.mode === "real"
+        ? "ONLINE"
+        : "MOCK"
+  );
+  setText(
+    "dev-real-weather-provider",
+    weatherBundle?.providerId || (mode === "real" ? "real-weather" : "mock")
+  );
+  setText(
+    "dev-real-weather-count",
+    String(weatherBundle?.count ?? (weatherBundle?.ok ? 1 : 0))
+  );
+  setText(
+    "dev-real-weather-validation",
+    weatherBundle?.validation?.ok
+      ? `OK (warn ${weatherBundle.validation.warnings?.length || 0})`
+      : `NG ${weatherBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-weather-sync",
+    weatherBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-real-weather-updated",
+    weatherBundle?.fetchedAt
+      ? formatUpdateTime(weatherBundle.fetchedAt)
+      : "—"
+  );
+
+  bindWeatherModeControls();
+}
+
+function bindWeatherModeControls() {
+  const mode = getWeatherMode();
+  const note = document.getElementById("weather-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real Weather（失敗時は Mock へ自動切替しません）"
+        : "Mock Weather を使用中";
+  }
+  document.querySelectorAll("[data-weather-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-weather-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setWeatherMode(btn.getAttribute("data-weather-mode"));
+      location.reload();
+    });
+  });
 }
 
 function bindNewsStatusUi(newsBundle) {

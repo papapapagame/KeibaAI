@@ -1,0 +1,65 @@
+{
+  "version": "10.3.0",
+  "source": "real",
+  "providerId": "real-weather",
+  "providerName": "Real Weather",
+  "updatedAt": "2026-07-28T19:15:00+09:00",
+  "fetchedAt": "2026-07-28T19:15:00+09:00",
+  "raceDate": "2026-07-27",
+  "venueId": "tokyo",
+  "raceNumber": 11,
+  "phase": "final",
+  "weather": {
+    "weather": "晴",
+    "temperature": 29.2,
+    "humidity": 58,
+    "windSpeed": 3.8,
+    "windDirection": "南西",
+    "trackCondition": "良",
+    "surface": "芝",
+    "surfaceState": "標準",
+    "turfCondition": "良",
+    "dirtCondition": "稍重",
+    "moisture": 11.8,
+    "moistureAvailable": true,
+    "precipitation": 0,
+    "precipitationAvailable": true,
+    "updatedAt": "2026-07-28T19:10:00+09:00",
+    "providerName": "Real Weather",
+    "history": [
+      {
+        "at": "2026-07-27T18:00:00+09:00",
+        "weather": "曇",
+        "trackCondition": "良",
+        "windSpeed": 2.1,
+        "windDirection": "南",
+        "temperature": 27.0,
+        "humidity": 70,
+        "moisture": 14.2,
+        "precipitation": 0
+      },
+      {
+        "at": "2026-07-28T12:00:00+09:00",
+        "weather": "晴",
+        "trackCondition": "良",
+        "windSpeed": 3.0,
+        "windDirection": "南西",
+        "temperature": 28.4,
+        "humidity": 63,
+        "moisture": 12.6,
+        "precipitation": 0
+      },
+      {
+        "at": "2026-07-28T19:10:00+09:00",
+        "weather": "晴",
+        "trackCondition": "良",
+        "windSpeed": 3.8,
+        "windDirection": "南西",
+        "temperature": 29.2,
+        "humidity": 58,
+        "moisture": 11.8,
+        "precipitation": 0
+      }
+    ]
+  }
+}

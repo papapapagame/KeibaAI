@@ -6,6 +6,7 @@ import { MockProvider } from "./providers/mock-provider.js";
 import { RealRaceProvider } from "./race/real-race-provider.js";
 import { RealHorseProvider } from "./horse/real-horse-provider.js";
 import { RealOddsProvider } from "./odds/real-odds-provider.js";
+import { RealWeatherProvider } from "./weather/real-weather-provider.js";
 import {
   JraProvider,
   JbisProvider,
@@ -21,6 +22,7 @@ const FACTORIES = {
   "real-race": () => new RealRaceProvider(),
   "real-horse": () => new RealHorseProvider(),
   "real-odds": () => new RealOddsProvider(),
+  "real-weather": () => new RealWeatherProvider(),
   jra: () => new JraProvider(),
   jbis: () => new JbisProvider(),
   netkeiba: () => new NetkeibaProvider(),

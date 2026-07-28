@@ -1,9 +1,9 @@
 # PAPAPA IQ KEIBA
 
-**Version 10.2.0 — Real Odds**  
-Build Date: 2026-07-28 · Build Number: 20260728.102
+**Version 10.3.0 — Real Weather**  
+Build Date: 2026-07-28 · Build Number: 20260728.103
 
-実開催カレンダー・出馬表に続き、オッズ／人気を Real Data へ移行した段階です。  
+実開催カレンダー・出馬表・オッズに続き、天候／馬場を Real Data へ移行した段階です。  
 既存評価ロジック（`js/ai-engine.js` / `js/thinking-engine.js`）は変更していません。
 
 ---
@@ -28,6 +28,7 @@ UI (HTML/CSS/js/*)
        ├─ provider/race     ← Ver10.0 RealRaceProvider
        ├─ provider/horse    ← Ver10.1 RealHorseProvider
        ├─ provider/odds     ← Ver10.2 RealOddsProvider
+       ├─ provider/weather  ← Ver10.3 RealWeatherProvider
        ├─ update / entry / draw / odds / weather
        ├─ news / social / discussion / explain / knowledge
        ├─ learning / review / market / intelligence / provider
@@ -36,6 +37,43 @@ Runtime (services/runtime) — エラーガード / Prefetch 重複防止
 ```
 
 **Prediction Engine** = 既存 `ai-engine.js` + `thinking-engine.js`（非改変）
+
+---
+
+## Real Weather Provider（Ver10.3）
+
+配置: `services/provider/weather/`
+
+| モジュール | 責務 |
+|------------|------|
+| `RealWeatherProvider` | Provider 共通 I/F |
+| `WeatherFetcher` | 天候生データ取得 |
+| `WeatherParser` | パース |
+| `WeatherNormalizer` | Unified Weather/Track + Score |
+| `WeatherValidator` | 異常値・必須・更新時刻検証 |
+| `WeatherSynchronizer` | 変更時のみ同期 / Smart Update |
+| `TrackConditionParser` | 芝／ダート状態正規化 |
+
+### Weather 取得
+
+既定 URL: `data/weather/real-weather.json`（`REAL_WEATHER_URL` で差し替え可）  
+天候 / 馬場 / 芝・ダート状態 / 気温 / 湿度 / 風向 / 風速 / 降水量（任意） / 更新時刻 / Provider 名
+
+### Track 取得
+
+馬場状態・芝／ダート状態・含水率を TrackConditionParser で正規化し、Weather Intelligence（Ver7.9）へ連携。
+
+### Provider 切替
+
+Analysis Developer Panel: **Mock Weather / Real Weather**  
+失敗時は自動 Mock 切替なし（「天候情報を取得できませんでした」）
+
+### Validation / Synchronization
+
+異常値・必須欠損・更新時刻不正は不採用。  
+天候／馬場／風向／風速／更新時刻の変化時のみ再同期・再分析。
+
+Weather Score / Track Score / Surface Score は実データから算出し、AI が天候・馬場を総合評価できる構造を維持。
 
 ---
 
@@ -174,10 +212,12 @@ KeibaAI/
       race/                 # Ver10.0 Real Race Calendar
       horse/                # Ver10.1 Real Horse Entry
       odds/                 # Ver10.2 Real Odds
+      weather/              # Ver10.3 Real Weather
       providers/mock-provider.js
     calendar/
     entry/
     odds/
+    weather/
     models/unified.js
     ...
   data/
@@ -189,6 +229,9 @@ KeibaAI/
     odds/
       mock-odds.json
       real-odds.json
+    weather/
+      mock-weather.json
+      real-weather.json
 ```
 
 ---
@@ -198,6 +241,9 @@ KeibaAI/
 | Engine | Ver | 役割 |
 |--------|-----|------|
 | Real Race Calendar | 10.0 | 実開催カレンダー取得 |
+| Real Horse Entry | 10.1 | 実出馬表取得 |
+| Real Odds | 10.2 | 実オッズ／人気取得 |
+| Real Weather | 10.3 | 実天候／馬場取得 |
 | Calendar | 7.1+ | 開催日・Stage（Mock/Real） |
 | Smart Update | 7.2 | 変更時のみ再分析 |
 | Entry〜Knowledge | 7.6–8.4 | 既存機能維持 |

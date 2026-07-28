@@ -45,3 +45,11 @@ export {
   mergeWeatherOntoRace,
   applyWeatherTrackAdjustments,
 } from "./weather-merge.js";
+
+export {
+  getWeatherMode,
+  setWeatherMode,
+  WEATHER_MODE_KEY,
+  WEATHER_MODES,
+  WeatherMode,
+} from "./weather-mode.js";

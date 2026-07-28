@@ -19,13 +19,15 @@ import {
 
 export function fingerprintWeather(item) {
   if (!item) return "";
+  // Smart Update: 天候・馬場・風向・風速・更新時刻（＋補助）
   return [
     item.weather,
+    item.trackCondition,
+    item.windDirection,
+    item.windSpeed,
+    item.updatedAt,
     item.temperature,
     item.humidity,
-    item.windSpeed,
-    item.windDirection,
-    item.trackCondition,
     item.surface,
     item.surfaceState,
     item.moisture,

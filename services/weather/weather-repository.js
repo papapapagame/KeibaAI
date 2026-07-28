@@ -1,38 +1,61 @@
 /* ========================================
-   Weather Repository — Ver7.9
+   Weather Repository — Ver7.9 / Ver10.3
    ======================================== */
 
-import { acquireBundle } from "../provider/index.js";
-import { getSourceMode } from "../data/source-mode.js";
 import { API_BASE_URL } from "../../js/config.js";
+import { getWeatherMode } from "./weather-mode.js";
+import { loadRealWeather } from "../provider/weather/index.js";
 
 export async function fetchWeatherRaw(options = {}) {
-  const mode = options.mode || getSourceMode();
+  const weatherMode = options.weatherMode || getWeatherMode();
 
-  if (mode === "real") {
-    const acquired = await acquireBundle({ ...options, mode: "real" });
-    if (!acquired.ok) {
+  // Ver10.3 Real Weather（自動 Mock フォールバックなし）
+  if (weatherMode === "real") {
+    const real = await loadRealWeather({
+      ...options,
+      stage: options.stage,
+      force: options.forceRefresh || options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+    });
+    if (!real.ok) {
       return {
         ok: false,
-        blocked: true,
-        message: acquired.message || "Provider未接続",
-        providerId: acquired.providerId || "real",
-        mode,
+        blocked: false,
+        message: real.userMessage || "天候情報を取得できませんでした",
+        userMessage: "天候情報を取得できませんでした",
+        providerId: real.providerId || "real-weather",
+        mode: "real",
         item: null,
         phase: "none",
+        validation: real.validation,
+        error: real.error || null,
       };
     }
-    const race = acquired.raw?.race || acquired.data?.race || {};
     return {
       ok: true,
       blocked: false,
-      message: "Real Weather via Framework",
-      providerId: acquired.providerId,
-      mode,
-      item: raceToWeatherItem(race),
-      phase: "final",
-      provenance: acquired.provenance,
-      framework: acquired.framework,
+      message: real.message || "Real Weather",
+      providerId: real.providerId || "real-weather",
+      providerName: real.providerName || "Real Weather",
+      mode: "real",
+      item: real.item || real.weather,
+      phase: real.phase || "final",
+      meta: {
+        ...(real.meta || {}),
+        updatedAt: real.updatedAt || real.fetchedAt,
+        phase: real.phase || "final",
+        skipped: real.skipped,
+        changed: real.changed,
+        fingerprint: real.fingerprint,
+        updateCount: real.updateCount,
+      },
+      realBundle: real,
+      validation: real.validation,
+      scores: real.scores,
+      weatherModel: real.weatherModel,
+      trackModel: real.trackModel,
+      provenance: { providerId: real.providerId, source: "real-weather" },
     };
   }
 
@@ -48,7 +71,8 @@ export async function fetchWeatherRaw(options = {}) {
       blocked: false,
       message: "Mock Weather Repository",
       providerId: "mock",
-      mode,
+      providerName: "Mock Weather",
+      mode: "mock",
       item,
       phase: weatherJson?.phase || "final",
       meta: {
@@ -64,8 +88,9 @@ export async function fetchWeatherRaw(options = {}) {
       ok: false,
       blocked: false,
       message: err?.message || "Weather fetch failed",
+      userMessage: "天候情報を取得できませんでした",
       providerId: "mock",
-      mode,
+      mode: "mock",
       item: null,
       phase: "none",
     };
@@ -84,7 +109,10 @@ function raceToWeatherItem(race = {}) {
     surfaceState: race.surfaceState || null,
     moisture: race.moisture ?? null,
     moistureAvailable: race.moisture != null,
+    precipitation: race.precipitation ?? null,
+    precipitationAvailable: race.precipitation != null,
     updatedAt: race.weatherUpdatedAt || null,
+    providerName: "Mock Weather",
     history: Array.isArray(race.weatherHistory) ? race.weatherHistory : [],
   };
 }

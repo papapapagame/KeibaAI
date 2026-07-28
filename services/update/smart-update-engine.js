@@ -343,10 +343,11 @@ async function handleIncomingEventInner(event) {
     }
   }
 
-  // Ver7.9: Weather 変更時のみ再取得。変更無ければ再分析しない
+  // Ver7.9 / Ver10.3: Weather 変更時のみ再取得。変更無ければ再分析しない
   if (
     event?.payload?.weatherOnly ||
     event?.source === "weather-engine" ||
+    event?.source === "real-weather" ||
     [
       "weather_change",
       "track_change",

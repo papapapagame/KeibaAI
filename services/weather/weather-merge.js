@@ -94,7 +94,7 @@ export function mergeWeatherOntoRace(race = {}, weatherBundle, stage = 0) {
     return { ...race };
   }
   const w = weatherBundle.weather;
-  const intel = weatherBundle.trackIntel || {};
+  const intel = weatherBundle.trackIntel || weatherBundle.scores || {};
   return {
     ...race,
     weather: w.weather,
@@ -103,8 +103,11 @@ export function mergeWeatherOntoRace(race = {}, weatherBundle, stage = 0) {
     humidity: w.humidity,
     windSpeed: w.windSpeed,
     windDirection: w.windDirection,
+    precipitation: w.precipitationAvailable ? w.precipitation : w.precipitation ?? null,
     moisture: w.moistureAvailable ? w.moisture : null,
     surfaceState: w.surfaceState,
+    turfCondition: w.turfCondition || null,
+    dirtCondition: w.dirtCondition || null,
     track: race.track || w.surface || race.surface,
     weatherConfirmed: true,
     trackConfirmed: true,
@@ -113,6 +116,10 @@ export function mergeWeatherOntoRace(race = {}, weatherBundle, stage = 0) {
     weatherScore: intel.weatherScore,
     surfaceScore: intel.surfaceScore,
     weatherAdjustments: intel.adjustments || [],
+    weatherModel: weatherBundle.weatherModel || null,
+    trackModel: weatherBundle.trackModel || null,
+    weatherProviderName: weatherBundle.providerName || w.providerName || null,
+    weatherSource: weatherBundle.mode || null,
   };
 }
 

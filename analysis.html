@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -58,7 +58,7 @@
 
   <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52 page--v53 page--v54">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.2</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.3</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
@@ -242,8 +242,12 @@
         <p class="v73-data-block__note" id="wc-note"></p>
         <ul class="v73-status-list v79-weather-status">
           <li>天候 <span id="weather-label">—</span></li>
-          <li>馬場 <span id="weather-track">—</span></li>
+          <li>馬場状態 <span id="weather-track">—</span></li>
           <li>風 <span id="weather-wind">—</span></li>
+          <li>気温 <span id="weather-temp">—</span></li>
+          <li>湿度 <span id="weather-humidity">—</span></li>
+          <li>Provider <span id="weather-provider-kind">—</span></li>
+          <li>Weather Score <span id="weather-score">—</span></li>
           <li>更新時刻 <span id="weather-updated">—</span></li>
         </ul>
         <p class="v73-data-block__note" id="weather-stage-note"></p>
@@ -462,14 +466,29 @@
           <li>更新時刻: <span id="dev-real-odds-updated">—</span></li>
         </ul>
 
-        <p class="v51-dev-panel__subtitle">Weather & Track（Ver7.9）</p>
+        <p class="v51-dev-panel__subtitle">Weather & Track（Ver7.9 / Ver10.3）</p>
+        <div class="v70-source-switch" id="weather-mode-controls" role="group" aria-label="Weather Source">
+          <button type="button" class="v70-source-btn" data-weather-mode="mock">Mock Weather</button>
+          <button type="button" class="v70-source-btn" data-weather-mode="real">Real Weather</button>
+        </div>
+        <p class="v51-dev-panel__note" id="weather-mode-note">Mock Weather を使用中</p>
         <ul class="v51-dev-list">
           <li>Weather Status: <span id="dev-weather-status">—</span></li>
           <li>Track Status: <span id="dev-track-status">—</span></li>
+          <li>取得件数: <span id="dev-weather-count">—</span></li>
           <li>更新履歴: <span id="dev-weather-history">—</span></li>
           <li>Validation状態: <span id="dev-weather-validation">—</span></li>
           <li>同期状態: <span id="dev-weather-sync">—</span></li>
           <li>最終更新時刻: <span id="dev-weather-updated">—</span></li>
+        </ul>
+        <p class="v51-dev-panel__subtitle">Real Weather Provider（Ver10.3）</p>
+        <ul class="v51-dev-list">
+          <li>Weather Provider Status: <span id="dev-real-weather-status">—</span></li>
+          <li>Current Provider: <span id="dev-real-weather-provider">—</span></li>
+          <li>取得件数: <span id="dev-real-weather-count">—</span></li>
+          <li>Validation: <span id="dev-real-weather-validation">—</span></li>
+          <li>同期状態: <span id="dev-real-weather-sync">—</span></li>
+          <li>更新時刻: <span id="dev-real-weather-updated">—</span></li>
         </ul>
 
         <p class="v51-dev-panel__subtitle">News Intelligence（Ver8.0）</p>
@@ -1043,7 +1062,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 10.2.0 · Real Odds</p>
+    <p>Version 10.3.0 · Real Weather</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

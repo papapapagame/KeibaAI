@@ -101,6 +101,28 @@ export function validateWeather(raw = {}) {
     errors.push({ code: "TYPE", message: "更新時刻型異常" });
   }
 
+  let precipitation =
+    raw.precipitation != null ? Number(raw.precipitation) : null;
+  const precipitationAvailable = Boolean(
+    raw.precipitationAvailable ||
+      (precipitation != null && Number.isFinite(precipitation))
+  );
+  if (precipitationAvailable) {
+    if (
+      !Number.isFinite(precipitation) ||
+      precipitation < 0 ||
+      precipitation > 300
+    ) {
+      errors.push({
+        code: "RANGE",
+        message: `降水量異常値: ${raw.precipitation}`,
+      });
+      precipitation = null;
+    }
+  } else {
+    precipitation = null;
+  }
+
   if (errors.length) {
     return { ok: false, errors, warnings, sanitized: null };
   }
@@ -114,9 +136,18 @@ export function validateWeather(raw = {}) {
     trackCondition,
     surface: surface || "芝",
     surfaceState: raw.surfaceState || deriveSurfaceState(trackCondition),
+    turfCondition: raw.turfCondition || null,
+    dirtCondition: raw.dirtCondition || null,
     moisture,
     moistureAvailable,
+    precipitation,
+    precipitationAvailable:
+      precipitationAvailable && precipitation != null,
+    weatherScore: raw.weatherScore != null ? Number(raw.weatherScore) : null,
+    trackScore: raw.trackScore != null ? Number(raw.trackScore) : null,
+    surfaceScore: raw.surfaceScore != null ? Number(raw.surfaceScore) : null,
     updatedAt: updatedAt || new Date().toISOString(),
+    providerName: raw.providerName || null,
     history: Array.isArray(raw.history) ? raw.history : [],
     weatherConfirmed: true,
     trackConfirmed: true,

@@ -3,7 +3,67 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "10.2.0";
+export const UNIFIED_VERSION = "10.3.0";
+
+/** Ver10.3 Weather — 天候 Unified Model */
+export function createWeather(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    weather: raw.weather || "",
+    temperature:
+      raw.temperature != null && Number.isFinite(Number(raw.temperature))
+        ? Number(raw.temperature)
+        : null,
+    humidity:
+      raw.humidity != null && Number.isFinite(Number(raw.humidity))
+        ? Number(raw.humidity)
+        : null,
+    windSpeed:
+      raw.windSpeed != null && Number.isFinite(Number(raw.windSpeed))
+        ? Number(raw.windSpeed)
+        : null,
+    windDirection: raw.windDirection || null,
+    precipitation:
+      raw.precipitation != null && Number.isFinite(Number(raw.precipitation))
+        ? Number(raw.precipitation)
+        : null,
+    precipitationAvailable: Boolean(
+      raw.precipitationAvailable ||
+        (raw.precipitation != null &&
+          Number.isFinite(Number(raw.precipitation)))
+    ),
+    weatherScore:
+      raw.weatherScore != null ? Number(raw.weatherScore) : null,
+    updatedAt: raw.updatedAt || null,
+    providerName: raw.providerName || null,
+    source: raw.source || "unknown",
+  };
+}
+
+/** Ver10.3 Track — 馬場 Unified Model */
+export function createTrack(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    trackCondition: raw.trackCondition || "",
+    surface: raw.surface || raw.track || "芝",
+    surfaceState: raw.surfaceState || null,
+    turfCondition: raw.turfCondition || null,
+    dirtCondition: raw.dirtCondition || null,
+    moisture:
+      raw.moisture != null && Number.isFinite(Number(raw.moisture))
+        ? Number(raw.moisture)
+        : null,
+    moistureAvailable: Boolean(
+      raw.moistureAvailable ||
+        (raw.moisture != null && Number.isFinite(Number(raw.moisture)))
+    ),
+    trackScore: raw.trackScore != null ? Number(raw.trackScore) : null,
+    surfaceScore:
+      raw.surfaceScore != null ? Number(raw.surfaceScore) : null,
+    updatedAt: raw.updatedAt || null,
+    source: raw.source || "unknown",
+  };
+}
 
 export function createVenue(raw = {}) {
   return {
@@ -680,8 +740,40 @@ export function createRace(raw = {}, horses = []) {
     distance,
     surface,
     surfaceDistance: `${surface.value}${distance.meters || ""}m`,
-    weather: raw.weather || "",
+    weather: typeof raw.weather === "object" && raw.weather?.weather
+      ? raw.weather.weather
+      : raw.weather || "",
+    weatherModel: raw.weatherModel
+      ? createWeather(raw.weatherModel)
+      : typeof raw.weather === "object" && raw.weather
+        ? createWeather(raw.weather)
+        : null,
+    trackModel: raw.trackModel
+      ? createTrack(raw.trackModel)
+      : raw.trackCondition
+        ? createTrack({
+            trackCondition: raw.trackCondition,
+            surface: raw.surface || raw.track,
+            surfaceState: raw.surfaceState,
+            turfCondition: raw.turfCondition,
+            dirtCondition: raw.dirtCondition,
+            moisture: raw.moisture,
+            moistureAvailable: raw.moistureAvailable,
+            trackScore: raw.trackScore,
+            surfaceScore: raw.surfaceScore,
+            updatedAt: raw.weatherUpdatedAt || raw.updatedAt,
+            source: raw.source,
+          })
+        : null,
     trackCondition: raw.trackCondition || "",
+    temperature: raw.temperature ?? null,
+    humidity: raw.humidity ?? null,
+    windSpeed: raw.windSpeed ?? null,
+    windDirection: raw.windDirection || "",
+    precipitation: raw.precipitation ?? null,
+    weatherScore: raw.weatherScore ?? null,
+    trackScore: raw.trackScore ?? null,
+    surfaceScore: raw.surfaceScore ?? null,
     startTime: raw.startTime || raw.time || "",
     courseDirection: raw.courseDirection || "",
     courseLoop: raw.courseLoop || raw.course || "",

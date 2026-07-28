@@ -506,6 +506,24 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver10.3 - Real Weather（実装済）
+
+テーマ：実際の天候・馬場状態を取得してAIへ反映する
+
+### 実装内容
+
+- RealWeatherProvider（Fetch / Parse / Normalize / Validate / Synchronize / TrackConditionParser）
+- Weather Intelligence（Ver7.9）連携・Weather/Track/Surface Score を実データ算出
+- Smart Update: 天候・馬場・風向・風速・更新時刻変更時のみ再取得
+- 失敗時は Mock 自動切替なし（「天候情報を取得できませんでした」）
+
+### データ
+
+- Mock: `data/weather/mock-weather.json`（維持）
+- Real: `data/weather/real-weather.json`
+
+---
+
 ## Ver10.2 - Real Odds（実装済）
 
 テーマ：実際のオッズ・人気を取得してAIへ反映する
@@ -649,5 +667,6 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver10.0 Real Race Calendar で Mock→Real 第一段階を完了する。
 - Ver10.1 Real Horse Entry で出馬表の Real 化を完了する。
 - Ver10.2 Real Odds でオッズ／人気の Real 化を完了する。
+- Ver10.3 Real Weather で天候／馬場の Real 化を完了する。
 - Ver9.1+ / 以降で高度なAI分析機能を追加する。
 - 正式リリース版へ向けて Real Provider を拡張する。

@@ -45,7 +45,11 @@ export async function loadWeatherForAi(options = {}) {
       ok: false,
       blocked: false,
       message: "Weather Validation failed",
+      userMessage: "天候情報を取得できませんでした",
       providerId: fetched.providerId,
+      providerName: fetched.providerName || null,
+      providerKind: fetched.mode === "real" ? "Real" : "Mock",
+      mode: fetched.mode || "mock",
       version: WEATHER_ENGINE_VERSION,
       weather: null,
       validation,
@@ -93,11 +97,17 @@ export async function loadWeatherForAi(options = {}) {
     blocked: false,
     message: contentChanged ? "Weather loaded" : "Weather unchanged",
     providerId: fetched.providerId,
+    providerName: fetched.providerName || weather.providerName || null,
+    providerKind: fetched.mode === "real" ? "Real" : "Mock",
+    mode: fetched.mode || "mock",
     version: WEATHER_ENGINE_VERSION,
     changed: contentChanged,
     fingerprint: fp,
     weather,
+    weatherModel: fetched.weatherModel || null,
+    trackModel: fetched.trackModel || null,
     trackIntel,
+    scores: fetched.scores || trackIntel,
     validation,
     weatherCompleteness,
     stagePanel,
@@ -105,6 +115,8 @@ export async function loadWeatherForAi(options = {}) {
       status: contentChanged ? "synced" : "skipped",
       changes: sync.changes?.length || 0,
     },
+    updateCount: fetched.meta?.updateCount ?? 0,
+    count: 1,
     fetchedAt: fetched.meta?.updatedAt || weather.updatedAt,
     phase,
     confirmedStage,
@@ -115,6 +127,7 @@ export async function loadWeatherForAi(options = {}) {
       weatherCompleteness
     ),
     history: loadWeatherHistory().slice(0, 8),
+    userMessage: null,
   };
 }
 
@@ -168,16 +181,25 @@ function stageNote(effectiveStage, phase) {
 }
 
 function emptyBundle(options, fetched) {
+  const userMessage =
+    fetched?.userMessage ||
+    (fetched?.mode === "real"
+      ? "天候情報を取得できませんでした"
+      : fetched?.message || "天候情報を取得できませんでした");
   return {
     ok: false,
     blocked: Boolean(fetched?.blocked),
-    message: fetched?.message || "Weather 取得失敗",
+    message: fetched?.message || userMessage,
+    userMessage,
     providerId: fetched?.providerId,
+    providerName: fetched?.providerName || null,
+    providerKind: fetched?.mode === "real" ? "Real" : "Mock",
+    mode: fetched?.mode || "mock",
     version: WEATHER_ENGINE_VERSION,
     weather: null,
-    validation: {
+    validation: fetched?.validation || {
       ok: false,
-      errors: [{ code: "FETCH", message: fetched?.message }],
+      errors: [{ code: "FETCH", message: fetched?.message || userMessage }],
       warnings: [],
     },
     weatherCompleteness: computeWeatherCompleteness(null),
@@ -186,6 +208,8 @@ function emptyBundle(options, fetched) {
     confirmedStage: 0,
     effectiveStage: Number(options.stage) || 0,
     trackIntel: null,
+    count: 0,
+    updateCount: 0,
   };
 }
 

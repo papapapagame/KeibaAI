@@ -8,6 +8,7 @@ import { logProviderEvent } from "./provider-logger.js";
 import { REAL_RACE_PROVIDER_ID } from "./race/real-race-provider.js";
 import { REAL_HORSE_PROVIDER_ID } from "./horse/real-horse-provider.js";
 import { REAL_ODDS_PROVIDER_ID } from "./odds/real-odds-provider.js";
+import { REAL_WEATHER_PROVIDER_ID } from "./weather/real-weather-provider.js";
 
 /** @type {Map<string, import("./provider-interface.js").ProviderInterface>} */
 const registry = new Map();
@@ -22,7 +23,8 @@ export function ensureRegistry() {
         id === "mock" ||
         id === REAL_RACE_PROVIDER_ID ||
         id === REAL_HORSE_PROVIDER_ID ||
-        id === REAL_ODDS_PROVIDER_ID
+        id === REAL_ODDS_PROVIDER_ID ||
+        id === REAL_WEATHER_PROVIDER_ID
       ) {
         provider.enabled = true;
       } else {
@@ -32,7 +34,7 @@ export function ensureRegistry() {
     }
     initialized = true;
     logProviderEvent("registry_init", {
-      message: `registered ${registry.size} providers (mock + real-race + real-horse + real-odds)`,
+      message: `registered ${registry.size} providers (mock + real-race + real-horse + real-odds + real-weather)`,
     });
   }
   return [...registry.values()];
