@@ -23,6 +23,7 @@ import { UPDATE_PRIORITY } from "./priorities.js";
 import { nowIso, formatJa } from "./utils.js";
 import { refreshRaceDataOnly } from "../race-connect/race-data-connector.js";
 import { refreshEntriesOnly } from "../entry/horse-entry-manager.js";
+import { refreshDrawOnly } from "../draw/draw-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -211,6 +212,64 @@ async function handleIncomingEventInner(event) {
       };
     } catch {
       /* Entry 失敗時は従来トリガへ */
+    }
+  }
+
+  // Ver7.7: Draw 変更時は枠・騎手・斤量のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.drawOnly ||
+    event?.source === "draw-engine" ||
+    [
+      "frame_confirmed",
+      "frame_changed",
+      "jockey_change",
+      "weight_change",
+      "scratched",
+      "excluded",
+    ].includes(event?.type)
+  ) {
+    try {
+      const drawRefresh = await refreshDrawOnly({
+        emitUpdate: false,
+        silent: true,
+        stage: snapshot.stage,
+      });
+      if (!drawRefresh.ok || !drawRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: drawRefresh.ok
+            ? "Draw情報に変更が無いため再分析をスキップしました。"
+            : `Draw 再取得失敗: ${drawRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Draw: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Draw変更なし（スキップ）",
+        });
+        return { skipped: true, drawOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        drawFingerprint: drawRefresh.fingerprint,
+        drawCount: drawRefresh.count,
+        stage: Math.max(
+          Number(snapshot.stage) || 0,
+          Number(drawRefresh.confirmedStage) || 0
+        ),
+      };
+    } catch {
+      /* Draw 失敗時は従来トリガへ */
     }
   }
 

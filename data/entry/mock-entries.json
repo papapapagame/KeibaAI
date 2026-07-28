@@ -22,6 +22,6 @@
     "13": { "entryStatus": "registered", "affiliation": "美浦", "earnings": 700 },
     "14": { "entryStatus": "scratched", "affiliation": "美浦", "earnings": 500 },
     "15": { "entryStatus": "excluded", "affiliation": "栗東", "earnings": 400 },
-    "16": { "entryStatus": "withdrawn", "affiliation": "美浦", "earnings": 350 }
+    "16": { "entryStatus": "entry_expected", "affiliation": "美浦", "earnings": 350, "careerRecord": "8-1-1-2", "distanceRecord": "マイル○", "courseRecord": "東京芝○", "trackRecord": "芝○", "stakesRecord": "オープン" }
   }
 }

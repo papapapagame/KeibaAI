@@ -108,23 +108,27 @@ export function sanitizeForStage(race, horses, stage) {
 
   // Stage7: 最終 — そのまま（確定扱い可）
 
-  // Ver7.6: Entry Engine 由来の未確定フラグは Stage に関わらず確定扱いしない
+  // Ver7.6/7.7: 未確定フラグは確定扱いしない。frameConfirmed 等があれば優先
   horseOut = horseOut.map((h) => {
-    if (
-      !h._frameUnconfirmed &&
-      !h._jockeyUnconfirmed &&
-      !h._weightUnconfirmed &&
-      !h._oddsUnconfirmed &&
-      !h._entryProvisional &&
-      !h._entryAwaitingConfirm
-    ) {
-      return h;
-    }
+    const needStrip =
+      h._frameUnconfirmed ||
+      h._jockeyUnconfirmed ||
+      h._weightUnconfirmed ||
+      h._oddsUnconfirmed ||
+      h._entryProvisional ||
+      h._entryAwaitingConfirm;
+    if (!needStrip) return h;
     return stripUnconfirmed(h, {
-      frame: Boolean(h._frameUnconfirmed || h._entryProvisional || h._entryAwaitingConfirm),
-      jockey: Boolean(h._jockeyUnconfirmed || h._entryProvisional || h._entryAwaitingConfirm),
-      weight: Boolean(h._weightUnconfirmed || h._entryProvisional || h._entryAwaitingConfirm),
-      odds: Boolean(h._oddsUnconfirmed || h._entryProvisional || h._entryAwaitingConfirm),
+      frame:
+        !h.frameConfirmed &&
+        Boolean(h._frameUnconfirmed || h._entryProvisional),
+      jockey:
+        !h.jockeyConfirmed &&
+        Boolean(h._jockeyUnconfirmed || h._entryProvisional),
+      weight:
+        !h.weightConfirmed &&
+        Boolean(h._weightUnconfirmed || h._entryProvisional),
+      odds: Boolean(h._oddsUnconfirmed),
     });
   });
 
@@ -172,12 +176,12 @@ function evaluationModeLabel(stage) {
     0: "開催情報のみ分析",
     1: "登録馬を反映（暫定）",
     2: "出走予定馬を反映（暫定）",
-    3: "枠順補正追加（暫定）",
-    4: "騎手補正追加（暫定）",
-    5: "斤量補正追加（暫定）",
-    6: "前日情報反映（暫定）",
-    7: "最終AI分析",
-  };
+  3: "枠順確定",
+  4: "騎手確定",
+  5: "斤量確定",
+  6: "前日情報反映（暫定）",
+  7: "最終AI分析",
+};
   return map[stage] || map[0];
 }
 

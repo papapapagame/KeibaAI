@@ -17,6 +17,7 @@ import {
 } from "../services/calendar/index.js";
 import { connectRaceData } from "../services/race-connect/index.js";
 import { loadEntriesForAi } from "../services/entry/index.js";
+import { loadDrawForAi } from "../services/draw/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -101,6 +102,12 @@ export async function initTopPage(goRaceListButton) {
           emitUpdate: false,
           silent: true,
         });
+        void loadDrawForAi({
+          date: cell.date,
+          venueId: raceVenueSelect.value || undefined,
+          emitUpdate: false,
+          silent: true,
+        });
       });
       grid.appendChild(btn);
     }
@@ -167,11 +174,17 @@ export async function initTopPage(goRaceListButton) {
 
   raceVenueSelect.addEventListener("change", () => {
     refreshSession();
-    // Ver7.6: 開催場変更 → 対象開催場の登録馬のみ再取得
+    // Ver7.6/7.7: 開催場変更 → 対象開催場の Entry / Draw 再取得
     const date = raceDateInput.value;
     const venueId = raceVenueSelect.value;
     if (date && venueId) {
       void loadEntriesForAi({
+        date,
+        venueId,
+        emitUpdate: false,
+        silent: true,
+      });
+      void loadDrawForAi({
         date,
         venueId,
         emitUpdate: false,
@@ -192,6 +205,11 @@ export async function initTopPage(goRaceListButton) {
     viewMonth = m;
     populateVenues(defaultDate);
     void loadEntriesForAi({
+      date: defaultDate,
+      emitUpdate: false,
+      silent: true,
+    });
+    void loadDrawForAi({
       date: defaultDate,
       emitUpdate: false,
       silent: true,

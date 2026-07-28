@@ -5896,3 +5896,15 @@ body.has-home-fab .scroll-top {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Ver7.7.0 Draw & Jockey Intelligence
+   ========================================================================== */
+
+.v77-draw-comp {
+  margin-bottom: 0.45rem;
+}
+
+.v77-draw-status {
+  margin-bottom: 0.45rem;
+}

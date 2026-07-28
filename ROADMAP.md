@@ -355,6 +355,24 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver7.7 - Draw & Jockey Intelligence（実装済）
+
+テーマ：枠順・馬番・騎手・斤量などの確定情報を管理する
+
+### 実装内容
+
+- DrawManager / JockeyManager / WeightManager / Synchronizer / Validator / StateManager
+- Stage3 枠順 / Stage4 騎手 / Stage5 斤量（確定時のみ AI 反映）
+- 枠順・騎手・斤量・乗り替わり・取消・除外補正（エンジン非改変）
+- Smart Update（変更時のみ再分析）/ Validation / Completeness
+- Entry（Ver7.6）連携を維持
+
+### 目標
+
+確定情報のみを AI へ反映し、未確定の推測補完を防ぐ。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

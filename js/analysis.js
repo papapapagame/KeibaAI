@@ -35,6 +35,12 @@ import {
   entryToHorseModel,
   getEntryDashboard,
 } from "../services/entry/index.js";
+import {
+  loadDrawForAi,
+  mergeHorsesWithDraw,
+  getDrawDashboard,
+  applyDrawScoreAdjustments,
+} from "../services/draw/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -239,7 +245,7 @@ export async function initAnalysisPage() {
   const confidenceNow = raceCtx.confidence?.percent ?? null;
   const completenessNow = raceCtx.completeness?.percent ?? null;
 
-  // Ver7.6 Horse Entry — Stage に応じた登録馬（枠/騎手/斤量/オッズは未確定）
+  // Ver7.6 Horse Entry — Stage に応じた登録馬
   const entryBundle = await loadEntriesForAi({
     stage: stageNow,
     date: params.get("date") || race.date || "",
@@ -252,18 +258,60 @@ export async function initAnalysisPage() {
   bindEntryAiPanel(entryBundle);
   bindEntryDevUi(entryBundle);
 
-  // Entry Completeness → Confidence 反映
-  if (entryBundle?.confidenceHint != null) {
+  // Ver7.7 Draw & Jockey — 枠順・騎手・斤量（確定のみ）
+  const drawBundle = await loadDrawForAi({
+    stage: stageNow,
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+    silent: true,
+    baseConfidence: entryBundle?.confidenceHint ?? confidenceNow ?? 72,
+  });
+  const effectiveStage = Math.max(
+    stageNow,
+    Number(drawBundle?.confirmedStage) || 0
+  );
+  bindDrawStatusUi(drawBundle);
+  bindDrawAiPanel(drawBundle, effectiveStage);
+  bindDrawDevUi(drawBundle);
+
+  // Completeness / Confidence 反映（Draw 優先、なければ Entry）
+  const confHint =
+    drawBundle?.ok && drawBundle.confidenceHint != null
+      ? drawBundle.confidenceHint
+      : entryBundle?.confidenceHint;
+  if (confHint != null) {
     const confEl = document.getElementById("stage-confidence");
-    if (confEl) confEl.textContent = `${entryBundle.confidenceHint}%`;
+    if (confEl) confEl.textContent = `${confHint}%`;
+  }
+  if (drawBundle?.ok && drawBundle.drawCompleteness?.overall != null) {
+    setText(
+      "stage-completeness",
+      `${drawBundle.drawCompleteness.overall}%`
+    );
+  }
+  if (effectiveStage !== stageNow) {
+    setText("stage-current", `Stage${effectiveStage}`);
   }
 
   const horsesWithEntry = mergeHorsesWithEntries(horses, entryBundle.entries);
-  const entryFiltered = filterEntriesForStage(entryBundle.entries || [], stageNow);
+  const entryFiltered = filterEntriesForStage(
+    entryBundle.entries || [],
+    effectiveStage
+  );
   const entryLegacy =
     entryFiltered.length > 0
-      ? entryFiltered.map((e) => toLegacyHorse(entryToHorseModel(e, stageNow)))
+      ? entryFiltered.map((e) =>
+          toLegacyHorse(entryToHorseModel(e, effectiveStage))
+        )
       : horsesWithEntry;
+
+  const drawMerged = mergeHorsesWithDraw(
+    entryLegacy,
+    drawBundle,
+    effectiveStage
+  );
 
   const prepared = prepareAiInput(
     {
@@ -273,8 +321,8 @@ export async function initAnalysisPage() {
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
     },
-    entryLegacy,
-    raceCtx.analysisStage?.stage ?? 0
+    drawMerged,
+    effectiveStage
   );
   const stagedRace = prepared.race;
   const stagedHorses = prepared.horses;
@@ -330,7 +378,7 @@ export async function initAnalysisPage() {
   const snapshotBase = AnalysisTrigger.buildSnapshot({
     race: stagedRace,
     horses: stagedHorses,
-    stage: stageNow,
+    stage: effectiveStage,
   });
   AnalysisTrigger.setBaseline(snapshotBase);
 
@@ -338,22 +386,24 @@ export async function initAnalysisPage() {
     contextProvider: () => ({
       isMeetingDay: Boolean(params.get("date")),
       raceStartAt: null,
-      stage: stageNow,
-      confidence: confidenceNow,
-      completeness: completenessNow,
+      stage: effectiveStage,
+      confidence: confHint ?? confidenceNow,
+      completeness:
+        drawBundle?.drawCompleteness?.overall ?? completenessNow,
       snapshot: AnalysisTrigger.buildSnapshot({
         race: stagedRace,
         horses: stagedHorses,
-        stage: stageNow,
+        stage: effectiveStage,
       }),
     }),
     analysisHandler: async (job) => {
       setText("ai-update-reason", job.reason || "再分析しました。");
       bindUpdateStatusUi();
       return {
-        confidence: confidenceNow,
-        completeness: completenessNow,
-        stage: stageNow,
+        confidence: confHint ?? confidenceNow,
+        completeness:
+          drawBundle?.drawCompleteness?.overall ?? completenessNow,
+        stage: effectiveStage,
       };
     },
   });
@@ -364,11 +414,11 @@ export async function initAnalysisPage() {
     const rawPrev = sessionStorage.getItem(prevKey);
     if (rawPrev != null) {
       const prev = Number(rawPrev);
-      if (Number.isFinite(prev) && prev !== stageNow) {
-        notifyStageChange(prev, stageNow);
+      if (Number.isFinite(prev) && prev !== effectiveStage) {
+        notifyStageChange(prev, effectiveStage);
       }
     }
-    sessionStorage.setItem(prevKey, String(stageNow));
+    sessionStorage.setItem(prevKey, String(effectiveStage));
   } catch {
     /* ignore */
   }
@@ -376,7 +426,7 @@ export async function initAnalysisPage() {
   bindUpdateStatusUi();
   setText("ai-update-reason", "初回分析です。");
 
-  if (!stagedHorses.length && (raceCtx.analysisStage?.stage ?? 0) < 1) {
+  if (!stagedHorses.length && effectiveStage < 1) {
     // Stage0 は開催情報のみ — AIエンジンは空馬で呼ばず通知のみ
     setText(
       "stage-provisional",
@@ -396,7 +446,15 @@ export async function initAnalysisPage() {
     settings: settingsData,
   });
 
-  const ranked = [...(analysisResult.horses || [])].sort(
+  // Ver7.7: 確定補正を表示スコアへ反映（AIエンジン非改変）
+  const adjMap = new Map(
+    (stagedHorses || []).map((h) => [Number(h.number), h._drawAdjustments || []])
+  );
+  let ranked = [...(analysisResult.horses || [])].map((h) => ({
+    ...h,
+    _drawAdjustments: adjMap.get(Number(h.number)) || h._drawAdjustments || [],
+  }));
+  ranked = applyDrawScoreAdjustments(ranked, effectiveStage).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
       b.indexes.total - a.indexes.total
@@ -665,13 +723,17 @@ function bindEntryStatusUi(entryBundle) {
 function bindEntryAiPanel(entryBundle) {
   const panel = entryBundle?.stagePanel;
   if (!panel) return;
-  setText("entry-ai-title", panel.title || "現在分析中");
+  setText("entry-ai-title", panel.title || "現在分析段階");
   setText("entry-ai-stage", panel.stageLabel || `Stage${panel.stage || 0}`);
   setText("entry-ai-mode", panel.mode || "—");
   setText(
     "entry-ai-provisional",
     panel.provisionalText || "現在は暫定分析です。"
   );
+  if ((panel.stage || 0) < 3) {
+    setText("entry-ai-using-label", "利用中データ");
+    setText("entry-ai-pending-label", "未確定情報");
+  }
 
   const fillList = (id, items) => {
     const el = document.getElementById(id);
@@ -723,6 +785,152 @@ function bindEntryDevUi(entryBundle) {
     "dev-entry-updated",
     entryBundle?.fetchedAt
       ? formatUpdateTime(entryBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindDrawStatusUi(drawBundle) {
+  const dc = drawBundle?.drawCompleteness || {};
+  const stats = drawBundle?.stats || {};
+  setText("dc-draw-frame", dc.frame != null ? `${dc.frame}%` : "—");
+  setText("dc-draw-jockey", dc.jockey != null ? `${dc.jockey}%` : "—");
+  setText("dc-draw-weight", dc.weight != null ? `${dc.weight}%` : "—");
+  setText(
+    "dc-draw-scratch",
+    dc.scratchInfo != null ? `${dc.scratchInfo}%` : "—"
+  );
+  setText("dc-draw-odds", `${dc.odds ?? 0}%`);
+  setText("dc-draw-news", `${dc.news ?? 0}%`);
+  setText(
+    "dc-draw-overall",
+    dc.overall != null ? `${dc.overall}%` : "—"
+  );
+  setText("dc-draw-note", dc.note || "");
+  setText("draw-active", String(stats.active ?? "—"));
+  setText("draw-scratched", String(stats.scratched ?? "—"));
+  setText("draw-excluded", String(stats.excluded ?? "—"));
+  setText(
+    "draw-updated",
+    drawBundle?.fetchedAt ? formatUpdateTime(drawBundle.fetchedAt) : "—"
+  );
+  setText("draw-stage-note", drawBundle?.stageNote || "");
+
+  // Entry Completeness の枠/騎手/斤量を Draw 実績で更新
+  if (dc.frame != null) setText("ec-frame", `${dc.frame}%`);
+  if (dc.jockey != null) setText("ec-jockey", `${dc.jockey}%`);
+  if (dc.weight != null) setText("ec-weight", `${dc.weight}%`);
+}
+
+function bindDrawAiPanel(drawBundle, stage) {
+  const panel = drawBundle?.stagePanel;
+  if (!panel) return;
+  const s = Number(stage ?? panel.stage) || 0;
+  if (s < 3) return; // Stage3未満は Entry パネルを優先
+
+  setText("entry-ai-title", panel.title || "現在分析段階");
+  setText("entry-ai-stage", panel.stageLabel || `Stage${s}`);
+  setText("entry-ai-mode", panel.mode || "—");
+  setText("entry-ai-using-label", "取得済み情報");
+  setText("entry-ai-pending-label", "未取得情報");
+
+  const pending = [...(panel.pending || [])];
+  const ensurePending = (label) => {
+    if (!pending.includes(label)) pending.push(label);
+  };
+  if ((drawBundle?.drawCompleteness?.odds ?? 0) === 0) {
+    ensurePending("最新オッズ");
+  }
+  if (s >= 5 && (drawBundle?.drawCompleteness?.odds ?? 0) === 0) {
+    ensurePending("当日馬場");
+    ensurePending("最終天候");
+    ensurePending("直前情報");
+  }
+
+  const provisional =
+    s >= 3 && (drawBundle?.drawCompleteness?.odds ?? 0) === 0
+      ? "現在は確定情報を反映した分析です。"
+      : panel.provisionalText || "現在は確定情報を反映した分析です。";
+  setText("entry-ai-provisional", provisional);
+
+  const fillList = (id, items) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    clearElement(el);
+    const list = [...new Set(items || [])];
+    if (!list.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      el.appendChild(li);
+      return;
+    }
+    list.forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      el.appendChild(li);
+    });
+  };
+  fillList("entry-ai-using", panel.acquired);
+  fillList("entry-ai-pending", pending);
+
+  setText("stage-mode", panel.mode || "—");
+  setText("stage-provisional", provisional);
+  setText(
+    "stage-note",
+    `取得済み: ${(panel.acquired || []).join("・") || "—"}`
+  );
+  const pendingEl = document.getElementById("stage-pending");
+  if (pendingEl) {
+    clearElement(pendingEl);
+    [...new Set(pending)].forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      pendingEl.appendChild(li);
+    });
+  }
+}
+
+function bindDrawDevUi(drawBundle) {
+  const dash = getDrawDashboard();
+  const stats = drawBundle?.stats || dash.stats || {};
+  const js = drawBundle?.jockeyStatus || dash.jockeyStatus || {};
+  const ws = drawBundle?.weightStatus || dash.weightStatus || {};
+  setText(
+    "dev-draw-status",
+    drawBundle?.ok
+      ? `枠${stats.frameRate ?? 0}% / 騎${stats.jockeyRate ?? 0}% / 斤${stats.weightRate ?? 0}%`
+      : "—"
+  );
+  setText(
+    "dev-jockey-status",
+    `確${js.confirmed ?? 0}/${js.total ?? 0} 替${js.riderChanged ?? 0}`
+  );
+  setText(
+    "dev-weight-status",
+    `確${ws.confirmed ?? 0}/${ws.total ?? 0} 変${ws.changed ?? 0}`
+  );
+  setText(
+    "dev-draw-validation",
+    drawBundle?.validation?.ok
+      ? `OK (warn ${drawBundle.validation.warnings?.length || 0})`
+      : `NG ${drawBundle?.validation?.errors?.length || 0}`
+  );
+  setText("dev-draw-sync", drawBundle?.sync?.status || dash.syncStatus || "—");
+  const hist = drawBundle?.history || dash.history || [];
+  setText(
+    "dev-draw-history",
+    hist.length
+      ? hist
+          .slice(0, 3)
+          .map((h) => h.type)
+          .join(", ")
+      : "—"
+  );
+  setText(
+    "dev-draw-updated",
+    drawBundle?.fetchedAt
+      ? formatUpdateTime(drawBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"
