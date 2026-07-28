@@ -476,6 +476,120 @@ body:has(.site-header) .page {
   }
 }
 
+/* ホームへ戻るがあるとき、スクロールトップをその上へずらす */
+body.has-home-fab .scroll-top {
+  bottom: max(calc(1rem + 72px), calc(env(safe-area-inset-bottom) + 72px));
+}
+
+/* --------------------------------------------------------------------------
+   8b. Home FAB（全ページ共通・index以外）
+   -------------------------------------------------------------------------- */
+.home-fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 151;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0.45rem 0.5rem 0.4rem;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(232, 212, 139, 0.1), rgba(255, 255, 255, 0.02) 45%, rgba(0, 0, 0, 0.35)),
+    rgba(12, 12, 12, 0.92);
+  color: var(--gold-bright);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.92);
+  transition:
+    opacity 280ms var(--ease),
+    visibility 280ms var(--ease),
+    transform 220ms var(--ease),
+    border-color 200ms var(--ease),
+    box-shadow 200ms var(--ease),
+    color 200ms var(--ease);
+}
+
+.home-fab.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  animation: homeFloat 3.2s ease-in-out infinite;
+}
+
+.home-fab__icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.home-fab__label {
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.home-fab__ripple {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: rgba(232, 212, 139, 0.45);
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-fab__ripple.is-active {
+  animation: homeRipple 520ms var(--ease);
+}
+
+.home-fab:hover {
+  border-color: var(--gold);
+  color: #fff3c4;
+  transform: translateY(0) scale(1.06);
+  box-shadow: 0 0 28px rgba(201, 162, 39, 0.5), var(--shadow);
+  animation: none;
+}
+
+.home-fab:active {
+  transform: translateY(0) scale(0.94);
+}
+
+@keyframes homeFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1);
+  }
+}
+
+@keyframes homeRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(18);
+    opacity: 0;
+  }
+}
+
 /* --------------------------------------------------------------------------
    9. Page layout & modifiers
    -------------------------------------------------------------------------- */
@@ -1857,6 +1971,15 @@ body:has(.site-header) .page {
     right: 2rem;
     bottom: 2rem;
   }
+
+  body.has-home-fab .scroll-top {
+    bottom: calc(2rem + 72px);
+  }
+
+  .home-fab {
+    right: 2rem;
+    bottom: 2rem;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -1936,7 +2059,26 @@ body:has(.site-header) .page {
     font-size: 0.56rem;
   }
 
+  body.has-home-fab .scroll-top {
+    bottom: max(calc(0.7rem + 62px), calc(env(safe-area-inset-bottom) + 62px));
+  }
+
   .scroll-top__icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .home-fab {
+    right: max(0.7rem, env(safe-area-inset-right));
+    bottom: max(0.7rem, env(safe-area-inset-bottom));
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0.35rem 0.4rem;
+    border-radius: 14px;
+    font-size: 0.52rem;
+  }
+
+  .home-fab__icon {
     width: 15px;
     height: 15px;
   }

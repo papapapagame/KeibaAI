@@ -126,6 +126,67 @@ export function ensureScrollTopButton() {
   return button;
 }
 
+/** index.html 以外へ「ホームへ戻る」を共通追加 */
+export function initHomeButton() {
+  if (isHomePage()) return;
+  const button = ensureHomeButton();
+  if (!button) return;
+
+  document.body.classList.add("has-home-fab");
+
+  button.addEventListener("click", (event) => {
+    spawnHomeRipple(button, event);
+    navigateWithFade("index.html");
+  });
+
+  requestAnimationFrame(() => {
+    button.classList.add("is-visible");
+  });
+}
+
+export function ensureHomeButton() {
+  let button = document.getElementById("home-fab");
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.id = "home-fab";
+    button.className = "home-fab";
+    document.body.appendChild(button);
+  }
+
+  button.type = "button";
+  button.classList.add("home-fab");
+  button.setAttribute("aria-label", "ホームへ戻る");
+  button.innerHTML =
+    '<span class="home-fab__ripple" aria-hidden="true"></span>' +
+    '<svg class="home-fab__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<path d="M12 3.2L3.5 10.2h2.2v9.1h4.4v-5.2h3.8v5.2h4.4v-9.1h2.2L12 3.2z" fill="currentColor"/>' +
+    "</svg>" +
+    '<span class="home-fab__label">ホームへ戻る</span>';
+  return button;
+}
+
+function isHomePage() {
+  const path = (window.location.pathname || "").replace(/\\/g, "/");
+  const file = path.split("/").pop() || "";
+  return file === "" || file === "index.html" || file === "index.htm";
+}
+
+function spawnHomeRipple(button, event) {
+  const ripple = button.querySelector(".home-fab__ripple");
+  if (!ripple) return;
+  const rect = button.getBoundingClientRect();
+  const x = (event?.clientX != null ? event.clientX : rect.left + rect.width / 2) - rect.left;
+  const y = (event?.clientY != null ? event.clientY : rect.top + rect.height / 2) - rect.top;
+  ripple.style.left = `${x}px`;
+  ripple.style.top = `${y}px`;
+  ripple.classList.remove("is-active");
+  // reflow
+  void ripple.offsetWidth;
+  ripple.classList.add("is-active");
+  window.setTimeout(() => ripple.classList.remove("is-active"), 520);
+}
+
 export function initPageLinkTransitions() {
   document.addEventListener("click", (event) => {
     const link = event.target.closest("a[href]");
@@ -168,6 +229,7 @@ export function initCommonUI() {
   startDateTimeClock();
   initLoadingScreen();
   initScrollTopButton();
+  initHomeButton();
   initPageLinkTransitions();
   setTimeout(() => applyCardStagger(), LOADING_DURATION_MS + 100);
 }
