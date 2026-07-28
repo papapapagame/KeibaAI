@@ -67,5 +67,14 @@ export {
   bootstrapReviewsFromHistory,
 } from "./review-dashboard.js";
 
+export {
+  buildPastRaceReport,
+  findPastRaceRecord,
+  loadPastRaceCatalog,
+  isPastRaceDate,
+  PastRaceReport,
+  PAST_RACE_REPORT_VERSION,
+} from "./past-race-report.js";
+
 export { buildHorseMemos } from "./horse-memo.js";
 export { ensureDemoReviewData } from "./seed-demo.js";

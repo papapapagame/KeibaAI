@@ -16,6 +16,7 @@ import { initBalancePage } from "./balance.js";
 import { initSettingsPage } from "./settings.js";
 import { initPerformancePage } from "./performance.js";
 import { initReviewPage } from "./review.js";
+import { initPastRacePage } from "./past-race.js";
 import { initDataPlatformPage } from "./data-platform.js";
 import { initUpdatePage } from "./update.js";
 import { exposeLearningApi } from "./learning-engine.js";
@@ -74,6 +75,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (document.getElementById("review-stats")) {
       await initReviewPage();
+    }
+
+    if (document.getElementById("past-result-body")) {
+      await initPastRacePage();
     }
 
     if (document.getElementById("data-platform-stats")) {

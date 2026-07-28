@@ -7,8 +7,9 @@ import {
   NEWS_CATEGORY_LABEL,
   normalizeNewsCategory,
 } from "../../news/news-categories.js";
+import { attachMatchedNames } from "../live/name-matcher.js";
 
-export const NEWS_METADATA_EXTRACTOR_VERSION = "10.4.0";
+export const NEWS_METADATA_EXTRACTOR_VERSION = "10.9.0";
 
 export function extractNewsMetadata(parsed = {}, options = {}) {
   const items = Array.isArray(parsed.items) ? parsed.items : [];
@@ -22,7 +23,9 @@ export function extractNewsMetadata(parsed = {}, options = {}) {
   const providerName =
     parsed.meta?.providerName || parsed.providerId || "Real News";
 
-  const extracted = items.map((raw, index) => {
+  const withNames = attachMatchedNames(items, options);
+
+  const extracted = withNames.map((raw, index) => {
     const category = normalizeNewsCategory(raw.category);
     return {
       id: String(raw.id || `rn_meta_${index + 1}`),

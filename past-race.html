@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="過去レースの結果・レース前AI評価・勝因・推奨外れ考察">
+  <meta name="theme-color" content="#070707">
+  <title>過去レース振り返り | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading page-past-race">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">Past Race Review...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-29 00:00</time>
+  </header>
+
+  <main class="page page--list page--detail page--past-race">
+    <header class="hero hero--compact">
+      <p class="eyebrow">PAST RACE REPORT</p>
+      <h1 class="title title--page">過去レース振り返り</h1>
+      <p class="subtitle subtitle--small">結果 · レース前AI評価 · 勝因 · 推奨外れ考察</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="meta-panel meta-panel--detail" aria-label="レース情報">
+      <div class="meta-item">
+        <span class="meta-label">開催日</span>
+        <span class="meta-value" id="past-date">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">開催場</span>
+        <span class="meta-value" id="past-venue">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">レース</span>
+        <span class="meta-value" id="past-race-label">—</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">条件</span>
+        <span class="meta-value" id="past-cond">—</span>
+      </div>
+    </section>
+
+    <p class="paper-section__lead" id="past-summary">読み込み中…</p>
+    <p class="cal-error" id="past-error" hidden></p>
+
+    <section class="paper-section" aria-label="レース結果">
+      <h2 class="section-title">レース結果</h2>
+      <div class="entry-table-wrap">
+        <table class="entry-table past-result-table">
+          <thead>
+            <tr>
+              <th>着</th>
+              <th>馬番</th>
+              <th>馬名</th>
+              <th>人気</th>
+              <th>AI点</th>
+              <th>AI印</th>
+              <th>タイム</th>
+            </tr>
+          </thead>
+          <tbody id="past-result-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="paper-section" aria-label="レース前AI評価">
+      <h2 class="section-title">レース前AI評価</h2>
+      <p class="paper-section__lead" id="past-pred-note">—</p>
+      <div class="v55-dash-grid" id="past-ai-picks"></div>
+    </section>
+
+    <section class="paper-section" aria-label="勝利馬の勝因">
+      <h2 class="section-title">勝利馬の勝因分析</h2>
+      <div class="v65-block-grid" id="past-winner"></div>
+    </section>
+
+    <section class="paper-section" aria-label="推奨外れ考察">
+      <h2 class="section-title">本命・対抗・穴が馬券外だった場合の考察</h2>
+      <p class="paper-section__lead">複勝圏外（4着以下）を馬券外として要因を整理します。</p>
+      <div class="v65-block-grid" id="past-misses"></div>
+    </section>
+
+    <div class="page-actions page-actions--stack">
+      <a href="race-detail.html" class="btn-secondary" id="past-back-detail">レース詳細へ</a>
+      <a href="race-list.html" class="btn-secondary" id="past-back-list">レース一覧へ</a>
+      <a href="review.html" class="btn-secondary">Review Dashboard</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 10.9.1 · Past Race Report</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

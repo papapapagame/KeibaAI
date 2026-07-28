@@ -9,7 +9,11 @@ import {
   toJstDate,
 } from "./netkeiba-utils.js";
 
-export const LIVE_FEED_ADAPTER_VERSION = "10.7.0";
+export const LIVE_FEED_ADAPTER_VERSION = "10.9.0";
+
+/** Open-Meteo ベース（JMA 高解像度を優先、失敗時 forecast） */
+export const OPEN_METEO_JMA_BASE = "https://api.open-meteo.com/v1/jma";
+export const OPEN_METEO_FORECAST_BASE = "https://api.open-meteo.com/v1/forecast";
 
 /**
  * Google News RSS XML → news raw items（メタデータのみ）
@@ -75,9 +79,15 @@ export function adaptOpenMeteoWeather(apiJson = {}, options = {}) {
       : current.rain != null
         ? Number(current.rain)
         : 0;
+  const recentPrecip = sumRecentPrecip(hourly);
   const trackCondition =
     options.trackCondition ||
-    precipToTrackCondition(precip, sumRecentPrecip(hourly));
+    precipToTrackCondition(precip, recentPrecip);
+  // 公開APIに含水率は無い → 直近降水から推定（低リスク補助）
+  const moisture = Math.max(
+    0,
+    Math.min(100, Math.round(recentPrecip * 18 + precip * 25))
+  );
 
   const history = buildHourlyHistory(hourly, 6);
 
@@ -85,7 +95,7 @@ export function adaptOpenMeteoWeather(apiJson = {}, options = {}) {
     version: LIVE_FEED_ADAPTER_VERSION,
     source: "real-live",
     providerId: "real-weather",
-    providerName: "Real Weather (Open-Meteo)",
+    providerName: options.providerName || "Real Weather (Open-Meteo JMA)",
     updatedAt: current.time
       ? new Date(current.time).toISOString()
       : new Date().toISOString(),
@@ -107,26 +117,29 @@ export function adaptOpenMeteoWeather(apiJson = {}, options = {}) {
       windDirection: degreesToDirection(current.wind_direction_10m),
       trackCondition,
       surface: options.surface || "芝",
-      surfaceState: "標準",
+      surfaceState: moisture >= 55 ? "重め" : moisture >= 30 ? "稍重寄り" : "標準",
       turfCondition: trackCondition,
       dirtCondition: trackCondition,
-      moisture: null,
-      moistureAvailable: false,
+      moisture,
+      moistureAvailable: true,
+      moistureSource: "precip-estimate",
       precipitation: precip,
       precipitationAvailable: true,
+      recentPrecipitation: recentPrecip,
       updatedAt: current.time
         ? new Date(current.time).toISOString()
         : new Date().toISOString(),
-      providerName: "Real Weather (Open-Meteo)",
+      providerName: options.providerName || "Real Weather (Open-Meteo JMA)",
       history,
       latitude: coords.lat,
       longitude: coords.lon,
       weatherCode,
+      model: options.model || "jma",
     },
   };
 }
 
-export function buildOpenMeteoUrl(venueId = "tokyo") {
+export function buildOpenMeteoUrl(venueId = "tokyo", options = {}) {
   const id = String(venueId || "tokyo").toLowerCase();
   const coords = VENUE_COORDINATES[id] || VENUE_COORDINATES.tokyo;
   const params = new URLSearchParams({
@@ -139,14 +152,31 @@ export function buildOpenMeteoUrl(venueId = "tokyo") {
       "wind_speed_10m",
       "wind_direction_10m",
       "precipitation",
+      "rain",
     ].join(","),
-    hourly: ["temperature_2m", "precipitation", "weather_code", "wind_speed_10m"].join(
-      ","
-    ),
+    hourly: [
+      "temperature_2m",
+      "precipitation",
+      "weather_code",
+      "wind_speed_10m",
+      "relative_humidity_2m",
+    ].join(","),
     timezone: "Asia/Tokyo",
-    forecast_days: "1",
+    forecast_days: "2",
   });
-  return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const base =
+    options.useForecast === true
+      ? OPEN_METEO_FORECAST_BASE
+      : OPEN_METEO_JMA_BASE;
+  return `${base}?${params.toString()}`;
+}
+
+/**
+ * Wikipedia OpenSearch（CORS・origin=*）
+ */
+export function buildWikipediaOpenSearchUrl(query = "") {
+  const q = encodeURIComponent(String(query || "").trim());
+  return `https://ja.wikipedia.org/w/api.php?action=opensearch&search=${q}&limit=1&namespace=0&format=json&origin=*`;
 }
 
 /**
@@ -165,19 +195,24 @@ export function adaptSocialPublicFeeds({
     idx += 1;
     const views = Number(pv.views) || 0;
     const prev = Number(pv.prevViews) || Math.max(0, Math.floor(views * 0.7));
+    const horseNames = Array.isArray(pv.horses)
+      ? pv.horses
+      : pv.horse
+        ? [pv.horse]
+        : [];
     items.push({
       id: `wp_${idx}_${hashShort(pv.title || "")}`,
       publishedAt: pv.timestamp || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       topicKey: slugify(pv.title || `wiki_${idx}`),
-      category: "other",
+      category: horseNames.length ? "other" : "other",
       raceNumber: options.raceNumber != null ? Number(options.raceNumber) : null,
       venueId: options.venueId || null,
-      horses: [],
+      horses: horseNames,
       jockeys: [],
       trainers: [],
-      postType: "topic",
-      source: "wikipedia-pageviews",
+      postType: horseNames.length ? "horse" : "topic",
+      source: pv.source || "wikipedia-pageviews",
       postCount: views,
       prevPostCount: prev,
       importanceHint: views > 5000 ? "high" : views > 1000 ? "medium" : "low",
@@ -363,6 +398,7 @@ export const LiveFeedAdapters = {
   buildOpenMeteoUrl,
   buildGoogleNewsRssUrl,
   buildWikipediaPageviewsUrl,
+  buildWikipediaOpenSearchUrl,
   buildHnSearchUrl,
   version: LIVE_FEED_ADAPTER_VERSION,
 };

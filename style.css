@@ -5975,3 +5975,28 @@ body.has-home-fab .scroll-top {
   font-size: 0.84rem;
   color: var(--text-primary, #f2f2f2);
 }
+
+/* ==========================================================================
+   Ver10.9.1 Past Race Report
+   ========================================================================== */
+
+.past-result-table tr.is-winner td {
+  color: var(--gold, #d4af37);
+  font-weight: 600;
+}
+
+.past-result-table tr.is-ai-pick td:nth-child(6) {
+  color: var(--gold, #d4af37);
+}
+
+.v55-dash-card.is-miss {
+  border-color: rgba(200, 80, 80, 0.45);
+}
+
+.v55-dash-card.is-hit {
+  border-color: rgba(80, 180, 120, 0.4);
+}
+
+.page--past-race .paper-section {
+  margin-top: 1.25rem;
+}

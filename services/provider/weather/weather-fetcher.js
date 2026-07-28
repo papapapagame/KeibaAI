@@ -1,6 +1,6 @@
 /* ========================================
-   WeatherFetcher — Ver10.8
-   Open-Meteo 公開 API（直接・CORS対応）
+   WeatherFetcher — Ver10.9
+   Open-Meteo JMA → Forecast フォールバック（CORS対応）
    ======================================== */
 
 import { REAL_WEATHER_FETCH_TIMEOUT_MS } from "../../../js/config.js";
@@ -12,83 +12,97 @@ import {
 } from "../live/live-feed-adapters.js";
 import { getRealRaceState } from "../race/race-calendar-synchronizer.js";
 
-export const WEATHER_FETCHER_VERSION = "10.8.0";
+export const WEATHER_FETCHER_VERSION = "10.9.0";
 
 export async function fetchWeatherRawData(options = {}) {
   const timeoutMs =
     Number(options.timeoutMs) || REAL_WEATHER_FETCH_TIMEOUT_MS || 15000;
   const started = performance.now();
   const venueId = String(options.venueId || options.venue || "tokyo").toLowerCase();
-  const url = buildOpenMeteoUrl(venueId);
   const trackHint = findTrackHint(options);
+  let lastErr = null;
 
-  try {
-    const res = await liveFetchJson(url, {
-      timeoutMs,
-      force: options.force,
-      domain: "weather",
-      providerId: "real-weather",
-      record: false,
-    });
-    const raw = adaptOpenMeteoWeather(res.json, {
-      venueId,
-      raceDate: options.date || options.raceDate || null,
-      raceNumber: options.raceNumber,
-      surface: options.surface || trackHint.surface || "芝",
-      trackCondition: trackHint.trackCondition || null,
-      phase: options.phase || "final",
-    });
+  const attempts = [
+    { useForecast: false, model: "jma", label: "Open-Meteo JMA" },
+    { useForecast: true, model: "forecast", label: "Open-Meteo Forecast" },
+  ];
 
-    recordConnection({
-      domain: "weather",
-      providerId: "real-weather",
-      url: res.url,
-      httpStatus: res.status,
-      ok: true,
-      fetchCount: 1,
-      parserCount: 1,
-      parserOk: true,
-      parserNote: `${raw.weather?.weather || "—"} / ${raw.weather?.trackCondition || "—"}`,
-      latencyMs: Math.round(performance.now() - started),
-      downloadSize: res.size,
-      cacheStatus: res.cacheStatus,
-    });
+  for (const attempt of attempts) {
+    const url = buildOpenMeteoUrl(venueId, { useForecast: attempt.useForecast });
+    try {
+      const res = await liveFetchJson(url, {
+        timeoutMs,
+        force: options.force,
+        domain: "weather",
+        providerId: "real-weather",
+        record: false,
+      });
+      const raw = adaptOpenMeteoWeather(res.json, {
+        venueId,
+        raceDate: options.date || options.raceDate || null,
+        raceNumber: options.raceNumber,
+        surface: options.surface || trackHint.surface || "芝",
+        trackCondition: trackHint.trackCondition || null,
+        phase: options.phase || "final",
+        model: attempt.model,
+        providerName: `Real Weather (${attempt.label})`,
+      });
 
-    return {
-      ok: true,
-      raw,
-      url: res.url,
-      httpStatus: res.status,
-      fetchedAt: new Date().toISOString(),
-      latencyMs: Math.round(performance.now() - started),
-      size: res.size,
-      cacheStatus: res.cacheStatus,
-      version: WEATHER_FETCHER_VERSION,
-    };
-  } catch (err) {
-    recordConnection({
-      domain: "weather",
-      providerId: "real-weather",
-      url: err?.url || url,
-      httpStatus: err?.status || null,
-      ok: false,
-      fetchCount: 0,
-      parserCount: 0,
-      parserOk: false,
-      error: formatUserError(err?.code, err?.message),
-      latencyMs: Math.round(performance.now() - started),
-    });
-    throw Object.assign(
-      new Error(formatUserError(err?.code, err?.message)),
-      {
-        code: err?.code || "FETCH_ERROR",
-        cause: err,
-        url: err?.url || url,
-        status: err?.status,
-        userMessage: formatUserError(err?.code, err?.message),
-      }
-    );
+      recordConnection({
+        domain: "weather",
+        providerId: "real-weather",
+        url: res.url,
+        httpStatus: res.status,
+        ok: true,
+        fetchCount: 1,
+        parserCount: 1,
+        parserOk: true,
+        parserNote: `${attempt.model} ${raw.weather?.weather || "—"} / ${raw.weather?.trackCondition || "—"} / moist ${raw.weather?.moisture ?? "—"}`,
+        latencyMs: Math.round(performance.now() - started),
+        downloadSize: res.size,
+        cacheStatus: res.cacheStatus,
+      });
+
+      return {
+        ok: true,
+        raw,
+        url: res.url,
+        httpStatus: res.status,
+        fetchedAt: new Date().toISOString(),
+        latencyMs: Math.round(performance.now() - started),
+        size: res.size,
+        cacheStatus: res.cacheStatus,
+        sourceKind: attempt.model,
+        version: WEATHER_FETCHER_VERSION,
+      };
+    } catch (err) {
+      lastErr = err;
+    }
   }
+
+  const url = buildOpenMeteoUrl(venueId, { useForecast: false });
+  recordConnection({
+    domain: "weather",
+    providerId: "real-weather",
+    url: lastErr?.url || url,
+    httpStatus: lastErr?.status || null,
+    ok: false,
+    fetchCount: 0,
+    parserCount: 0,
+    parserOk: false,
+    error: formatUserError(lastErr?.code, lastErr?.message),
+    latencyMs: Math.round(performance.now() - started),
+  });
+  throw Object.assign(
+    new Error(formatUserError(lastErr?.code, lastErr?.message)),
+    {
+      code: lastErr?.code || "FETCH_ERROR",
+      cause: lastErr,
+      url: lastErr?.url || url,
+      status: lastErr?.status,
+      userMessage: formatUserError(lastErr?.code, lastErr?.message),
+    }
+  );
 }
 
 function findTrackHint(options = {}) {

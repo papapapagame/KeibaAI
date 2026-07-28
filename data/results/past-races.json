@@ -1,0 +1,117 @@
+{
+  "version": "10.9.1",
+  "updatedAt": "2026-07-29T03:40:00+09:00",
+  "source": "real",
+  "note": "過去レース結果 + レース前AI評価スナップショット（学習・振り返り用）",
+  "races": [
+    {
+      "raceId": "202604020211",
+      "date": "2026-07-26",
+      "venueId": "niigata",
+      "venueLabel": "新潟",
+      "raceNumber": 11,
+      "raceName": "3歳以上1勝クラス",
+      "track": "芝",
+      "distance": 1400,
+      "trackCondition": "良",
+      "weather": "曇",
+      "status": "finished",
+      "prediction": {
+        "honmei": 15,
+        "taikou": 12,
+        "ana": 5,
+        "topNumbers": [15, 12, 13, 14, 10],
+        "roles": {
+          "15": "本命",
+          "12": "対抗",
+          "5": "穴"
+        },
+        "scores": {
+          "1": 38, "2": 42, "3": 61, "4": 48, "5": 72,
+          "6": 50, "7": 44, "8": 52, "9": 60, "10": 74,
+          "11": 62, "12": 86, "13": 82, "14": 78, "15": 91
+        },
+        "indexes": {
+          "1": 540, "2": 560, "3": 720, "4": 610, "5": 810,
+          "6": 630, "7": 580, "8": 650, "9": 710, "10": 830,
+          "11": 730, "12": 900, "13": 880, "14": 860, "15": 945
+        },
+        "generatedAt": "2026-07-26T10:00:00+09:00",
+        "note": "レース前AI評価（確定オッズ反映時点）"
+      },
+      "results": [
+        { "finish": 1, "number": 13, "horseName": "パレスドフィーヌ", "jockey": "丸山", "popularity": 3, "odds": 6.0, "payout": 600, "time": "1:21.2", "margin": "" },
+        { "finish": 2, "number": 15, "horseName": "ルブリアン", "jockey": "◇今村", "popularity": 1, "odds": 4.4, "payout": 0, "time": "1:21.3", "margin": "クビ" },
+        { "finish": 3, "number": 10, "horseName": "ミエノブラボー", "jockey": "丸田", "popularity": 5, "odds": 8.3, "payout": 0, "time": "1:21.5", "margin": "1.1/4" },
+        { "finish": 4, "number": 14, "horseName": "ブラックティンカー", "jockey": "江田照", "popularity": 4, "odds": 7.5, "payout": 0, "time": "1:21.6", "margin": "クビ" },
+        { "finish": 5, "number": 5, "horseName": "シャンクス", "jockey": "杉原", "popularity": 6, "odds": 8.8, "payout": 0, "time": "1:21.8", "margin": "1" },
+        { "finish": 6, "number": 12, "horseName": "ヨドノティアラ", "jockey": "嶋田", "popularity": 2, "odds": 5.1, "payout": 0, "time": "1:21.9", "margin": "1/2" },
+        { "finish": 7, "number": 11, "horseName": "テンペストヒロイン", "jockey": "▲佐藤", "popularity": 7, "odds": 15.3, "payout": 0, "time": "1:22.1", "margin": "1" },
+        { "finish": 8, "number": 3, "horseName": "リアアーテシアン", "jockey": "岩田望", "popularity": 9, "odds": 15.6, "payout": 0, "time": "1:22.2", "margin": "クビ" },
+        { "finish": 9, "number": 9, "horseName": "コウジハラ", "jockey": "木幡初", "popularity": 8, "odds": 15.6, "payout": 0, "time": "1:22.4", "margin": "1" },
+        { "finish": 10, "number": 8, "horseName": "ホウオウガイア", "jockey": "田口", "popularity": 10, "odds": 33.5, "payout": 0, "time": "1:22.6", "margin": "1" },
+        { "finish": 11, "number": 6, "horseName": "ラブソング", "jockey": "菊沢", "popularity": 11, "odds": 33.6, "payout": 0, "time": "1:22.8", "margin": "1" },
+        { "finish": 12, "number": 4, "horseName": "スカイダイバー", "jockey": "▲石田", "popularity": 12, "odds": 41.2, "payout": 0, "time": "1:23.0", "margin": "1" },
+        { "finish": 13, "number": 7, "horseName": "ハッピーダンシング", "jockey": "△石神道", "popularity": 13, "odds": 92.7, "payout": 0, "time": "1:23.3", "margin": "1.1/2" },
+        { "finish": 14, "number": 2, "horseName": "マーシャルアン", "jockey": "▲上里", "popularity": 14, "odds": 110.4, "payout": 0, "time": "1:23.6", "margin": "1.1/2" },
+        { "finish": 15, "number": 1, "horseName": "オレイア", "jockey": "▲水沼", "popularity": 15, "odds": 319.1, "payout": 0, "time": "1:24.0", "margin": "2" }
+      ]
+    },
+    {
+      "raceId": "hist-001",
+      "date": "2026-07-20",
+      "venueId": "tokyo",
+      "venueLabel": "東京",
+      "raceNumber": 11,
+      "raceName": "メインレース",
+      "track": "芝",
+      "distance": 1600,
+      "trackCondition": "良",
+      "weather": "晴",
+      "status": "finished",
+      "prediction": {
+        "honmei": 1,
+        "taikou": 5,
+        "ana": 2,
+        "topNumbers": [1, 5, 2],
+        "roles": { "1": "本命", "5": "対抗", "2": "穴" },
+        "scores": { "1": 94, "5": 88, "2": 80 },
+        "indexes": { "1": 945, "5": 912, "2": 887 },
+        "generatedAt": "2026-07-20T10:00:00+09:00"
+      },
+      "results": [
+        { "finish": 1, "number": 1, "horseName": "馬1", "popularity": 1, "payout": 280 },
+        { "finish": 2, "number": 5, "horseName": "馬5", "popularity": 4, "payout": 0 },
+        { "finish": 3, "number": 2, "horseName": "馬2", "popularity": 3, "payout": 0 }
+      ]
+    },
+    {
+      "raceId": "hist-002",
+      "date": "2026-07-13",
+      "venueId": "tokyo",
+      "venueLabel": "東京",
+      "raceNumber": 11,
+      "raceName": "オープン",
+      "track": "芝",
+      "distance": 1600,
+      "trackCondition": "良",
+      "weather": "晴",
+      "status": "finished",
+      "prediction": {
+        "honmei": 1,
+        "taikou": 5,
+        "ana": 2,
+        "topNumbers": [1, 5, 2],
+        "roles": { "1": "本命", "5": "対抗", "2": "穴" },
+        "scores": { "1": 93, "5": 87, "2": 79, "8": 71 },
+        "indexes": { "1": 930, "5": 900, "8": 754 },
+        "generatedAt": "2026-07-13T10:00:00+09:00"
+      },
+      "results": [
+        { "finish": 1, "number": 8, "horseName": "馬8", "popularity": 6, "payout": 1240 },
+        { "finish": 2, "number": 1, "horseName": "馬1", "popularity": 1, "payout": 0 },
+        { "finish": 3, "number": 4, "horseName": "馬4", "popularity": 5, "payout": 0 }
+      ]
+    }
+  ]
+}

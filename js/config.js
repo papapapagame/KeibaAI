@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.8.1 Real Weekend Data Only
+   Ver10.9.0 Low-Risk Public Intelligence
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.8.2";
-export const RELEASE_CHANNEL = "Race-Scoped Entries";
+export const VERSION = "10.9.1";
+export const RELEASE_CHANNEL = "Past Race Report";
 export const BUILD_DATE = "2026-07-29";
-export const BUILD_NUMBER = "20260729.1082";
+export const BUILD_NUMBER = "20260729.1091";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -50,26 +50,26 @@ export const REAL_ODDS_FETCH_TIMEOUT_MS = 15000;
 export const REAL_ODDS_PROVIDER_VERSION = "10.8.1";
 export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v1081";
 
-/** Real Weather — Open-Meteo（CORS対応公開API） */
-export const REAL_WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
+/** Real Weather — Open-Meteo JMA（失敗時 Forecast） */
+export const REAL_WEATHER_URL = "https://api.open-meteo.com/v1/jma";
 export const REAL_WEATHER_FETCH_TIMEOUT_MS = 15000;
-export const REAL_WEATHER_PROVIDER_VERSION = "10.8.1";
+export const REAL_WEATHER_PROVIDER_VERSION = "10.9.0";
 export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v1081";
 
-/** Real News — Google News RSS（失敗時は GitHub data/news/news.json） */
+/** Real News — Google News RSS（レース横断 + YouTube言及メタ） */
 export const REAL_NEWS_URL =
   "https://news.google.com/rss/search?q=%E7%AB%B6%E9%A6%AC&hl=ja&gl=JP&ceid=JP:ja";
 export const REAL_NEWS_GITHUB_URL = "data/news/news.json";
 export const REAL_NEWS_FETCH_TIMEOUT_MS = 15000;
-export const REAL_NEWS_PROVIDER_VERSION = "10.8.1";
+export const REAL_NEWS_PROVIDER_VERSION = "10.9.0";
 export const NEWS_MODE_KEY = "papapa_iq_news_mode_v1081";
 
-/** Real Social — Wikipedia pageviews（失敗時は GitHub data/social/social.json） */
+/** Real Social — Wikipedia pageviews（会場・馬別）+ HN */
 export const REAL_SOCIAL_URL =
   "https://wikimedia.org/api/rest_v1/metrics/pageviews";
 export const REAL_SOCIAL_GITHUB_URL = "data/social/social.json";
-export const REAL_SOCIAL_FETCH_TIMEOUT_MS = 20000;
-export const REAL_SOCIAL_PROVIDER_VERSION = "10.8.1";
+export const REAL_SOCIAL_FETCH_TIMEOUT_MS = 25000;
+export const REAL_SOCIAL_PROVIDER_VERSION = "10.9.0";
 export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v1081";
 
 export const DATA_PROVIDER = "real";
@@ -106,11 +106,11 @@ export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
 export const REAL_RACE_CALENDAR_VERSION = "10.8.1";
 export const REAL_HORSE_ENTRY_VERSION = "10.8.1";
 export const REAL_ODDS_VERSION = "10.8.1";
-export const REAL_WEATHER_VERSION = "10.8.1";
-export const REAL_NEWS_VERSION = "10.8.1";
-export const REAL_SOCIAL_VERSION = "10.8.1";
-export const PRODUCTION_INTEGRATION_VERSION = "10.8.1";
-export const LIVE_REAL_DATA_VERSION = "10.8.1";
+export const REAL_WEATHER_VERSION = "10.9.0";
+export const REAL_NEWS_VERSION = "10.9.0";
+export const REAL_SOCIAL_VERSION = "10.9.0";
+export const PRODUCTION_INTEGRATION_VERSION = "10.9.0";
+export const LIVE_REAL_DATA_VERSION = "10.9.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

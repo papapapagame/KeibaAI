@@ -39,6 +39,9 @@ export class RealNewsProvider extends ProviderInterface {
       const extracted = extractNewsMetadata(parsed, {
         raceNumber: options.raceNumber,
         venueId: options.venueId,
+        horseNames: options.horseNames || options.horses || [],
+        jockeyNames: options.jockeyNames || options.jockeys || [],
+        trainerNames: options.trainerNames || options.trainers || [],
       });
       const validation = validateRealNews(extracted, {
         raceNumber: options.raceNumber ?? extracted.meta?.raceNumber,

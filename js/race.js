@@ -23,6 +23,10 @@ import { loadOddsForAi } from "../services/odds/index.js";
 import { loadWeatherForAi } from "../services/weather/index.js";
 import { loadNewsForAi } from "../services/news/index.js";
 import { loadSocialForAi } from "../services/social/index.js";
+import {
+  findPastRaceRecord,
+  isPastRaceDate,
+} from "../services/review/past-race-report.js";
 import { shouldPrefetch } from "../services/runtime/prefetch-deduper.js";
 import {
   applyCardStagger,
@@ -594,6 +598,32 @@ export async function initRaceDetailPage() {
   const raceId = params.get("raceId") || "";
   const stage = Number(params.get("stage") || 5) || 5;
 
+  // 過去レースかつ結果あり → 振り返りページへ
+  if (isPastRaceDate(raceDate)) {
+    const past = await findPastRaceRecord({
+      date: raceDate,
+      venueId: raceVenue,
+      venue: raceVenue,
+      raceNumber: Number(raceNumber) || 0,
+      raceId,
+    });
+    if (past) {
+      const pastParams = new URLSearchParams({
+        date: raceDate,
+        venue: raceVenue,
+        venueLabel,
+        race: raceNumber || String(past.raceNumber || ""),
+        name: raceName || past.raceName || "",
+        time: raceTime,
+        grade: params.get("grade") || "",
+        stage: params.get("stage") || "",
+        raceId: raceId || past.raceId || "",
+      });
+      navigateWithFade(`past-race.html?${pastParams.toString()}`);
+      return;
+    }
+  }
+
   document.getElementById("detail-date").textContent = raceDate || "未選択";
   document.getElementById("detail-venue").textContent = venueLabel || "未選択";
   document.getElementById("detail-race-number").textContent = raceNumber
@@ -634,10 +664,11 @@ export async function initRaceDetailPage() {
     const tr = document.createElement("tr");
     const td = createElement("td", {
       className: "entry-empty",
-      text:
-        entryBundle?.userMessage ||
-        entryBundle?.message ||
-        "現在データを取得できません",
+      text: isPastRaceDate(raceDate)
+        ? "過去レースですが結果データが未登録です"
+        : entryBundle?.userMessage ||
+          entryBundle?.message ||
+          "現在データを取得できません",
       attrs: { colspan: "7" },
     });
     tr.appendChild(td);
@@ -654,6 +685,27 @@ export async function initRaceDetailPage() {
 
   document.getElementById("back-to-race-list").href =
     `race-list.html?${listParams.toString()}`;
+
+  const pastBtn = document.getElementById("go-past-race");
+  if (pastBtn) {
+    if (isPastRaceDate(raceDate)) {
+      pastBtn.hidden = false;
+      pastBtn.addEventListener("click", () => {
+        const pastParams = new URLSearchParams({
+          date: raceDate,
+          venue: raceVenue,
+          venueLabel,
+          race: raceNumber || String(DEFAULT_RACE),
+          name: raceName,
+          time: raceTime,
+          raceId: raceId || "",
+        });
+        navigateWithFade(`past-race.html?${pastParams.toString()}`);
+      });
+    } else {
+      pastBtn.hidden = true;
+    }
+  }
 
   document.getElementById("go-analysis").addEventListener("click", () => {
     const analysisParams = new URLSearchParams({

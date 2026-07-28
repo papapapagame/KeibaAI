@@ -444,11 +444,32 @@ export async function initAnalysisPage() {
   );
 
   // Ver8.0 News Intelligence — 構造化メタデータのみ（本文なし）
+  const horseNames = (entryBundle?.entries || [])
+    .map((e) => e.horseName || e.horse || "")
+    .filter(Boolean)
+    .slice(0, 16);
+  const jockeyNames = (entryBundle?.entries || [])
+    .map((e) => (typeof e.jockey === "object" ? e.jockey?.name : e.jockey) || "")
+    .filter(Boolean)
+    .slice(0, 16);
+  const trainerNames = (entryBundle?.entries || [])
+    .map((e) => (typeof e.trainer === "object" ? e.trainer?.name : e.trainer) || "")
+    .filter(Boolean)
+    .slice(0, 16);
+  const intelCtx = {
+    ...liveCtx,
+    venueLabel: params.get("venueLabel") || race.venueLabel || "",
+    raceName: params.get("name") || race.name || "",
+    horseNames,
+    jockeyNames,
+    trainerNames,
+  };
+
   const newsBundle = await loadEngineSafe(
     "news",
     () =>
       loadNewsForAi({
-        ...liveCtx,
+        ...intelCtx,
         baseConfidence:
           weatherBundle?.confidenceHint ??
           oddsBundle?.confidenceHint ??
@@ -467,7 +488,7 @@ export async function initAnalysisPage() {
     "social",
     () =>
       loadSocialForAi({
-        ...liveCtx,
+        ...intelCtx,
         baseConfidence:
           newsBundle?.confidenceHint ??
           weatherBundle?.confidenceHint ??
