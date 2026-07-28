@@ -127,6 +127,7 @@ export function createHorse(raw = {}) {
     horseName: name,
     age: raw.age != null ? Number(raw.age) : null,
     sex: raw.sex || "",
+    affiliation: raw.affiliation || "",
     frame: createFrame(raw.frame),
     number,
     weight: createWeight(raw.weight),
@@ -147,6 +148,14 @@ export function createHorse(raw = {}) {
     grade: raw.grade || "",
     stars: Number(raw.stars || raw.score) || 0,
     result: raw.result ? createResult(raw.result) : null,
+    entryStatus: raw.entryStatus || null,
+    entryStatusLabel: raw.entryStatusLabel || null,
+    careerRecord: raw.careerRecord || null,
+    distanceRecord: raw.distanceRecord || null,
+    courseRecord: raw.courseRecord || null,
+    trackRecord: raw.trackRecord || null,
+    stakesRecord: raw.stakesRecord || null,
+    earnings: raw.earnings != null ? Number(raw.earnings) : null,
     // AIエンジン互換
     horse: name,
     last3: Array.isArray(raw.last3)
@@ -155,6 +164,38 @@ export function createHorse(raw = {}) {
     favorite: Boolean(raw.favorite),
     trackType: raw.trackType || "",
     distanceType: raw.distanceType || "",
+  };
+}
+
+/** Ver7.6 HorseEntry — 登録情報（枠・騎手・斤量・オッズは未確定） */
+export function createHorseEntry(raw = {}) {
+  const horse = createHorse({
+    ...raw,
+    frame: null,
+    jockey: null,
+    weight: null,
+    odds: null,
+    popularity: null,
+  });
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "HorseEntry",
+    ...horse,
+    entryStatus: raw.entryStatus || "registered",
+    entryStatusLabel: raw.entryStatusLabel || raw.entryStatus || "",
+    affiliation: raw.affiliation || horse.affiliation || "",
+    careerRecord: raw.careerRecord || "",
+    recentForm: raw.recentForm || raw.last3 || [],
+    distanceRecord: raw.distanceRecord || "",
+    courseRecord: raw.courseRecord || "",
+    trackRecord: raw.trackRecord || "",
+    stakesRecord: raw.stakesRecord || "",
+    earnings: raw.earnings != null ? Number(raw.earnings) : null,
+    // 確定情報として利用しない
+    frameConfirmed: false,
+    jockeyConfirmed: false,
+    weightConfirmed: false,
+    oddsConfirmed: false,
   };
 }
 

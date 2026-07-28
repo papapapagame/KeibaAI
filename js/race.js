@@ -16,6 +16,7 @@ import {
   validateVenueSelection,
 } from "../services/calendar/index.js";
 import { connectRaceData } from "../services/race-connect/index.js";
+import { loadEntriesForAi } from "../services/entry/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -93,6 +94,11 @@ export async function initTopPage(goRaceListButton) {
         raceDateInput.value = cell.date;
         renderCalendar();
         populateVenues(cell.date);
+        // Ver7.6: 開催日変更時に登録馬を自動取得
+        void loadEntriesForAi({
+          date: cell.date,
+          emitUpdate: false,
+        });
       });
       grid.appendChild(btn);
     }
@@ -170,6 +176,7 @@ export async function initTopPage(goRaceListButton) {
     viewYear = y;
     viewMonth = m;
     populateVenues(defaultDate);
+    void loadEntriesForAi({ date: defaultDate, emitUpdate: false });
   }
 
   renderCalendar();

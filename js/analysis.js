@@ -30,6 +30,13 @@ import {
   getRaceConnectStatus,
 } from "../services/race-connect/index.js";
 import {
+  loadEntriesForAi,
+  filterEntriesForStage,
+  entryToHorseModel,
+  getEntryDashboard,
+} from "../services/entry/index.js";
+import { toLegacyHorse } from "../services/models/unified.js";
+import {
   getCalendarDashboard,
   getRaceAnalysisContext,
   prepareAiInput,
@@ -231,6 +238,24 @@ export async function initAnalysisPage() {
   const confidenceNow = raceCtx.confidence?.percent ?? null;
   const completenessNow = raceCtx.completeness?.percent ?? null;
 
+  // Ver7.6 Horse Entry — Stage に応じた登録馬（枠/騎手/斤量/オッズは未確定）
+  const entryBundle = await loadEntriesForAi({
+    stage: stageNow,
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+  });
+  bindEntryStatusUi(entryBundle);
+  bindEntryDevUi(entryBundle);
+
+  const horsesWithEntry = mergeHorsesWithEntries(horses, entryBundle.entries);
+  const entryFiltered = filterEntriesForStage(entryBundle.entries || [], stageNow);
+  const entryLegacy =
+    entryFiltered.length > 0
+      ? entryFiltered.map((e) => toLegacyHorse(entryToHorseModel(e, stageNow)))
+      : horsesWithEntry;
+
   const prepared = prepareAiInput(
     {
       ...race,
@@ -239,7 +264,7 @@ export async function initAnalysisPage() {
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
     },
-    horses,
+    entryLegacy,
     raceCtx.analysisStage?.stage ?? 0
   );
   const stagedRace = prepared.race;
@@ -565,6 +590,73 @@ function bindRaceConnectDevUi(raceConnect) {
     raceConnect?.validation?.ok
       ? `OK / races ${raceConnect.count?.races || 0}`
       : `NG ${raceConnect?.validation?.errors?.length || 0}`
+  );
+}
+
+function mergeHorsesWithEntries(horses = [], entries = []) {
+  const map = new Map((entries || []).map((e) => [Number(e.number), e]));
+  return (horses || []).map((h) => {
+    const e = map.get(Number(h.number));
+    if (!e) return h;
+    return {
+      ...h,
+      entryStatus: e.entryStatus,
+      entryStatusLabel: e.entryStatusLabel,
+      affiliation: e.affiliation || h.affiliation,
+      careerRecord: e.careerRecord,
+      distanceRecord: e.distanceRecord,
+      courseRecord: e.courseRecord,
+      trackRecord: e.trackRecord,
+      stakesRecord: e.stakesRecord,
+      earnings: e.earnings,
+      age: h.age ?? e.age,
+      sex: h.sex || e.sex,
+    };
+  });
+}
+
+function bindEntryStatusUi(entryBundle) {
+  const stats = entryBundle?.stats || {};
+  setText("entry-registered", String(stats.registered ?? "—"));
+  setText("entry-planned", String(stats.planned ?? "—"));
+  setText("entry-scratched", String(stats.scratched ?? "—"));
+  setText("entry-excluded", String(stats.excluded ?? "—"));
+  setText(
+    "entry-completeness",
+    stats.completeness != null ? `${stats.completeness}%` : "—"
+  );
+  setText("entry-stage-note", entryBundle?.stageNote || "");
+}
+
+function bindEntryDevUi(entryBundle) {
+  const dash = getEntryDashboard();
+  const stats = entryBundle?.stats || dash.stats || {};
+  setText("dev-entry-count", String(entryBundle?.count ?? stats.registered ?? 0));
+  setText(
+    "dev-entry-by-status",
+    [
+      `登${stats.registered ?? 0}`,
+      `予${stats.planned ?? 0}`,
+      `確${stats.confirmed ?? 0}`,
+      `取${stats.scratched ?? 0}`,
+      `除${stats.excluded ?? 0}`,
+      `回${stats.withdrawn ?? 0}`,
+    ].join(" / ")
+  );
+  setText(
+    "dev-entry-validation",
+    entryBundle?.validation?.ok
+      ? `OK (warn ${entryBundle.validation.warnings?.length || 0})`
+      : `NG ${entryBundle?.validation?.errors?.length || 0}`
+  );
+  setText("dev-entry-sync", entryBundle?.sync?.status || dash.syncStatus || "—");
+  setText(
+    "dev-entry-updated",
+    entryBundle?.fetchedAt
+      ? formatUpdateTime(entryBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
   );
 }
 

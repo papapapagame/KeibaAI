@@ -1,47 +1,47 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.5.0** — Race Data Connect
+**Ver7.6.0** — Horse Entry Intelligence
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-開催日・開催場・レース一覧・レース基本情報の接続基盤です（Horse / Odds は対象外）。
+登録馬〜出走確定までを Entry Status で管理し、Analysis Stage に応じて AI 入力を切り替えます。
 
-## Race Data Connect
+## Horse Entry Engine
 
 ```
-services/race-connect/
-  RaceDataConnector / Fetcher / Parser
-  RaceDataSynchronizer / Monitor
+services/entry/
+  HorseEntryManager / EntryDataConnector
+  EntrySynchronizer / EntryValidator
+  EntryRepository / EntryStateManager
 ```
 
-### 取得フロー
+### Entry Status
+
+Registered（登録） / 出走予定 / 出走確定 / 取消 / 除外 / 回避  
+状態変更履歴を保存します。
+
+### Entry Flow
 
 ```
 Provider Framework
-  → RaceDataFetcher
-  → Parser（Normalizer）
+  → EntryRepository
   → Validator
-  → Unified Model
-  → AI / Calendar
+  → HorseEntry（Unified）
+  → Stage Filter
+  → AI
 ```
 
-AI・画面は Provider へ直接アクセスしません。
+枠順・騎手・斤量・オッズは **未確定** として扱い、確定情報として渡しません。
 
-### 取得項目
+### Stage連携
 
-開催日 / 開催場 / 開催回 / 開催日数 / レース番号 / レース名 / 発走時刻 / 距離 / 芝・ダート / 右左 / 内外 / 天候 / 馬場 / グレード / 条件戦区分 / 賞金
+- Stage1: 登録馬のみ  
+- Stage2: 出走予定馬  
+- Stage3+: 取消・除外・回避を除外し確定情報を待機  
 
-### Provider連携
+### Validation / Synchronization
 
-Mock / Real / Auto 切替。Mock は既存 JSON、Real は Provider Framework 経由（未接続時はブロック）。
-
-### Validation
-
-必須・型・重複・異常値・欠損を検証。失敗時は AI へ渡しません。
-
-### Synchronization
-
-取得した開催日・開催場を Race Calendar へ反映。  
-Smart Update は開催更新時に Race のみ再取得し、変更が無ければ AI 再分析しません。
+必須・重複・欠損・型・Status整合性を検証。異常は AI へ渡さない。  
+登録追加・取消・予定変更時のみ Smart Update 再取得。開催日変更で Calendar 連携取得。
 
 ## 確認方法
 
@@ -49,10 +49,10 @@ Smart Update は開催更新時に Race のみ再取得し、変更が無けれ�
 python -m http.server 5500
 ```
 
-1. 分析画面「Race Data Connect」ステータス  
-2. Dev Panel の成功/失敗/同期/最終更新  
-3. Mock / Real / Auto 切替  
+1. 分析画面「Horse Entry」頭数・充足率  
+2. Dev Panel の状態別件数 / Validation / 同期  
+3. Stage 表示で暫定評価であることを確認  
 
 ## 維持機能
 
-Ver7.4 Provider Framework までの全機能を維持しています。
+Ver7.5 Race Data Connect までの全機能を維持しています。

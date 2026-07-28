@@ -22,6 +22,7 @@ import {
 import { UPDATE_PRIORITY } from "./priorities.js";
 import { nowIso, formatJa } from "./utils.js";
 import { refreshRaceDataOnly } from "../race-connect/race-data-connector.js";
+import { refreshEntriesOnly } from "../entry/horse-entry-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -147,6 +148,54 @@ async function handleIncomingEvent(event) {
       }
     } catch {
       /* Race Connect 失敗時は従来トリガへフォールバック */
+    }
+  }
+
+  // Ver7.6: Entry 変更時は登録馬のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.entryOnly ||
+    event?.source === "entry-engine" ||
+    ["entry_added", "entry_scratched", "entry_status_changed"].includes(
+      event?.type
+    )
+  ) {
+    try {
+      const entryRefresh = await refreshEntriesOnly({
+        emitUpdate: false,
+        stage: snapshot.stage,
+      });
+      if (!entryRefresh.ok || !entryRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: entryRefresh.ok
+            ? "Entry情報に変更が無いため再分析をスキップしました。"
+            : `Entry 再取得失敗: ${entryRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Entry: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Entry変更なし（スキップ）",
+        });
+        return { skipped: true, entryOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        entryFingerprint: entryRefresh.fingerprint,
+        entryCount: entryRefresh.count,
+      };
+    } catch {
+      /* Entry 失敗時は従来トリガへ */
     }
   }
 

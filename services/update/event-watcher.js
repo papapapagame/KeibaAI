@@ -21,6 +21,9 @@ let watchTargets = [
   "provider_update",
   "news_added",
   "stage_changed",
+  "entry_added",
+  "entry_scratched",
+  "entry_status_changed",
 ];
 
 export function getWatchTargets() {

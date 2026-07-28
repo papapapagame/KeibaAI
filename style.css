@@ -5823,3 +5823,11 @@ body.has-home-fab .scroll-top {
 .v75-race-connect-status {
   margin-bottom: 0.85rem;
 }
+
+/* ==========================================================================
+   Ver7.6.0 Horse Entry Intelligence
+   ========================================================================== */
+
+.v76-entry-status {
+  margin-bottom: 0.45rem;
+}

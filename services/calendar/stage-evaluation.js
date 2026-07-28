@@ -13,6 +13,7 @@ import {
 
 /**
  * Analysis Stage に応じて race/horses をサニタイズ
+ * Ver7.6: Entry Status 連携 + 枠/騎手/斤量/オッズは Stage3未満で確定扱いにしない
  */
 export function sanitizeForStage(race, horses, stage) {
   const s = createAnalysisStage(stage).stage;
@@ -26,27 +27,38 @@ export function sanitizeForStage(race, horses, stage) {
     raceOut.weather = "未確定";
   }
 
-  // Stage1: 特別登録 — 頭数制限の仮リスト（確定出走ではない）
+  // Stage1: 登録馬のみ
   if (s === 1) {
-    horseOut = horseOut.slice(0, Math.min(horseOut.length, 18)).map((h) =>
-      stripUnconfirmed(h, {
-        frame: true,
-        jockey: true,
-        weight: true,
-        odds: true,
-      })
-    );
+    horseOut = horseOut
+      .filter((h) => !h.entryStatus || h.entryStatus === "registered")
+      .slice(0, Math.min(horseOut.length, 18))
+      .map((h) =>
+        stripUnconfirmed(h, {
+          frame: true,
+          jockey: true,
+          weight: true,
+          odds: true,
+        })
+      );
     raceOut.trackCondition = "未確定";
     raceOut.weather = "未確定";
   }
 
-  // Stage2: 出走予定 — 枠・騎手・斤量・オッズは未確定
+  // Stage2: 出走予定馬 — 枠・騎手・斤量・オッズは未確定
   if (s === 2) {
-    horseOut = horseOut.map((h) =>
-      stripUnconfirmed(h, { frame: true, jockey: true, weight: true, odds: true })
-    );
+    horseOut = horseOut
+      .filter((h) => !h.entryStatus || h.entryStatus === "planned")
+      .filter((h) => !isRemovedStatus(h.entryStatus))
+      .map((h) =>
+        stripUnconfirmed(h, { frame: true, jockey: true, weight: true, odds: true })
+      );
     raceOut.trackCondition = "未確定";
     raceOut.weather = "未確定";
+  }
+
+  // Stage3+: 取消・除外・回避を除外。枠順以降は段階的に解除（既存）
+  if (s >= 3) {
+    horseOut = horseOut.filter((h) => !isRemovedStatus(h.entryStatus));
   }
 
   // Stage3: 枠順確定 — 騎手・斤量・オッズ未確定
@@ -97,6 +109,14 @@ export function sanitizeForStage(race, horses, stage) {
     stage: createAnalysisStage(s),
     evaluationMode: evaluationModeLabel(s),
   };
+}
+
+function isRemovedStatus(status) {
+  return (
+    status === "scratched" ||
+    status === "excluded" ||
+    status === "withdrawn"
+  );
 }
 
 function stripUnconfirmed(horse, flags = {}) {

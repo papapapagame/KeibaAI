@@ -24,6 +24,9 @@ export const EVENT_PRIORITY_MAP = {
   news_added: UPDATE_PRIORITY.LOW,
   stage_changed: UPDATE_PRIORITY.CRITICAL,
   schedule_tick: UPDATE_PRIORITY.MEDIUM,
+  entry_added: UPDATE_PRIORITY.HIGH,
+  entry_scratched: UPDATE_PRIORITY.CRITICAL,
+  entry_status_changed: UPDATE_PRIORITY.HIGH,
 };
 
 /** 優先度ごとの再分析遅延（ms）— Critical は即時 */
@@ -57,6 +60,9 @@ export function reasonForEvent(eventType, detail = "") {
     news_added: "ニュース追加を次回更新時に反映します。",
     stage_changed: "Analysis Stage が変化したため自動再分析しました。",
     schedule_tick: "スケジュール更新タイミングのため再分析しました。",
+    entry_added: "登録馬追加を検知したため再取得しました。",
+    entry_scratched: "登録取消を検知したため再分析しました。",
+    entry_status_changed: "出走予定変更を検知したため再取得しました。",
   };
   const base = map[eventType] || "データ更新を検知したため再分析しました。";
   return detail ? `${base}（${detail}）` : base;

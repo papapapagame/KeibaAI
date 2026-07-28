@@ -75,6 +75,24 @@ export const MOCK_EVENTS = [
     detail: "Stage3 → Stage4",
     payload: { from: 3, to: 4 },
   },
+  {
+    type: "entry_added",
+    label: "登録馬追加",
+    detail: "追加登録を検知",
+    payload: { entryOnly: true },
+  },
+  {
+    type: "entry_scratched",
+    label: "登録取消",
+    detail: "14番 取消",
+    payload: { entryOnly: true, number: 14 },
+  },
+  {
+    type: "entry_status_changed",
+    label: "出走予定変更",
+    detail: "登録 → 出走予定",
+    payload: { entryOnly: true },
+  },
 ];
 
 export function getMockEventCatalog() {

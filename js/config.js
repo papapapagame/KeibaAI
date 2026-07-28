@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "7.5.0";
+export const VERSION = "7.6.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -51,6 +51,9 @@ export const PROVIDER_FRAMEWORK_VERSION = "7.4.0";
 
 /** Race Data Connect（services/race-connect） */
 export const RACE_CONNECT_VERSION = "7.5.0";
+
+/** Horse Entry Intelligence（services/entry） */
+export const ENTRY_ENGINE_VERSION = "7.6.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;
