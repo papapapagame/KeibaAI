@@ -1,433 +1,210 @@
 {
-    "version":  "10.8.0",
     "source":  "real",
-    "providerId":  "real-odds",
-    "raceDate":  "2026-07-27",
-    "venueId":  "tokyo",
-    "raceNumber":  11,
+    "venueId":  "niigata",
+    "raceId":  "202604020211",
+    "version":  "10.8.1",
+    "updatedAt":  "2026-07-28T17:30:13Z",
+    "raceDate":  "2026-07-26",
     "phase":  "final",
-    "updatedAt":  "2026-07-29T00:50:00+09:00",
-    "fetchedAt":  "2026-07-28T19:05:00+09:00",
+    "raceNumber":  11,
+    "providerName":  "Real Odds",
+    "fetchedAt":  "2026-07-28T17:30:13Z",
     "odds":  [
                  {
                      "number":  1,
-                     "horse":  "ゴールドパパス",
-                     "horseName":  "ゴールドパパス",
-                     "winOdds":  2.8,
-                     "placeOdds":  1.7,
-                     "popularity":  1,
-                     "marketIndex":  90,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "オレイア",
+                     "horseName":  "オレイア",
+                     "winOdds":  319.1,
+                     "placeOdds":  null,
+                     "popularity":  15,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  2,
-                                         "placeOdds":  1.9,
-                                         "winOdds":  3.1,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  1,
-                                         "placeOdds":  1.8,
-                                         "winOdds":  2.9,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  1,
-                                         "placeOdds":  1.7,
-                                         "winOdds":  2.8,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  2,
-                     "horse":  "ミッドナイトコール",
-                     "horseName":  "ミッドナイトコール",
-                     "winOdds":  6.2,
-                     "placeOdds":  2.5,
-                     "popularity":  3,
-                     "marketIndex":  77,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "マーシャルアン",
+                     "horseName":  "マーシャルアン",
+                     "winOdds":  110.4,
+                     "placeOdds":  null,
+                     "popularity":  14,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  4,
-                                         "placeOdds":  2.8,
-                                         "winOdds":  6.9,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  3,
-                                         "placeOdds":  2.6,
-                                         "winOdds":  6.5,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  3,
-                                         "placeOdds":  2.5,
-                                         "winOdds":  6.2,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  3,
-                     "horse":  "サファイアブレイク",
-                     "horseName":  "サファイアブレイク",
-                     "winOdds":  4.5,
-                     "placeOdds":  2.1,
-                     "popularity":  2,
-                     "marketIndex":  83,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "リアアーテシアン",
+                     "horseName":  "リアアーテシアン",
+                     "winOdds":  15.6,
+                     "placeOdds":  null,
+                     "popularity":  9,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  3,
-                                         "placeOdds":  2.3,
-                                         "winOdds":  5,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  2,
-                                         "placeOdds":  2.2,
-                                         "winOdds":  4.7,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  2,
-                                         "placeOdds":  2.1,
-                                         "winOdds":  4.5,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  4,
-                     "horse":  "シルクタッチ",
-                     "horseName":  "シルクタッチ",
-                     "winOdds":  9.8,
-                     "placeOdds":  3.1,
-                     "popularity":  5,
-                     "marketIndex":  67,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "スカイダイバー",
+                     "horseName":  "スカイダイバー",
+                     "winOdds":  41.2,
+                     "placeOdds":  null,
+                     "popularity":  12,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  6,
-                                         "placeOdds":  3.4,
-                                         "winOdds":  11,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  5,
-                                         "placeOdds":  3.3,
-                                         "winOdds":  10.3,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  5,
-                                         "placeOdds":  3.1,
-                                         "winOdds":  9.8,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  5,
-                     "horse":  "ライトニングソウル",
-                     "horseName":  "ライトニングソウル",
-                     "winOdds":  7.1,
-                     "placeOdds":  2.7,
-                     "popularity":  4,
-                     "marketIndex":  73,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "シャンクス",
+                     "horseName":  "シャンクス",
+                     "winOdds":  8.8,
+                     "placeOdds":  null,
+                     "popularity":  6,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  5,
-                                         "placeOdds":  3,
-                                         "winOdds":  8,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  4,
-                                         "placeOdds":  2.8,
-                                         "winOdds":  7.5,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  4,
-                                         "placeOdds":  2.7,
-                                         "winOdds":  7.1,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  6,
-                     "horse":  "シャドウウォーカー",
-                     "horseName":  "シャドウウォーカー",
-                     "winOdds":  28.4,
-                     "placeOdds":  5.3,
-                     "popularity":  10,
-                     "marketIndex":  44,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ラブソング",
+                     "horseName":  "ラブソング",
+                     "winOdds":  33.6,
+                     "placeOdds":  null,
+                     "popularity":  11,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  11,
-                                         "placeOdds":  5.8,
-                                         "winOdds":  31.8,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  10,
-                                         "placeOdds":  5.6,
-                                         "winOdds":  29.8,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  10,
-                                         "placeOdds":  5.3,
-                                         "winOdds":  28.4,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  7,
-                     "horse":  "エンペラーロード",
-                     "horseName":  "エンペラーロード",
-                     "winOdds":  15.6,
-                     "placeOdds":  3.9,
-                     "popularity":  7,
-                     "marketIndex":  58,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ハッピーダンシング",
+                     "horseName":  "ハッピーダンシング",
+                     "winOdds":  92.7,
+                     "placeOdds":  null,
+                     "popularity":  13,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  8,
-                                         "placeOdds":  4.3,
-                                         "winOdds":  17.5,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  7,
-                                         "placeOdds":  4.1,
-                                         "winOdds":  16.4,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  7,
-                                         "placeOdds":  3.9,
-                                         "winOdds":  15.6,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  8,
-                     "horse":  "クリスタルレイ",
-                     "horseName":  "クリスタルレイ",
-                     "winOdds":  12.3,
-                     "placeOdds":  3.5,
-                     "popularity":  6,
-                     "marketIndex":  63,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ホウオウガイア",
+                     "horseName":  "ホウオウガイア",
+                     "winOdds":  33.5,
+                     "placeOdds":  null,
+                     "popularity":  10,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  7,
-                                         "placeOdds":  3.9,
-                                         "winOdds":  13.8,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  6,
-                                         "placeOdds":  3.7,
-                                         "winOdds":  12.9,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  6,
-                                         "placeOdds":  3.5,
-                                         "winOdds":  12.3,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  9,
-                     "horse":  "ネオクラウン",
-                     "horseName":  "ネオクラウン",
-                     "winOdds":  18.2,
-                     "placeOdds":  4.3,
+                     "horse":  "コウジハラ",
+                     "horseName":  "コウジハラ",
+                     "winOdds":  15.6,
+                     "placeOdds":  null,
                      "popularity":  8,
-                     "marketIndex":  53,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  9,
-                                         "placeOdds":  4.7,
-                                         "winOdds":  20.4,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  8,
-                                         "placeOdds":  4.5,
-                                         "winOdds":  19.1,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  8,
-                                         "placeOdds":  4.3,
-                                         "winOdds":  18.2,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  10,
-                     "horse":  "パッションフラッグ",
-                     "horseName":  "パッションフラッグ",
-                     "winOdds":  42,
-                     "placeOdds":  6.5,
-                     "popularity":  12,
-                     "marketIndex":  35,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ミエノブラボー",
+                     "horseName":  "ミエノブラボー",
+                     "winOdds":  8.3,
+                     "placeOdds":  null,
+                     "popularity":  5,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  13,
-                                         "placeOdds":  7.2,
-                                         "winOdds":  47,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  12,
-                                         "placeOdds":  6.8,
-                                         "winOdds":  44.1,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  12,
-                                         "placeOdds":  6.5,
-                                         "winOdds":  42,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  11,
-                     "horse":  "ヴィクトリーノート",
-                     "horseName":  "ヴィクトリーノート",
-                     "winOdds":  21.5,
-                     "placeOdds":  4.6,
-                     "popularity":  9,
-                     "marketIndex":  49,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "テンペストヒロイン",
+                     "horseName":  "テンペストヒロイン",
+                     "winOdds":  15.3,
+                     "placeOdds":  null,
+                     "popularity":  7,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  10,
-                                         "placeOdds":  5.1,
-                                         "winOdds":  24.1,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  9,
-                                         "placeOdds":  4.8,
-                                         "winOdds":  22.6,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  9,
-                                         "placeOdds":  4.6,
-                                         "winOdds":  21.5,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  12,
-                     "horse":  "ダークストーム",
-                     "horseName":  "ダークストーム",
-                     "winOdds":  35.8,
-                     "placeOdds":  6,
-                     "popularity":  11,
-                     "marketIndex":  39,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ヨドノティアラ",
+                     "horseName":  "ヨドノティアラ",
+                     "winOdds":  5.1,
+                     "placeOdds":  null,
+                     "popularity":  2,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  12,
-                                         "placeOdds":  6.6,
-                                         "winOdds":  40.1,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  11,
-                                         "placeOdds":  6.3,
-                                         "winOdds":  37.6,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  11,
-                                         "placeOdds":  6,
-                                         "winOdds":  35.8,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  13,
-                     "horse":  "ロイヤルオーシャン",
-                     "horseName":  "ロイヤルオーシャン",
-                     "winOdds":  68,
-                     "placeOdds":  8.2,
-                     "popularity":  14,
-                     "marketIndex":  25,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "パレスドフィーヌ",
+                     "horseName":  "パレスドフィーヌ",
+                     "winOdds":  6,
+                     "placeOdds":  null,
+                     "popularity":  3,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  15,
-                                         "placeOdds":  9,
-                                         "winOdds":  76.2,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  14,
-                                         "placeOdds":  8.6,
-                                         "winOdds":  71.4,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  14,
-                                         "placeOdds":  8.2,
-                                         "winOdds":  68,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
                                  ]
                  },
                  {
                      "number":  14,
-                     "horse":  "スターリーナイト",
-                     "horseName":  "スターリーナイト",
-                     "winOdds":  51.2,
-                     "placeOdds":  7.2,
-                     "popularity":  13,
-                     "marketIndex":  30,
-                     "updatedAt":  "2026-07-28T19:05:00+09:00",
+                     "horse":  "ブラックティンカー",
+                     "horseName":  "ブラックティンカー",
+                     "winOdds":  7.5,
+                     "placeOdds":  null,
+                     "popularity":  4,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
                      "history":  [
-                                     {
-                                         "popularity":  14,
-                                         "placeOdds":  7.9,
-                                         "winOdds":  57.3,
-                                         "at":  "2026-07-27T10:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  13,
-                                         "placeOdds":  7.6,
-                                         "winOdds":  53.8,
-                                         "at":  "2026-07-27T12:00:00+09:00"
-                                     },
-                                     {
-                                         "popularity":  13,
-                                         "placeOdds":  7.2,
-                                         "winOdds":  51.2,
-                                         "at":  "2026-07-27T14:30:00+09:00"
-                                     }
+
+                                 ]
+                 },
+                 {
+                     "number":  15,
+                     "horse":  "ルブリアン",
+                     "horseName":  "ルブリアン",
+                     "winOdds":  4.4,
+                     "placeOdds":  null,
+                     "popularity":  1,
+                     "marketIndex":  null,
+                     "updatedAt":  "2026-07-28T17:30:13Z",
+                     "history":  [
+
                                  ]
                  }
-             ]
+             ],
+    "providerId":  "real-odds"
 }

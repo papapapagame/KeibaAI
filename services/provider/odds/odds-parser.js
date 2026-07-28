@@ -33,6 +33,7 @@ export function parseOddsRaw(raw = {}, providerId = "real-odds") {
       raceDate: raw.raceDate || raw.date || null,
       venueId: raw.venueId || raw.venue || null,
       raceNumber: raw.raceNumber != null ? Number(raw.raceNumber) : null,
+      raceId: raw.raceId || raw.id || null,
       phase: raw.phase || "final",
       updatedAt: raw.updatedAt || null,
       fetchedAt: raw.fetchedAt || null,

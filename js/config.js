@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.8.0 Production Real Data Integration Complete
+   Ver10.8.1 Real Weekend Data Only
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.8.0";
-export const RELEASE_CHANNEL = "Production Real Data Integration Complete";
+export const VERSION = "10.8.1";
+export const RELEASE_CHANNEL = "Real Weekend Data Only";
 export const BUILD_DATE = "2026-07-29";
-export const BUILD_NUMBER = "20260729.108";
+export const BUILD_NUMBER = "20260729.1081";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -36,43 +36,43 @@ export const LIVE_DATA_ENABLED = true;
 /** Real Race — GitHub /data/calendar/calendar.json */
 export const REAL_RACE_CALENDAR_URL = "data/calendar/calendar.json";
 export const REAL_RACE_FETCH_TIMEOUT_MS = 15000;
-export const REAL_RACE_PROVIDER_VERSION = "10.8.0";
+export const REAL_RACE_PROVIDER_VERSION = "10.8.1";
 
 /** Real Horse — GitHub /data/horse/entries.json */
 export const REAL_HORSE_ENTRY_URL = "data/horse/entries.json";
 export const REAL_HORSE_FETCH_TIMEOUT_MS = 15000;
-export const REAL_HORSE_PROVIDER_VERSION = "10.8.0";
-export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v101";
+export const REAL_HORSE_PROVIDER_VERSION = "10.8.1";
+export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v1081";
 
 /** Real Odds — GitHub /data/odds/odds.json */
 export const REAL_ODDS_URL = "data/odds/odds.json";
 export const REAL_ODDS_FETCH_TIMEOUT_MS = 15000;
-export const REAL_ODDS_PROVIDER_VERSION = "10.8.0";
-export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v102";
+export const REAL_ODDS_PROVIDER_VERSION = "10.8.1";
+export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v1081";
 
 /** Real Weather — Open-Meteo（CORS対応公開API） */
 export const REAL_WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
 export const REAL_WEATHER_FETCH_TIMEOUT_MS = 15000;
-export const REAL_WEATHER_PROVIDER_VERSION = "10.8.0";
-export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v103";
+export const REAL_WEATHER_PROVIDER_VERSION = "10.8.1";
+export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v1081";
 
 /** Real News — Google News RSS（失敗時は GitHub data/news/news.json） */
 export const REAL_NEWS_URL =
   "https://news.google.com/rss/search?q=%E7%AB%B6%E9%A6%AC&hl=ja&gl=JP&ceid=JP:ja";
 export const REAL_NEWS_GITHUB_URL = "data/news/news.json";
 export const REAL_NEWS_FETCH_TIMEOUT_MS = 15000;
-export const REAL_NEWS_PROVIDER_VERSION = "10.8.0";
-export const NEWS_MODE_KEY = "papapa_iq_news_mode_v104";
+export const REAL_NEWS_PROVIDER_VERSION = "10.8.1";
+export const NEWS_MODE_KEY = "papapa_iq_news_mode_v1081";
 
 /** Real Social — Wikipedia pageviews（失敗時は GitHub data/social/social.json） */
 export const REAL_SOCIAL_URL =
   "https://wikimedia.org/api/rest_v1/metrics/pageviews";
 export const REAL_SOCIAL_GITHUB_URL = "data/social/social.json";
 export const REAL_SOCIAL_FETCH_TIMEOUT_MS = 20000;
-export const REAL_SOCIAL_PROVIDER_VERSION = "10.8.0";
-export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v105";
+export const REAL_SOCIAL_PROVIDER_VERSION = "10.8.1";
+export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v1081";
 
-export const DATA_PROVIDER = "dummy";
+export const DATA_PROVIDER = "real";
 
 export const DATA_CACHE_TTL_MS = 10 * 60 * 1000;
 export const INTEL_CACHE_TTL_MS = DATA_CACHE_TTL_MS;
@@ -84,9 +84,9 @@ export const LEARNING_AI_DB_KEY = "papapa_iq_learning_ai_v55";
 export const REVIEW_AI_VERSION = "6.5.0";
 export const REVIEW_KB_KEY = "papapa_iq_review_kb_v65";
 export const DATA_PLATFORM_VERSION = "7.0.0";
-export const DATA_SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v70";
+export const DATA_SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v1081";
 export const CALENDAR_VERSION = "7.1.0";
-export const CALENDAR_MODE_KEY = "papapa_iq_calendar_mode_v71";
+export const CALENDAR_MODE_KEY = "papapa_iq_calendar_mode_v1081";
 export const UPDATE_ENGINE_VERSION = "7.2.0";
 export const UPDATE_HISTORY_KEY = "papapa_iq_update_history_v72";
 export const UPDATE_STATE_KEY = "papapa_iq_update_state_v72";
@@ -103,14 +103,14 @@ export const DISCUSSION_ENGINE_VERSION = "8.2.0";
 export const EXPLAIN_ENGINE_VERSION = "8.3.0";
 export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
 
-export const REAL_RACE_CALENDAR_VERSION = "10.8.0";
-export const REAL_HORSE_ENTRY_VERSION = "10.8.0";
-export const REAL_ODDS_VERSION = "10.8.0";
-export const REAL_WEATHER_VERSION = "10.8.0";
-export const REAL_NEWS_VERSION = "10.8.0";
-export const REAL_SOCIAL_VERSION = "10.8.0";
-export const PRODUCTION_INTEGRATION_VERSION = "10.6.0";
-export const LIVE_REAL_DATA_VERSION = "10.8.0";
+export const REAL_RACE_CALENDAR_VERSION = "10.8.1";
+export const REAL_HORSE_ENTRY_VERSION = "10.8.1";
+export const REAL_ODDS_VERSION = "10.8.1";
+export const REAL_WEATHER_VERSION = "10.8.1";
+export const REAL_NEWS_VERSION = "10.8.1";
+export const REAL_SOCIAL_VERSION = "10.8.1";
+export const PRODUCTION_INTEGRATION_VERSION = "10.8.1";
+export const LIVE_REAL_DATA_VERSION = "10.8.1";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

@@ -3,7 +3,7 @@
    Mock / Real 手動切替（自動フォールバックなし）
    ======================================== */
 
-export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v102";
+export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v1081";
 export const ODDS_MODES = ["mock", "real"];
 
 export function getOddsMode() {

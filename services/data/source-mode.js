@@ -2,7 +2,7 @@
    Source Mode (Mock / Real / Auto) — Ver7.0
    ======================================== */
 
-export const SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v70";
+export const SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v1081";
 export const SOURCE_MODES = ["mock", "real", "auto"];
 
 export function getSourceMode() {

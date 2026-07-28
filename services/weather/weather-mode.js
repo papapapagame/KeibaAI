@@ -3,7 +3,7 @@
    Mock / Real 手動切替（自動フォールバックなし）
    ======================================== */
 
-export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v103";
+export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v1081";
 export const WEATHER_MODES = ["mock", "real"];
 
 export function getWeatherMode() {

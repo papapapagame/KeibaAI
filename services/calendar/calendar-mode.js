@@ -2,7 +2,7 @@
    Calendar source mode — Ver7.1
    ======================================== */
 
-export const CALENDAR_MODE_KEY = "papapa_iq_calendar_mode_v71";
+export const CALENDAR_MODE_KEY = "papapa_iq_calendar_mode_v1081";
 export const CALENDAR_MODES = ["mock", "real"];
 
 export function getCalendarMode() {

@@ -12,6 +12,10 @@ import { validateRealOdds } from "./odds-validator.js";
 import { syncRealOdds } from "./odds-synchronizer.js";
 import { normalizeRealOdds } from "./odds-normalizer.js";
 import { getOddsUpdateCount } from "./odds-history-manager.js";
+import {
+  hasRaceScope,
+  raceScopeMatches,
+} from "../live/race-scope.js";
 
 export const REAL_ODDS_PROVIDER_ID = "real-odds";
 export const REAL_ODDS_PROVIDER_VERSION = "10.2.0";
@@ -36,6 +40,32 @@ export class RealOddsProvider extends ProviderInterface {
     try {
       const fetched = await fetchOddsRawData(options);
       const parsed = parseOddsRaw(fetched.raw, this.id);
+      if (hasRaceScope(options) && !raceScopeMatches(parsed.meta || {}, options)) {
+        this.setHealth(PROVIDER_HEALTH.ERROR);
+        return {
+          ok: false,
+          blocked: false,
+          providerId: this.id,
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
+          validation: {
+            ok: false,
+            errors: [
+              {
+                code: "RACE_SCOPE",
+                message: "対象レースのオッズがありません",
+              },
+            ],
+            warnings: [],
+          },
+          odds: [],
+          items: [],
+          fetchedAt: fetched.fetchedAt,
+          latencyMs: Math.round(performance.now() - started),
+          source: "real-odds",
+          mode: "real",
+        };
+      }
       const validation = validateRealOdds(parsed);
 
       if (!validation.ok) {

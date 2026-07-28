@@ -3,7 +3,7 @@
    Mock / Real 手動切替（自動フォールバックなし）
    ======================================== */
 
-export const NEWS_MODE_KEY = "papapa_iq_news_mode_v104";
+export const NEWS_MODE_KEY = "papapa_iq_news_mode_v1081";
 export const NEWS_MODES = ["mock", "real"];
 
 export function getNewsMode() {

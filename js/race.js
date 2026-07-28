@@ -201,10 +201,17 @@ export async function initTopPage(goRaceListButton) {
     }
   });
 
-  // 初期: 直近の開催日を選択
+  // 初期: 今日以降の直近開催日（なければ最新開催日）
+  const todayIso = (() => {
+    const n = new Date();
+    const jst = new Date(n.getTime() + 9 * 60 * 60 * 1000);
+    return jst.toISOString().slice(0, 10);
+  })();
+  const sortedMeetings = [...meetingSet].sort();
   const defaultDate =
-    [...meetingSet].find((d) => d >= "2026-07-27") ||
-    [...meetingSet][0] ||
+    sortedMeetings.find((d) => d >= todayIso) ||
+    sortedMeetings[sortedMeetings.length - 1] ||
+    sortedMeetings[0] ||
     "";
   if (defaultDate && cal.ok) {
     raceDateInput.value = defaultDate;

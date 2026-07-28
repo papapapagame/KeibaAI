@@ -227,6 +227,11 @@ export async function initAnalysisPage() {
 
   const bundle = await loadRaceForAi({
     raceNumber,
+    date: params.get("date") || "",
+    raceDate: params.get("date") || "",
+    venueId: params.get("venue") || "",
+    venue: params.get("venue") || "",
+    raceId: params.get("raceId") || "",
     forceError,
     stage: params.get("stage") != null ? Number(params.get("stage")) : undefined,
   });
@@ -280,10 +285,13 @@ export async function initAnalysisPage() {
 
   bindDeveloperPanel(bundle, null, null);
 
-  if (!bundle.ok || !horses.length) {
-    const msg = bundle.blocked
-      ? "Provider未接続です。Developer Panel で Data Source を Mock に戻してください。"
-      : bundle.message || bundle.status?.error || "データ取得に失敗しました。キャッシュ表示を確認してください。";
+  if (!bundle.ok) {
+    const msg =
+      bundle.blocked || getSourceMode() === "real"
+        ? "現在データを取得できません"
+        : bundle.message ||
+          bundle.status?.error ||
+          "データ取得に失敗しました。キャッシュ表示を確認してください。";
     if (DEBUG) console.error("[analysis] data platform:", msg);
     setText("data-source-label", bundle.status?.sourceLabel || "Error");
     setText("data-error-detail", msg);
@@ -560,12 +568,35 @@ export async function initAnalysisPage() {
     entryBundle.entries || [],
     effectiveStage
   );
-  const entryLegacy =
-    entryFiltered.length > 0
-      ? entryFiltered.map((e) =>
-          toLegacyHorse(entryToHorseModel(e, effectiveStage))
-        )
-      : horsesWithEntry;
+  const preferRealOnly =
+    getEntryMode() === "real" || getSourceMode() === "real";
+  let entryLegacy = [];
+  if (entryFiltered.length > 0) {
+    entryLegacy = entryFiltered.map((e) =>
+      toLegacyHorse(entryToHorseModel(e, effectiveStage))
+    );
+  } else if (!preferRealOnly && horsesWithEntry.length > 0) {
+    entryLegacy = horsesWithEntry;
+  }
+
+  if (!entryLegacy.length) {
+    const msg =
+      entryBundle?.userMessage ||
+      entryBundle?.message ||
+      "現在データを取得できません";
+    if (DEBUG) console.error("[analysis] no real entries:", msg);
+    setText("data-source-label", entryBundle?.providerId || "Error");
+    setText("data-error-detail", msg);
+    document.getElementById("data-error-banner")?.classList.add("is-visible");
+    document.getElementById("data-error-banner")?.removeAttribute("hidden");
+    bindReleaseRcUi({
+      analysisMs: Math.round(
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+          perfStarted
+      ),
+    });
+    return;
+  }
 
   const drawMerged = mergeHorsesWithDraw(
     entryLegacy,

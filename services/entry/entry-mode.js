@@ -3,7 +3,7 @@
    Mock / Real 手動切替（自動フォールバックなし）
    ======================================== */
 
-export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v101";
+export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v1081";
 export const ENTRY_MODES = ["mock", "real"];
 
 export function getEntryMode() {

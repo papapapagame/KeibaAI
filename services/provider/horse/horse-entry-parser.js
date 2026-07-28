@@ -33,6 +33,7 @@ export function parseHorseEntryRaw(raw = {}, providerId = "real-horse") {
       raceDate: raw.raceDate || raw.date || null,
       venueId: raw.venueId || raw.venue || null,
       raceNumber: raw.raceNumber != null ? Number(raw.raceNumber) : null,
+      raceId: raw.raceId || raw.id || null,
       defaultStage:
         raw.defaultStage != null ? Number(raw.defaultStage) : null,
       updatedAt: raw.updatedAt || null,

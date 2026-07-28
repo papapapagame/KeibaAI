@@ -31,7 +31,7 @@ export async function fetchRaceBundle(options = {}) {
   }
 
   const raw = acquired.raw;
-  const enriched = await fetchEnrichedHorsesOptional();
+  const enriched = await fetchEnrichedHorsesOptional(mode);
 
   return {
     ok: true,
@@ -55,7 +55,9 @@ export async function fetchRaceBundle(options = {}) {
   };
 }
 
-async function fetchEnrichedHorsesOptional() {
+async function fetchEnrichedHorsesOptional(mode = "real") {
+  // Real 経路では horses.json（旧ダミー）による上書きを禁止
+  if (mode === "real") return [];
   try {
     const res = await fetch(`${API_BASE_URL}horses.json`, { cache: "no-store" });
     if (!res.ok) return [];

@@ -13,6 +13,7 @@ import { validateRaceCalendar } from "./race-calendar-validator.js";
 import { syncRaceCalendar } from "./race-calendar-synchronizer.js";
 import { normalizeRaceCalendar } from "./race-calendar-normalizer.js";
 import { recordConnection, recordAiPayloadCount } from "../../runtime/connection-telemetry.js";
+import { loadRealHorseEntries } from "../horse/index.js";
 
 export const REAL_RACE_PROVIDER_ID = "real-race";
 export const REAL_RACE_PROVIDER_VERSION = "10.7.0";
@@ -225,16 +226,45 @@ export class RealRaceProvider extends ProviderInterface {
       });
     }
     const races = cal.legacyRaces || [];
+    const date = options.date || options.raceDate || "";
+    const venueId = options.venueId || options.venue || "";
     const raceNumber = Number(options.raceNumber) || Number(races[0]?.number) || 1;
     const rawRace =
-      races.find((r) => Number(r.number) === raceNumber) || races[0] || {};
+      races.find(
+        (r) =>
+          Number(r.number) === raceNumber &&
+          (!date || r.date === date) &&
+          (!venueId || r.venue === venueId || r.venueId === venueId)
+      ) ||
+      races.find((r) => Number(r.number) === raceNumber) ||
+      races[0] ||
+      {};
+
+    let horses = [];
+    try {
+      const horseResult = await loadRealHorseEntries({
+        ...options,
+        date: date || rawRace.date || "",
+        venueId: venueId || rawRace.venue || rawRace.venueId || "",
+        raceNumber: raceNumber || rawRace.number,
+        raceId: options.raceId || rawRace.raceId || "",
+        silent: true,
+        emitUpdate: false,
+      });
+      if (horseResult?.ok) {
+        horses = horseResult.entries || horseResult.horses || [];
+      }
+    } catch {
+      horses = [];
+    }
+
     return {
       providerId: this.id,
       providerVersion: this.version,
       sourceLabel: "Real Race Calendar",
       raw: {
         race: rawRace,
-        horses: [],
+        horses,
         settings: {},
         venues: cal.schedules?.map((s) => s.venue) || [],
         races,
@@ -243,7 +273,7 @@ export class RealRaceProvider extends ProviderInterface {
       },
       count: {
         races: races.length,
-        horses: 0,
+        horses: horses.length,
         meetings: cal.meetings?.length || 0,
       },
       fetchedAt: cal.fetchedAt,

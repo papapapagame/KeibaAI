@@ -3,7 +3,7 @@
    Mock / Real 手動切替（自動フォールバックなし）
    ======================================== */
 
-export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v105";
+export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v1081";
 export const SOCIAL_MODES = ["mock", "real"];
 
 export function getSocialMode() {
