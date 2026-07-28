@@ -1,9 +1,20 @@
 /* ========================================
    PAPAPA IQ KEIBA - race.js
    トップ / レース一覧 / レース詳細
+   Ver7.1 Race Calendar Intelligence
    ======================================== */
 
-import { DEFAULT_RACE, MAX_HORSE } from "./config.js";
+import { DEBUG, DEBUG_MODE, DEFAULT_RACE, MAX_HORSE } from "./config.js";
+import {
+  getCalendarDashboard,
+  getCalendarMode,
+  setCalendarMode,
+  buildMonthCells,
+  getVenuesOnDate,
+  getSessionInfo,
+  validateDateSelection,
+  validateVenueSelection,
+} from "../services/calendar/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -23,33 +34,246 @@ import {
 export async function initTopPage(goRaceListButton) {
   const raceDateInput = document.getElementById("race-date");
   const raceVenueSelect = document.getElementById("race-venue");
-  const raceData = await loadJson("race");
+  const sessionBox = document.getElementById("session-info");
+  const errorEl = document.getElementById("cal-error");
 
-  clearElement(raceVenueSelect);
-  raceVenueSelect.appendChild(createOption("", "開催場を選択"));
-  raceData.venues.forEach((venue) => {
-    raceVenueSelect.appendChild(createOption(venue.value, venue.label));
+  let cal = await getCalendarDashboard();
+  let viewYear = 2026;
+  let viewMonth = 7;
+  if (cal.range?.min) {
+    const [y, m] = cal.range.min.split("-").map(Number);
+    viewYear = y;
+    viewMonth = m;
+  }
+
+  bindCalendarDevPanel(() => location.reload());
+
+  if (cal.blocked || !cal.ok) {
+    showCalError(
+      errorEl,
+      cal.message || "カレンダーを読み込めません（Real は Provider未接続）"
+    );
+  }
+
+  const meetingSet = cal.meetingDateSet || new Set();
+
+  function renderCalendar() {
+    const label = document.getElementById("cal-month-label");
+    if (label) label.textContent = `${viewYear}年${viewMonth}月`;
+    const grid = document.getElementById("cal-grid");
+    if (!grid) return;
+    clearElement(grid);
+    const cells = buildMonthCells(viewYear, viewMonth, meetingSet);
+    const selected = raceDateInput.value;
+    for (const cell of cells) {
+      if (cell.type === "pad") {
+        const pad = createElement("span", { className: "v71-cal__pad" });
+        grid.appendChild(pad);
+        continue;
+      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "v71-cal__day";
+      btn.textContent = String(cell.day);
+      btn.dataset.date = cell.date;
+      if (!cell.selectable) {
+        btn.classList.add("is-disabled");
+        btn.disabled = true;
+        btn.title = "非開催日";
+      } else {
+        btn.classList.add("is-meeting");
+        btn.title = "開催日";
+      }
+      if (cell.date === selected) btn.classList.add("is-selected");
+      btn.addEventListener("click", () => {
+        if (!cell.selectable) return;
+        raceDateInput.value = cell.date;
+        renderCalendar();
+        populateVenues(cell.date);
+      });
+      grid.appendChild(btn);
+    }
+  }
+
+  function populateVenues(date) {
+    clearElement(raceVenueSelect);
+    raceVenueSelect.appendChild(createOption("", "開催場を選択"));
+    const venues = getVenuesOnDate(cal.meetings || [], date);
+    if (!venues.length) {
+      raceVenueSelect.appendChild(createOption("", "開催場なし"));
+      hideSession(sessionBox);
+      return;
+    }
+    venues.forEach((v) => {
+      raceVenueSelect.appendChild(createOption(v.venueId, v.label));
+    });
+    hideSession(sessionBox);
+  }
+
+  function refreshSession() {
+    const date = raceDateInput.value;
+    const venueId = raceVenueSelect.value;
+    if (!date || !venueId) {
+      hideSession(sessionBox);
+      return;
+    }
+    const session = getSessionInfo(cal.meetings || [], date, venueId);
+    if (!session || !sessionBox) {
+      hideSession(sessionBox);
+      return;
+    }
+    sessionBox.hidden = false;
+    setText("session-kai", session.kaiLabel);
+    setText("session-day", session.dayLabel);
+    setText(
+      "session-final",
+      session.venue.isFinalDay ? "開催最終日" : "—"
+    );
+    setText("session-division", session.divisionLabel);
+    setText("session-status", session.statusLabel);
+    setText(
+      "session-stage",
+      `Stage${session.analysisStage.stage} ${session.analysisStage.short}`
+    );
+  }
+
+  document.getElementById("cal-prev")?.addEventListener("click", () => {
+    viewMonth -= 1;
+    if (viewMonth < 1) {
+      viewMonth = 12;
+      viewYear -= 1;
+    }
+    renderCalendar();
   });
+  document.getElementById("cal-next")?.addEventListener("click", () => {
+    viewMonth += 1;
+    if (viewMonth > 12) {
+      viewMonth = 1;
+      viewYear += 1;
+    }
+    renderCalendar();
+  });
+
+  raceVenueSelect.addEventListener("change", refreshSession);
+
+  // 初期: 直近の開催日を選択
+  const defaultDate =
+    [...meetingSet].find((d) => d >= "2026-07-27") ||
+    [...meetingSet][0] ||
+    "";
+  if (defaultDate && cal.ok) {
+    raceDateInput.value = defaultDate;
+    const [y, m] = defaultDate.split("-").map(Number);
+    viewYear = y;
+    viewMonth = m;
+    populateVenues(defaultDate);
+  }
+
+  renderCalendar();
 
   goRaceListButton.addEventListener("click", () => {
     const raceDate = raceDateInput.value;
     const raceVenue = raceVenueSelect.value;
+    const dateCheck = validateDateSelection(cal.meetings || [], raceDate);
+    if (!dateCheck.ok) {
+      showCalError(errorEl, dateCheck.message);
+      return;
+    }
+    const venueCheck = validateVenueSelection(
+      cal.meetings || [],
+      raceDate,
+      raceVenue
+    );
+    if (!venueCheck.ok) {
+      showCalError(errorEl, venueCheck.message);
+      return;
+    }
+    hideCalError(errorEl);
+
     const raceVenueLabel =
       raceVenueSelect.options[raceVenueSelect.selectedIndex]?.text || "";
+    const session = getSessionInfo(cal.meetings || [], raceDate, raceVenue);
 
     const params = new URLSearchParams({
       date: raceDate,
       venue: raceVenue,
       venueLabel: raceVenue ? raceVenueLabel : "",
+      kai: String(session?.venue?.kai || ""),
+      day: String(session?.venue?.day || ""),
+      stage: String(session?.analysisStage?.stage ?? ""),
     });
 
     navigateWithFade(`race-list.html?${params.toString()}`);
   });
 }
 
+function bindCalendarDevPanel(onChange) {
+  const panel = document.getElementById("cal-dev-panel");
+  if (!panel) return;
+  const enabled = Boolean(DEBUG || DEBUG_MODE);
+  panel.hidden = !enabled;
+  panel.classList.toggle("is-visible", enabled);
+  if (!enabled) return;
+
+  const mode = getCalendarMode();
+  const note = document.getElementById("cal-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real Calendar: Provider未接続"
+        : "Mock Calendar を使用中";
+  }
+  document.querySelectorAll("[data-cal-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-cal-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setCalendarMode(btn.getAttribute("data-cal-mode"));
+      onChange?.();
+    });
+  });
+}
+
+function hideSession(box) {
+  if (box) box.hidden = true;
+}
+
+function showCalError(el, message) {
+  if (!el) {
+    alert(message);
+    return;
+  }
+  el.hidden = false;
+  el.textContent = message;
+}
+
+function hideCalError(el) {
+  if (!el) return;
+  el.hidden = true;
+  el.textContent = "";
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
 /** レース一覧描画 */
 export function renderRace(container, races, context) {
   clearElement(container);
+
+  if (!races.length) {
+    container.appendChild(
+      createElement("p", {
+        className: "v71-empty",
+        text: "この開催日・開催場のレースデータがありません",
+      })
+    );
+    return;
+  }
 
   races.forEach((race) => {
     const numberEl = createElement("span", {
@@ -71,6 +295,13 @@ export function renderRace(container, races, context) {
       text: `発走時刻 ${race.time}`,
     });
 
+    const stageHint = createElement("p", {
+      className: "race-card__stage",
+      text: context.stageLabel
+        ? `分析段階 ${context.stageLabel}`
+        : "",
+    });
+
     const detailBtn = createButton({
       text: "詳細を見る",
       className: "btn-card",
@@ -82,7 +313,9 @@ export function renderRace(container, races, context) {
       },
     });
 
-    container.appendChild(createCard("race-card", [header, time, detailBtn]));
+    container.appendChild(
+      createCard("race-card", [header, time, stageHint, detailBtn])
+    );
   });
 
   applyCardStagger();
@@ -99,6 +332,7 @@ export function renderRace(container, races, context) {
       name: button.dataset.name || "",
       time: button.dataset.time || "",
       grade: button.dataset.grade || "",
+      stage: context.stage != null ? String(context.stage) : "",
     });
 
     navigateWithFade(`race-detail.html?${detailParams.toString()}`);
@@ -115,11 +349,39 @@ export async function initRaceListPage() {
   document.getElementById("display-date").textContent = raceDate || "未選択";
   document.getElementById("display-venue").textContent = venueLabel || "未選択";
 
+  const cal = await getCalendarDashboard({ mode: getCalendarMode() });
+  const session = getSessionInfo(cal.meetings || [], raceDate, raceVenue);
+
+  const sessionMeta = document.getElementById("list-session-meta");
+  if (sessionMeta && session) {
+    sessionMeta.hidden = false;
+    sessionMeta.textContent = [
+      session.kaiLabel,
+      session.dayLabel,
+      session.venue.isFinalDay ? "開催最終日" : null,
+      session.divisionLabel,
+      session.statusLabel,
+      `Stage${session.analysisStage.stage} ${session.analysisStage.short}`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
   const raceData = await loadJson("race");
-  renderRace(document.getElementById("race-list"), raceData.races, {
+  const filtered = (raceData.races || []).filter((r) => {
+    const dateOk = !raceDate || r.date === raceDate;
+    const venueOk = !raceVenue || r.venue === raceVenue;
+    return dateOk && venueOk;
+  });
+
+  renderRace(document.getElementById("race-list"), filtered, {
     raceDate,
     raceVenue,
     venueLabel,
+    stage: session?.analysisStage?.stage,
+    stageLabel: session
+      ? `Stage${session.analysisStage.stage} ${session.analysisStage.short}`
+      : "",
   });
 }
 
@@ -214,6 +476,7 @@ export async function initRaceDetailPage() {
       name: raceName,
       time: raceTime,
       grade: params.get("grade") || "",
+      stage: params.get("stage") || "",
     });
 
     navigateWithFade(`analysis.html?${analysisParams.toString()}`);

@@ -244,6 +244,25 @@ AIによる最適な買い目提案を実現する。
 
 ---
 
+## Ver7.1 - Race Calendar Intelligence（実装済）
+
+テーマ：開催日・開催場・分析可能段階をAIが理解する
+
+### 実装内容
+
+- RaceCalendarEngine / RaceDateManager / VenueManager / RaceSessionManager / CalendarValidator
+- 開催日のみ選択可能なカレンダー UI（非開催日グレーアウト）
+- 日付に応じた開催場自動切替・開催情報表示
+- Analysis Stage0〜7 と暫定評価（未確定情報は確定扱いしない）
+- Confidence / Data Completeness / AI通知
+- Mock Calendar（Real は Provider未接続）
+
+### 目標
+
+実データ移行後も自然に動作する開催カレンダーと分析段階の基盤を完成させる。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

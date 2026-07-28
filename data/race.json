@@ -12,6 +12,13 @@
     { "value": "kokura", "label": "小倉" }
   ],
   "races": [
+    { "date": "2026-07-26", "venue": "sapporo", "venueLabel": "札幌", "number": 1, "name": "新馬戦", "distance": 1200, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "右", "fieldSize": 14, "pacePrediction": "平均", "time": "10:10", "grade": "C" },
+    { "date": "2026-07-26", "venue": "sapporo", "venueLabel": "札幌", "number": 7, "name": "札幌特別", "distance": 1800, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "右", "fieldSize": 16, "pacePrediction": "平均", "time": "15:25", "grade": "A" },
+    { "date": "2026-07-26", "venue": "niigata", "venueLabel": "新潟", "number": 1, "name": "未勝利", "distance": 1400, "track": "芝", "weather": "曇", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "ハイペース", "time": "10:05", "grade": "C" },
+    { "date": "2026-07-26", "venue": "niigata", "venueLabel": "新潟", "number": 11, "name": "関屋記念", "distance": 1600, "track": "芝", "weather": "曇", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "平均", "time": "15:45", "grade": "S" },
+    { "date": "2026-07-26", "venue": "chukyo", "venueLabel": "中京", "number": 1, "name": "3歳以上1勝クラス", "distance": 1600, "track": "ダート", "weather": "晴", "trackCondition": "稍重", "courseDirection": "左", "fieldSize": 15, "pacePrediction": "平均", "time": "10:15", "grade": "B" },
+    { "date": "2026-07-26", "venue": "chukyo", "venueLabel": "中京", "number": 10, "name": "中京記念前哨戦", "distance": 2000, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 14, "pacePrediction": "スロー", "time": "15:10", "grade": "A" },
+
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 1, "name": "新馬戦", "distance": 1600, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "平均", "time": "10:05", "grade": "B" },
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 2, "name": "未勝利", "distance": 1400, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "ハイペース", "time": "10:35", "grade": "C" },
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 3, "name": "1勝クラス", "distance": 1800, "track": "ダート", "weather": "晴", "trackCondition": "稍重", "courseDirection": "左", "fieldSize": 15, "pacePrediction": "平均", "time": "11:05", "grade": "A" },
@@ -19,6 +26,15 @@
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 5, "name": "3勝クラス", "distance": 2000, "track": "芝", "weather": "曇", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "平均", "time": "12:30", "grade": "A" },
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 6, "name": "オープン", "distance": 1600, "track": "芝", "weather": "曇", "trackCondition": "稍重", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "ハイペース", "time": "13:20", "grade": "S" },
     { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 7, "name": "メインレース", "distance": 2400, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "平均", "time": "15:40", "grade": "S" },
-    { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 8, "name": "最終レース", "distance": 1400, "track": "ダート", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "ハイペース", "time": "16:25", "grade": "B" }
+    { "date": "2026-07-27", "venue": "tokyo", "venueLabel": "東京", "number": 8, "name": "最終レース", "distance": 1400, "track": "ダート", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "ハイペース", "time": "16:25", "grade": "B" },
+    { "date": "2026-07-27", "venue": "sapporo", "venueLabel": "札幌", "number": 11, "name": "札幌日経賞", "distance": 2000, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "右", "fieldSize": 14, "pacePrediction": "平均", "time": "15:35", "grade": "A" },
+    { "date": "2026-07-27", "venue": "niigata", "venueLabel": "新潟", "number": 10, "name": "新潟ジャンプS", "distance": 3250, "track": "障害", "weather": "曇", "trackCondition": "良", "courseDirection": "左", "fieldSize": 12, "pacePrediction": "平均", "time": "15:15", "grade": "A" },
+
+    { "date": "2026-07-28", "venue": "tokyo", "venueLabel": "東京", "number": 11, "name": "最終日メイン", "distance": 1600, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "左", "fieldSize": 16, "pacePrediction": "平均", "time": "15:40", "grade": "S" },
+    { "date": "2026-07-28", "venue": "sapporo", "venueLabel": "札幌", "number": 9, "name": "摩周湖特別", "distance": 1500, "track": "芝", "weather": "晴", "trackCondition": "良", "courseDirection": "右", "fieldSize": 14, "pacePrediction": "ハイペース", "time": "14:50", "grade": "B" },
+
+    { "date": "2026-08-02", "venue": "sapporo", "venueLabel": "札幌", "number": 1, "name": "新馬戦", "distance": 1200, "track": "芝", "weather": "—", "trackCondition": "—", "courseDirection": "右", "fieldSize": 12, "pacePrediction": "未定", "time": "10:10", "grade": "C" },
+    { "date": "2026-08-02", "venue": "niigata", "venueLabel": "新潟", "number": 1, "name": "開催告知レース", "distance": 1400, "track": "芝", "weather": "—", "trackCondition": "—", "courseDirection": "左", "fieldSize": 0, "pacePrediction": "未定", "time": "10:05", "grade": "C" },
+    { "date": "2026-08-02", "venue": "kokura", "venueLabel": "小倉", "number": 1, "name": "開催決定枠", "distance": 1200, "track": "芝", "weather": "—", "trackCondition": "—", "courseDirection": "右", "fieldSize": 0, "pacePrediction": "未定", "time": "10:00", "grade": "C" }
   ]
 }

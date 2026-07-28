@@ -20,6 +20,12 @@ import {
   clearPlatformCache,
 } from "../services/data/index.js";
 import {
+  getCalendarDashboard,
+  getRaceAnalysisContext,
+  prepareAiInput,
+  getCalendarMode,
+} from "../services/calendar/index.js";
+import {
   buildIntelligencePacket,
   clearAllIntelligenceState,
   clearProviderCache,
@@ -133,39 +139,85 @@ export async function initAnalysisPage() {
     return;
   }
 
+  // Ver7.1 Analysis Stage（Unified Calendar Model 経由）
+  const cal = await getCalendarDashboard({ mode: getCalendarMode() });
+  const stageParam = params.get("stage");
+  const raceCtx = getRaceAnalysisContext({
+    meetings: cal.meetings || [],
+    raceStages: cal.raceStages || {},
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+  });
+  if (stageParam !== "" && stageParam != null && Number.isFinite(Number(stageParam))) {
+    // URL 明示 Stage を優先
+    const forced = Number(stageParam);
+    Object.assign(
+      raceCtx,
+      getRaceAnalysisContext({
+        meetings: cal.meetings || [],
+        raceStages: {
+          ...(cal.raceStages || {}),
+          [`${params.get("date")}|${params.get("venue")}|${raceNumber}`]: forced,
+        },
+        date: params.get("date") || "",
+        venueId: params.get("venue") || "",
+        raceNumber,
+      })
+    );
+  }
+  bindAnalysisStageUi(raceCtx);
+
+  const prepared = prepareAiInput(
+    {
+      ...race,
+      date: params.get("date") || race.date,
+      venue: params.get("venue") || race.venue,
+      venueLabel: params.get("venueLabel") || race.venueLabel,
+      number: raceNumber || race.number,
+    },
+    horses,
+    raceCtx.analysisStage?.stage ?? 0
+  );
+  const stagedRace = prepared.race;
+  const stagedHorses = prepared.horses;
+
   initIntelligenceManager();
   const intelPacket = await buildIntelligencePacket({
-    race,
-    horses,
+    race: stagedRace,
+    horses: stagedHorses,
     forceRefresh: false,
   });
 
   // レース情報を Intelligence 側で補完（距離・馬場など）
   const intelRace =
     (intelPacket.fusedInput?.aiInput?.races || []).find(
-      (r) => Number(r.number) === Number(race.number)
+      (r) => Number(r.number) === Number(stagedRace.number)
     ) || (intelPacket.fusedInput?.aiInput?.races || [])[0];
   const raceForEngine = {
-    ...race,
-    distance: race.distance || intelRace?.distance || 1600,
-    track: race.track || intelRace?.track || "芝",
+    ...stagedRace,
+    distance: stagedRace.distance || intelRace?.distance || 1600,
+    track: stagedRace.track || intelRace?.track || "芝",
     trackCondition:
-      race.trackCondition || intelRace?.condition || race.condition || "良",
-    weather: race.weather || intelRace?.weather || "",
-    grade: race.grade || intelRace?.grade || "",
+      stagedRace.trackCondition ||
+      intelRace?.condition ||
+      stagedRace.condition ||
+      "良",
+    weather: stagedRace.weather || intelRace?.weather || "",
+    grade: stagedRace.grade || intelRace?.grade || "",
   };
 
   // Ver5.3: 取得データを統合解析（既存 ai-engine とは独立）
   const engineResult = runIntelligenceEngine({
     race: raceForEngine,
-    horses,
+    horses: stagedHorses,
     intelPacket,
   });
 
   // Ver5.4: 市場心理分析 → Final IQ（本文・投稿は非表示）
   const marketResult = runMarketEngine({
     race: raceForEngine,
-    horses,
+    horses: stagedHorses,
     intelPacket,
     engineResult,
   });
@@ -175,14 +227,23 @@ export async function initAnalysisPage() {
   bindMarketIntelligenceUi(marketResult);
   bindDeveloperPanel(bundle, intelPacket, marketResult);
 
-  if (!horses.length) {
+  if (!stagedHorses.length && (raceCtx.analysisStage?.stage ?? 0) < 1) {
+    // Stage0 は開催情報のみ — AIエンジンは空馬で呼ばず通知のみ
+    setText(
+      "stage-provisional",
+      "開催情報のみの段階のため、馬評価はまだ行いません（暫定）。"
+    );
+    return;
+  }
+
+  if (!stagedHorses.length) {
     document.getElementById("data-error-banner")?.classList.add("is-visible");
     return;
   }
 
   const analysisResult = await analyzeRace({
-    race,
-    horses,
+    race: stagedRace,
+    horses: stagedHorses,
     settings: settingsData,
   });
 
@@ -466,6 +527,38 @@ function bindIntelligenceEngineUi(engineResult = {}) {
         li.textContent = `${t.type} ${t.text}（${t.note || ""}）`;
         ticketBox.appendChild(li);
       }
+    }
+  }
+}
+
+function bindAnalysisStageUi(raceCtx) {
+  if (!raceCtx) return;
+  const stage = raceCtx.analysisStage;
+  setText(
+    "stage-current",
+    stage ? `Stage${stage.stage}` : "—"
+  );
+  setText("stage-confirmed", stage?.confirmedLabel || "—");
+  setText("stage-confidence", raceCtx.confidence?.label || "—");
+  setText("stage-completeness", raceCtx.completeness?.label || "—");
+  setText("stage-mode", raceCtx.notice?.mode || "—");
+  setText("stage-provisional", raceCtx.notice?.provisional || "");
+  setText("stage-note", raceCtx.notice?.note || "");
+
+  const pending = document.getElementById("stage-pending");
+  if (pending) {
+    clearElement(pending);
+    const items = raceCtx.notice?.pending || raceCtx.completeness?.pendingFields || [];
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.textContent = "なし（最終段階）";
+      pending.appendChild(li);
+    } else {
+      items.forEach((label) => {
+        const li = document.createElement("li");
+        li.textContent = label;
+        pending.appendChild(li);
+      });
     }
   }
 }

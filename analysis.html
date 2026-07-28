@@ -64,6 +64,33 @@
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
     </header>
 
+    <!-- Ver7.1 Analysis Stage / AI通知 -->
+    <section class="paper-section v71-stage reveal" aria-label="Analysis Stage">
+      <h2 class="paper-section__title">Analysis Stage</h2>
+      <div class="v71-stage-grid">
+        <article class="glass-card v71-stage-card">
+          <p class="v71-stage-card__label">現在分析段階</p>
+          <p class="v71-stage-card__value" id="stage-current">—</p>
+          <p class="v71-stage-card__badge" id="stage-confirmed">—</p>
+        </article>
+        <article class="glass-card v71-stage-card">
+          <p class="v71-stage-card__label">Confidence</p>
+          <p class="v71-stage-card__value" id="stage-confidence">—</p>
+        </article>
+        <article class="glass-card v71-stage-card">
+          <p class="v71-stage-card__label">Data Completeness</p>
+          <p class="v71-stage-card__value" id="stage-completeness">—</p>
+        </article>
+      </div>
+      <div class="v71-notice glass-card">
+        <p class="v71-notice__mode" id="stage-mode">—</p>
+        <p class="v71-notice__title">未確定情報</p>
+        <ul class="v71-notice__pending" id="stage-pending"></ul>
+        <p class="v71-notice__provisional" id="stage-provisional">この予想は暫定評価です。</p>
+        <p class="v71-notice__note" id="stage-note"></p>
+      </div>
+    </section>
+
     <!-- Ver5.1 データソース / 更新時刻 -->
     <section class="paper-section v51-data-meta reveal" aria-label="データ取得状況">
       <div class="v51-meta-grid">
@@ -592,7 +619,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 7.0.0</p>
+    <p>Version 7.1.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

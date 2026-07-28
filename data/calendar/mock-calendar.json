@@ -1,0 +1,248 @@
+{
+  "version": "7.1.0",
+  "source": "mock",
+  "updatedAt": "2026-07-28T14:00:00+09:00",
+  "meetings": [
+    {
+      "date": "2026-07-19",
+      "venues": [
+        {
+          "venueId": "fukushima",
+          "label": "福島",
+          "kai": 2,
+          "day": 5,
+          "totalDays": 6,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "closed",
+          "defaultStage": 7
+        },
+        {
+          "venueId": "chukyo",
+          "label": "中京",
+          "kai": 3,
+          "day": 5,
+          "totalDays": 6,
+          "isFinalDay": false,
+          "division": "関西",
+          "status": "closed",
+          "defaultStage": 7
+        }
+      ]
+    },
+    {
+      "date": "2026-07-20",
+      "venues": [
+        {
+          "venueId": "fukushima",
+          "label": "福島",
+          "kai": 2,
+          "day": 6,
+          "totalDays": 6,
+          "isFinalDay": true,
+          "division": "関東",
+          "status": "closed",
+          "defaultStage": 7
+        },
+        {
+          "venueId": "chukyo",
+          "label": "中京",
+          "kai": 3,
+          "day": 6,
+          "totalDays": 6,
+          "isFinalDay": true,
+          "division": "関西",
+          "status": "closed",
+          "defaultStage": 7
+        }
+      ]
+    },
+    {
+      "date": "2026-07-26",
+      "venues": [
+        {
+          "venueId": "sapporo",
+          "label": "札幌",
+          "kai": 1,
+          "day": 1,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "scheduled",
+          "defaultStage": 4
+        },
+        {
+          "venueId": "niigata",
+          "label": "新潟",
+          "kai": 2,
+          "day": 1,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "scheduled",
+          "defaultStage": 5
+        },
+        {
+          "venueId": "chukyo",
+          "label": "中京",
+          "kai": 4,
+          "day": 1,
+          "totalDays": 6,
+          "isFinalDay": false,
+          "division": "関西",
+          "status": "scheduled",
+          "defaultStage": 3
+        }
+      ]
+    },
+    {
+      "date": "2026-07-27",
+      "venues": [
+        {
+          "venueId": "tokyo",
+          "label": "東京",
+          "kai": 3,
+          "day": 7,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "open",
+          "defaultStage": 6
+        },
+        {
+          "venueId": "sapporo",
+          "label": "札幌",
+          "kai": 1,
+          "day": 2,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "open",
+          "defaultStage": 5
+        },
+        {
+          "venueId": "niigata",
+          "label": "新潟",
+          "kai": 2,
+          "day": 2,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "open",
+          "defaultStage": 4
+        }
+      ]
+    },
+    {
+      "date": "2026-07-28",
+      "venues": [
+        {
+          "venueId": "tokyo",
+          "label": "東京",
+          "kai": 3,
+          "day": 8,
+          "totalDays": 8,
+          "isFinalDay": true,
+          "division": "関東",
+          "status": "open",
+          "defaultStage": 7
+        },
+        {
+          "venueId": "sapporo",
+          "label": "札幌",
+          "kai": 1,
+          "day": 3,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "open",
+          "defaultStage": 6
+        }
+      ]
+    },
+    {
+      "date": "2026-08-02",
+      "venues": [
+        {
+          "venueId": "sapporo",
+          "label": "札幌",
+          "kai": 1,
+          "day": 4,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "upcoming",
+          "defaultStage": 2
+        },
+        {
+          "venueId": "niigata",
+          "label": "新潟",
+          "kai": 2,
+          "day": 3,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "upcoming",
+          "defaultStage": 1
+        },
+        {
+          "venueId": "kokura",
+          "label": "小倉",
+          "kai": 2,
+          "day": 1,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関西",
+          "status": "upcoming",
+          "defaultStage": 0
+        }
+      ]
+    },
+    {
+      "date": "2026-08-03",
+      "venues": [
+        {
+          "venueId": "sapporo",
+          "label": "札幌",
+          "kai": 1,
+          "day": 5,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "upcoming",
+          "defaultStage": 1
+        },
+        {
+          "venueId": "niigata",
+          "label": "新潟",
+          "kai": 2,
+          "day": 4,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関東",
+          "status": "upcoming",
+          "defaultStage": 0
+        },
+        {
+          "venueId": "kokura",
+          "label": "小倉",
+          "kai": 2,
+          "day": 2,
+          "totalDays": 8,
+          "isFinalDay": false,
+          "division": "関西",
+          "status": "upcoming",
+          "defaultStage": 0
+        }
+      ]
+    }
+  ],
+  "raceStages": {
+    "2026-07-27|tokyo|7": 7,
+    "2026-07-27|tokyo|6": 6,
+    "2026-07-27|tokyo|1": 5,
+    "2026-07-26|sapporo|1": 4,
+    "2026-07-26|niigata|1": 5,
+    "2026-07-26|chukyo|1": 3
+  }
+}
