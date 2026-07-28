@@ -12,9 +12,10 @@ import { parseRaceCalendarRaw } from "./race-calendar-parser.js";
 import { validateRaceCalendar } from "./race-calendar-validator.js";
 import { syncRaceCalendar } from "./race-calendar-synchronizer.js";
 import { normalizeRaceCalendar } from "./race-calendar-normalizer.js";
+import { recordConnection, recordAiPayloadCount } from "../../runtime/connection-telemetry.js";
 
 export const REAL_RACE_PROVIDER_ID = "real-race";
-export const REAL_RACE_PROVIDER_VERSION = "10.0.0";
+export const REAL_RACE_PROVIDER_VERSION = "10.7.0";
 
 export class RealRaceProvider extends ProviderInterface {
   constructor() {
@@ -44,12 +45,28 @@ export class RealRaceProvider extends ProviderInterface {
 
       if (!validation.ok) {
         this.setHealth(PROVIDER_HEALTH.ERROR);
+        recordConnection({
+          domain: "race",
+          providerId: this.id,
+          url: fetched.url,
+          httpStatus: fetched.httpStatus,
+          ok: false,
+          fetchCount: fetched.raw?.races?.length || 0,
+          parserCount: parsed.races?.length || 0,
+          parserOk: !parsed.empty,
+          validatorOk: false,
+          validatorErrors: validation.errors?.length || 0,
+          validatorWarnings: validation.warnings?.length || 0,
+          aiCount: 0,
+          latencyMs: Math.round(performance.now() - started),
+          error: "現在データを取得できません",
+        });
         return {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: "現在実データを取得できません",
-          userMessage: "現在実データを取得できません",
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation,
           meetings: [],
           races: [],
@@ -79,8 +96,8 @@ export class RealRaceProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: sync.message || "現在実データを取得できません",
-          userMessage: "現在実データを取得できません",
+          message: sync.message || "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation: sync.validation || validation,
           meetings: [],
           races: [],
@@ -93,6 +110,24 @@ export class RealRaceProvider extends ProviderInterface {
 
       this.setHealth(PROVIDER_HEALTH.ONLINE);
       const state = sync.state;
+      const aiCount = (state.legacyRaces || state.races || []).length;
+      recordAiPayloadCount(aiCount);
+      recordConnection({
+        domain: "race",
+        providerId: this.id,
+        url: fetched.url,
+        requestUrl: fetched.requestUrl,
+        httpStatus: fetched.httpStatus || 200,
+        ok: true,
+        fetchCount: fetched.raw?.races?.length || aiCount,
+        parserCount: parsed.races?.length || 0,
+        parserOk: true,
+        validatorOk: true,
+        validatorErrors: validation.errors?.length || 0,
+        validatorWarnings: validation.warnings?.length || 0,
+        aiCount,
+        latencyMs: Math.round(performance.now() - started),
+      });
       return {
         ok: true,
         blocked: false,
@@ -123,8 +158,8 @@ export class RealRaceProvider extends ProviderInterface {
         ok: false,
         blocked: false,
         providerId: this.id,
-        message: "現在実データを取得できません",
-        userMessage: "現在実データを取得できません",
+        message: "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         error: {
           code: err?.code || "REAL_RACE_ERROR",
           message: err?.message || String(err),
@@ -232,7 +267,7 @@ export class RealRaceProvider extends ProviderInterface {
       return {
         ok: false,
         health: this._health,
-        note: err?.message || "現在実データを取得できません",
+        note: err?.message || "現在データを取得できません",
       };
     }
   }

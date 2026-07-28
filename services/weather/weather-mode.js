@@ -13,11 +13,11 @@ export function getWeatherMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setWeatherMode(mode) {
-  const next = WEATHER_MODES.includes(mode) ? mode : "mock";
+  const next = WEATHER_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(WEATHER_MODE_KEY, next);
   } catch {

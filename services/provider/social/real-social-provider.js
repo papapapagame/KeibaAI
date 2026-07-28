@@ -53,8 +53,8 @@ export class RealSocialProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: "SNS情報を取得できませんでした",
-          userMessage: "SNS情報を取得できませんでした",
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation,
           items: [],
           social: [],
@@ -83,8 +83,8 @@ export class RealSocialProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: sync.message || "SNS情報を取得できませんでした",
-          userMessage: "SNS情報を取得できませんでした",
+          message: sync.message || "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation: sync.validation || validation,
           items: [],
           social: [],
@@ -139,8 +139,8 @@ export class RealSocialProvider extends ProviderInterface {
         ok: false,
         blocked: false,
         providerId: this.id,
-        message: "SNS情報を取得できませんでした",
-        userMessage: "SNS情報を取得できませんでした",
+        message: "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         error: {
           code: err?.code || "REAL_SOCIAL_ERROR",
           message: err?.message || String(err),
@@ -231,7 +231,7 @@ export class RealSocialProvider extends ProviderInterface {
       return {
         ok: false,
         health: this._health,
-        note: err?.message || "SNS情報を取得できませんでした",
+        note: err?.message || "現在データを取得できません",
       };
     }
   }

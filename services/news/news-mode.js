@@ -13,11 +13,11 @@ export function getNewsMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setNewsMode(mode) {
-  const next = NEWS_MODES.includes(mode) ? mode : "mock";
+  const next = NEWS_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(NEWS_MODE_KEY, next);
   } catch {

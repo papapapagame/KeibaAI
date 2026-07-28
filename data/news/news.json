@@ -1,0 +1,452 @@
+{
+    "version":  "10.8.0",
+    "source":  "real",
+    "providerId":  "real-news",
+    "providerName":  "Real News",
+    "updatedAt":  "2026-07-28T15:57:21.435Z",
+    "fetchedAt":  "2026-07-28T15:57:21.441Z",
+    "note":  "Metadata only from Google News RSS. No article body or images.",
+    "origin":  "https://news.google.com/rss/search?q=%E7%AB%B6%E9%A6%AC\u0026hl=ja\u0026gl=JP\u0026ceid=JP:ja",
+    "items":  [
+                  {
+                      "id":  "gn_1",
+                      "title":  "「明らかに熱中症でした」川田将雅騎手の発言が波紋…競馬“真夏開催”に浮上した深刻なリスク。ファンからは「馬死ぬぞ」の声も",
+                      "publishedAt":  "2026-07-27T07:46:02.000Z",
+                      "updatedAt":  "2026-07-27T07:46:02.000Z",
+                      "category":  "jockey",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "Yahoo!ニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_2",
+                      "title":  "日本中央競馬会 京都競馬場様 プラチナパートナー契約締結のお知らせ",
+                      "publishedAt":  "2026-07-28T03:32:40.000Z",
+                      "updatedAt":  "2026-07-28T03:32:40.000Z",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "京都ハンナリーズ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_3",
+                      "title":  "３戦連続の重賞３連覇狙う「絶対王者」ベルピットと「東北のマイル王」ヒロシクンが激突／旭岳賞",
+                      "publishedAt":  "2026-07-28T13:00:43.000Z",
+                      "updatedAt":  "2026-07-28T13:00:43.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "日刊スポーツ",
+                      "updateCount":  1,
+                      "importanceHint":  "high",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_4",
+                      "title":  "【新サービス登場】南関競馬をもっと身近に、もっと楽しく！一味違った“プラスワン”の体験を届けるファンサイト「nankan BOX」がオープン！",
+                      "publishedAt":  "2026-07-28T13:10:00.000Z",
+                      "updatedAt":  "2026-07-28T13:10:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "Excite エキサイト",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_5",
+                      "title":  "【クイーンS】16戦連続で重賞挑戦中!ボンドガールが一昨年2着の舞台で今度こそ 陣営「小回りはうまくいくイメージ」",
+                      "publishedAt":  "2026-07-28T11:15:00.000Z",
+                      "updatedAt":  "2026-07-28T11:15:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "netkeiba",
+                      "updateCount":  1,
+                      "importanceHint":  "high",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_6",
+                      "title":  "【クイーンS・耳より】ケリフレッドアスク前走から2キロ増、函館記念からの連戦も不安なし「タフな馬」",
+                      "publishedAt":  "2026-07-28T07:44:00.000Z",
+                      "updatedAt":  "2026-07-28T07:44:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "ｄメニューニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_7",
+                      "title":  "【クイーンS】エリカエクスプレス逃げ切る／今週の注目レース",
+                      "publishedAt":  "2026-07-26T10:34:00.000Z",
+                      "updatedAt":  "2026-07-26T10:34:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "日刊スポーツ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_8",
+                      "title":  "【名古屋競馬】落雷の影響で2R・3Rが取り止め…設備不良により開催一時中断",
+                      "publishedAt":  "2026-07-28T06:40:33.000Z",
+                      "updatedAt":  "2026-07-28T06:40:33.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "au Webポータル",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_9",
+                      "title":  "名古屋競馬2、3Rが取りやめ 雷雨、設備不良のため（日刊スポーツ）",
+                      "publishedAt":  "2026-07-28T05:44:19.000Z",
+                      "updatedAt":  "2026-07-28T05:44:19.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "Yahoo!ニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_10",
+                      "title":  "名古屋競馬Live中継",
+                      "publishedAt":  "2026-07-28T11:48:45.000Z",
+                      "updatedAt":  "2026-07-28T11:48:45.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "スポーツナビ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_11",
+                      "title":  "競馬場にスタイル抜群の美女が降臨！馬券の腕も「天才」「お見事」と話題の神部美咲",
+                      "publishedAt":  "2026-07-28T11:00:00.000Z",
+                      "updatedAt":  "2026-07-28T11:00:00.000Z",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "ｄメニューニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_12",
+                      "title":  "競馬場にスタイル抜群の美女が降臨！馬券の腕も「天才」「お見事」と話題の神部美咲 (馬トク報知)",
+                      "publishedAt":  "2026-07-28T11:35:27.000Z",
+                      "updatedAt":  "2026-07-28T11:35:27.000Z",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "Yahoo!ニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_13",
+                      "title":  "競馬場にスタイル抜群の美女が降臨！馬券の腕も「天才」「お見事」と話題の神部美咲",
+                      "publishedAt":  "2026-07-28T11:00:00.000Z",
+                      "updatedAt":  "2026-07-28T11:00:00.000Z",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "ライブドアニュース",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_14",
+                      "title":  "「凱旋門賞に日本馬の名を刻むという悲願が今なお変わらない」「２つの重大発表」フランスギャロ",
+                      "publishedAt":  "2026-07-27T23:47:17.000Z",
+                      "updatedAt":  "2026-07-27T23:47:17.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "日刊スポーツ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_15",
+                      "title":  "凱旋門賞馬券発売にフランスギャロ「例年より1カ月早く発表されました」昨年JRA売り上げ66億円超え",
+                      "publishedAt":  "2026-07-28T01:35:00.000Z",
+                      "updatedAt":  "2026-07-28T01:35:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "スポニチ Sponichi Annex",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_16",
+                      "title":  "競馬短信 ●凱旋門賞の馬券発売",
+                      "publishedAt":  "2026-07-28T02:00:00.000Z",
+                      "updatedAt":  "2026-07-28T02:00:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "福島民報デジタル",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_17",
+                      "title":  "【名古屋・名港盃結果】ベントが逃げ切って重賞連勝を飾る",
+                      "publishedAt":  "2026-07-28T11:24:00.000Z",
+                      "updatedAt":  "2026-07-28T11:24:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "netkeiba",
+                      "updateCount":  1,
+                      "importanceHint":  "high",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_18",
+                      "title":  "【名古屋競馬】スポーツニッポン賞 第30回 名港盃(SPⅠ)競走は『ベント号』が優勝 [渡邊 竜也騎手] 2026.07.28",
+                      "publishedAt":  "2026-07-28T12:20:00.000Z",
+                      "updatedAt":  "2026-07-28T12:20:00.000Z",
+                      "category":  "jockey",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "スポーツナビ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_19",
+                      "title":  "【名古屋競馬】ベントが重賞連勝 名港盃を制覇",
+                      "publishedAt":  "2026-07-28T11:28:00.000Z",
+                      "updatedAt":  "2026-07-28T11:28:00.000Z",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "スポーツブル",
+                      "updateCount":  1,
+                      "importanceHint":  "high",
+                      "providerName":  "Real News"
+                  },
+                  {
+                      "id":  "gn_20",
+                      "title":  "半兄にドウデュースを持つコントレイル産駒が函館競馬場で調整 ゲート試験合格を目指す 陣営「いいものがありそうな雰囲気」",
+                      "publishedAt":  "2026-07-28T08:23:08.000Z",
+                      "updatedAt":  "2026-07-28T08:23:08.000Z",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "source":  "サンスポ",
+                      "updateCount":  1,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real News"
+                  }
+              ]
+}

@@ -13,11 +13,11 @@ export function getEntryMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setEntryMode(mode) {
-  const next = ENTRY_MODES.includes(mode) ? mode : "mock";
+  const next = ENTRY_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(ENTRY_MODE_KEY, next);
   } catch {

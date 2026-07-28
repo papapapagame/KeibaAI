@@ -22,8 +22,8 @@ export async function fetchOddsRaw(options = {}) {
       return {
         ok: false,
         blocked: false,
-        message: real.userMessage || "オッズ情報を取得できませんでした",
-        userMessage: "オッズ情報を取得できませんでした",
+        message: real.userMessage || "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         providerId: real.providerId || "real-odds",
         mode: "real",
         items: [],

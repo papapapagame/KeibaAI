@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PAPAPA IQ — Production Real Data Verify</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { padding: 24px; max-width: 960px; margin: 0 auto; }
+    pre { white-space: pre-wrap; background: #111; color: #e8d48b; padding: 16px; border-radius: 8px; }
+    .ok { color: #7dcea0; }
+    .ng { color: #f1948a; }
+  </style>
+</head>
+<body>
+  <h1>Production Real Data Integration Verify</h1>
+  <p id="status">実行中…</p>
+  <pre id="report"></pre>
+  <script type="module">
+    import { clearConnectionTelemetry, getConnectionTelemetry, getHttpCacheStats } from "./services/runtime/index.js";
+    import { getCalendarMode } from "./services/calendar/calendar-mode.js";
+    import { getEntryMode } from "./services/entry/entry-mode.js";
+    import { getOddsMode } from "./services/odds/odds-mode.js";
+    import { getWeatherMode } from "./services/weather/weather-mode.js";
+    import { getNewsMode } from "./services/news/news-mode.js";
+    import { getSocialMode } from "./services/social/social-mode.js";
+    import { loadRealRaceCalendar } from "./services/provider/race/index.js";
+    import { loadRealHorseEntries } from "./services/provider/horse/index.js";
+    import { loadRealOdds } from "./services/provider/odds/index.js";
+    import { loadRealWeather } from "./services/provider/weather/index.js";
+    import { loadRealNews } from "./services/provider/news/index.js";
+    import { loadRealSocial } from "./services/provider/social/index.js";
+
+    const out = [];
+    const log = (s) => out.push(s);
+
+    clearConnectionTelemetry();
+
+    const modes = {
+      calendar: getCalendarMode(),
+      entry: getEntryMode(),
+      odds: getOddsMode(),
+      weather: getWeatherMode(),
+      news: getNewsMode(),
+      social: getSocialMode(),
+    };
+    log("## Modes");
+    log(JSON.stringify(modes, null, 2));
+
+    const results = {};
+    const failed = [];
+
+    async function run(name, fn) {
+      try {
+        const r = await fn();
+        results[name] = r;
+        log(`\n## ${name}`);
+        log(`ok=${r.ok} provider=${r.providerId || name} url=${r.url || "—"} http=${r.httpStatus || "—"}`);
+        if (!r.ok) failed.push({ name, reason: r.userMessage || r.message || r.error?.message });
+        return r;
+      } catch (e) {
+        failed.push({ name, reason: e.userMessage || e.message });
+        log(`\n## ${name}\nERROR ${e.code || ""} ${e.message}`);
+        return { ok: false };
+      }
+    }
+
+    const cal = await run("race", () =>
+      loadRealRaceCalendar({ force: true, silent: true, emitUpdate: false })
+    );
+    const horse = await run("horse", () =>
+      loadRealHorseEntries({ force: true, silent: true, emitUpdate: false })
+    );
+    const odds = await run("odds", () =>
+      loadRealOdds({ force: true, silent: true, emitUpdate: false })
+    );
+    const weather = await run("weather", () =>
+      loadRealWeather({
+        force: true,
+        silent: true,
+        emitUpdate: false,
+        venueId: "tokyo",
+      })
+    );
+    const news = await run("news", () =>
+      loadRealNews({ force: true, silent: true, emitUpdate: false })
+    );
+    const social = await run("social", () =>
+      loadRealSocial({ force: true, silent: true, emitUpdate: false })
+    );
+
+    const tel = getConnectionTelemetry();
+    const cache = getHttpCacheStats();
+    const mockModes = Object.values(modes).filter((m) => m === "mock").length;
+
+    log("\n## Final Report");
+    log(`① URLs: ${(tel.summary?.connectedUrls || []).join(" | ")}`);
+    log(`② HTTP: ${(tel.summary?.httpStatuses || []).map((x) => x.domain + ":" + x.status).join(" / ")}`);
+    log(`③ Fetch counts: ${(tel.summary?.fetchCounts || []).map((x) => x.domain + ":" + x.count).join(" / ")}`);
+    log(`④ Parser: ${(tel.summary?.parserResults || []).map((x) => x.domain + ":" + x.count).join(" / ")}`);
+    log(`⑤ Validator: race=${cal.validation?.ok} horse=${horse.validation?.ok} odds=${odds.validation?.ok}`);
+    log(`⑥ Unified: races=${(cal.legacyRaces || cal.races || []).length} horses=${(horse.entries || []).length} odds=${(odds.odds || odds.items || []).length}`);
+    log(`⑦ AI input (horses): ${(horse.entries || []).length}`);
+    log(`⑧ Cache: entries=${cache.entries} size=${cache.totalSize}`);
+    log(`⑨ Mock mode count: ${mockModes} / Mock usage telemetry: ${tel.mockUsageCount}`);
+    log(`⑩ Failed: ${failed.length ? failed.map((f) => f.name).join(", ") : "なし"}`);
+    log(`⑪ Reasons: ${failed.length ? failed.map((f) => f.name + "=" + f.reason).join(" | ") : "—"}`);
+
+    const screen = {
+      meetings: (cal.meetings || []).length,
+      races: (cal.legacyRaces || cal.races || []).length,
+      horses: (horse.entries || []).length,
+      odds: (odds.odds || odds.items || []).length,
+      weather: weather.item || weather.weather ? "OK" : "NG",
+      news: (news.items || []).length,
+      provider: "real",
+      mockUsage: tel.mockUsageCount,
+    };
+    log("\n## Screen Data Check");
+    log(JSON.stringify(screen, null, 2));
+
+    const allReal = Object.values(modes).every((m) => m === "real");
+    const ok =
+      allReal &&
+      cal.ok &&
+      horse.ok &&
+      odds.ok &&
+      weather.ok &&
+      news.ok &&
+      tel.mockUsageCount === 0;
+
+    document.getElementById("status").textContent = ok
+      ? "VERIFY OK — Real data pipeline complete"
+      : "VERIFY NG — see report";
+    document.getElementById("status").className = ok ? "ok" : "ng";
+    document.getElementById("report").textContent = out.join("\n");
+    window.__VERIFY__ = { ok, screen, tel, failed, modes };
+  </script>
+</body>
+</html>

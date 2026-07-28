@@ -23,8 +23,8 @@ export async function fetchSocialRaw(options = {}) {
       return {
         ok: false,
         blocked: false,
-        message: real.userMessage || "SNS情報を取得できませんでした",
-        userMessage: "SNS情報を取得できませんでした",
+        message: real.userMessage || "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         providerId: real.providerId || "real-social",
         mode: "real",
         items: [],

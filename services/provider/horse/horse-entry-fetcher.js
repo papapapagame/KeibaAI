@@ -1,68 +1,95 @@
 /* ========================================
-   HorseEntryFetcher — Ver10.1
+   HorseEntryFetcher — Ver10.8
+   GitHub /data/horse/entries.json
    ======================================== */
 
-import {
-  API_BASE_URL,
-  REAL_HORSE_ENTRY_URL,
-  REAL_HORSE_FETCH_TIMEOUT_MS,
-} from "../../../js/config.js";
+import { REAL_HORSE_FETCH_TIMEOUT_MS } from "../../../js/config.js";
+import { liveFetchJson, formatUserError } from "../../runtime/live-http-client.js";
+import { recordConnection } from "../../runtime/connection-telemetry.js";
+import { fetchDataJsonWithFallback } from "../live/data-url-resolver.js";
 
-export const HORSE_ENTRY_FETCHER_VERSION = "10.1.0";
+export const HORSE_ENTRY_FETCHER_VERSION = "10.8.0";
 
 export async function fetchHorseEntryRaw(options = {}) {
-  const url =
-    options.url ||
-    REAL_HORSE_ENTRY_URL ||
-    `${API_BASE_URL}entry/real-entries.json`;
   const timeoutMs =
-    Number(options.timeoutMs) || REAL_HORSE_FETCH_TIMEOUT_MS || 12000;
+    Number(options.timeoutMs) || REAL_HORSE_FETCH_TIMEOUT_MS || 15000;
   const started = performance.now();
 
-  const controller =
-    typeof AbortController !== "undefined" ? new AbortController() : null;
-  let timer = null;
-  if (controller) {
-    timer = setTimeout(() => controller.abort(), timeoutMs);
-  }
-
   try {
-    const res = await fetch(url, {
-      cache: options.force ? "no-store" : "default",
-      signal: controller?.signal,
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      throw Object.assign(
-        new Error(`Real Horse Entry 取得失敗 (${res.status})`),
-        { code: "FETCH_HTTP", status: res.status, url }
-      );
+    const res = await fetchDataJsonWithFallback(
+      "data/horse/entries.json",
+      liveFetchJson,
+      {
+        timeoutMs,
+        force: options.force,
+        domain: "horse",
+        providerId: "real-horse",
+        record: false,
+      }
+    );
+    const raw = res.json;
+    const count = Array.isArray(raw?.entries)
+      ? raw.entries.length
+      : Array.isArray(raw?.horses)
+        ? raw.horses.length
+        : 0;
+    if (!count) {
+      throw Object.assign(new Error("Parser Error"), {
+        code: "PARSER_ERROR",
+        status: res.status,
+        url: res.url,
+      });
     }
-    const raw = await res.json();
+
+    recordConnection({
+      domain: "horse",
+      providerId: "real-horse",
+      url: res.url,
+      httpStatus: res.status,
+      ok: true,
+      fetchCount: count,
+      parserCount: count,
+      parserOk: true,
+      parserNote: `entries ${count}`,
+      latencyMs: Math.round(performance.now() - started),
+      downloadSize: res.size,
+      cacheStatus: res.cacheStatus,
+    });
+
     return {
       ok: true,
       raw,
-      url,
+      url: res.url,
+      httpStatus: res.status,
       fetchedAt: new Date().toISOString(),
       latencyMs: Math.round(performance.now() - started),
+      size: res.size,
+      cacheStatus: res.cacheStatus,
       version: HORSE_ENTRY_FETCHER_VERSION,
     };
   } catch (err) {
-    const aborted = err?.name === "AbortError";
+    recordConnection({
+      domain: "horse",
+      providerId: "real-horse",
+      url: err?.url || null,
+      httpStatus: err?.status || null,
+      ok: false,
+      fetchCount: 0,
+      parserCount: 0,
+      parserOk: false,
+      error: formatUserError(err?.code, err?.message),
+      latencyMs: Math.round(performance.now() - started),
+    });
     throw Object.assign(
-      new Error(
-        aborted
-          ? `Real Horse Entry タイムアウト (${timeoutMs}ms)`
-          : err?.message || "出馬表を取得できませんでした"
-      ),
+      new Error(formatUserError(err?.code, err?.message)),
       {
-        code: aborted ? "FETCH_TIMEOUT" : err?.code || "FETCH_ERROR",
+        code: err?.code || "FETCH_ERROR",
         cause: err,
-        url,
+        url: err?.url,
+        status: err?.status,
+        userMessage: formatUserError(err?.code, err?.message),
       }
     );
-  } finally {
-    if (timer) clearTimeout(timer);
   }
 }
 

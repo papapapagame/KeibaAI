@@ -1,0 +1,211 @@
+{
+    "version":  "10.8.0",
+    "source":  "real",
+    "providerId":  "real-social",
+    "providerName":  "Real Social",
+    "updatedAt":  "2026-07-28T15:57:21.620Z",
+    "fetchedAt":  "2026-07-28T15:57:21.620Z",
+    "note":  "Metadata only. No SNS post body.",
+    "items":  [
+                  {
+                      "id":  "rs_1",
+                      "publishedAt":  "2026-07-27T07:46:02.000Z",
+                      "updatedAt":  "2026-07-27T07:46:02.000Z",
+                      "topicKey":  "topic_1",
+                      "category":  "jockey",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  180,
+                      "prevPostCount":  60,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "「明らかに熱中症でした」川田将雅騎手の発言が波紋…競馬“真夏開催”に浮上した深刻なリスク。ファンからは「馬死ぬぞ」の声も"
+                  },
+                  {
+                      "id":  "rs_2",
+                      "publishedAt":  "2026-07-28T03:32:40.000Z",
+                      "updatedAt":  "2026-07-28T03:32:40.000Z",
+                      "topicKey":  "topic_2",
+                      "category":  "track",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  99,
+                      "prevPostCount":  33,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "日本中央競馬会 京都競馬場様 プラチナパートナー契約締結のお知らせ"
+                  },
+                  {
+                      "id":  "rs_3",
+                      "publishedAt":  "2026-07-28T13:00:43.000Z",
+                      "updatedAt":  "2026-07-28T13:00:43.000Z",
+                      "topicKey":  "topic_3",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  135,
+                      "prevPostCount":  45,
+                      "importanceHint":  "high",
+                      "providerName":  "Real Social",
+                      "title":  "３戦連続の重賞３連覇狙う「絶対王者」ベルピットと「東北のマイル王」ヒロシクンが激突／旭岳賞"
+                  },
+                  {
+                      "id":  "rs_4",
+                      "publishedAt":  "2026-07-28T13:10:00.000Z",
+                      "updatedAt":  "2026-07-28T13:10:00.000Z",
+                      "topicKey":  "topic_4",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  213,
+                      "prevPostCount":  71,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "【新サービス登場】南関競馬をもっと身近に、もっと楽しく！一味違った“プラスワン”の体験を届けるファンサイト「nankan BOX」がオープン！"
+                  },
+                  {
+                      "id":  "rs_5",
+                      "publishedAt":  "2026-07-28T11:15:00.000Z",
+                      "updatedAt":  "2026-07-28T11:15:00.000Z",
+                      "topicKey":  "topic_5",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  171,
+                      "prevPostCount":  57,
+                      "importanceHint":  "high",
+                      "providerName":  "Real Social",
+                      "title":  "【クイーンS】16戦連続で重賞挑戦中!ボンドガールが一昨年2着の舞台で今度こそ 陣営「小回りはうまくいくイメージ」"
+                  },
+                  {
+                      "id":  "rs_6",
+                      "publishedAt":  "2026-07-28T07:44:00.000Z",
+                      "updatedAt":  "2026-07-28T07:44:00.000Z",
+                      "topicKey":  "topic_6",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  147,
+                      "prevPostCount":  49,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "【クイーンS・耳より】ケリフレッドアスク前走から2キロ増、函館記念からの連戦も不安なし「タフな馬」"
+                  },
+                  {
+                      "id":  "rs_7",
+                      "publishedAt":  "2026-07-26T10:34:00.000Z",
+                      "updatedAt":  "2026-07-26T10:34:00.000Z",
+                      "topicKey":  "topic_7",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  87,
+                      "prevPostCount":  29,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "【クイーンS】エリカエクスプレス逃げ切る／今週の注目レース"
+                  },
+                  {
+                      "id":  "rs_8",
+                      "publishedAt":  "2026-07-28T06:40:33.000Z",
+                      "updatedAt":  "2026-07-28T06:40:33.000Z",
+                      "topicKey":  "topic_8",
+                      "category":  "other",
+                      "raceNumber":  null,
+                      "venueId":  null,
+                      "horses":  [
+
+                                 ],
+                      "jockeys":  [
+
+                                  ],
+                      "trainers":  [
+
+                                   ],
+                      "postType":  "topic",
+                      "source":  "news-topic",
+                      "postCount":  111,
+                      "prevPostCount":  37,
+                      "importanceHint":  "medium",
+                      "providerName":  "Real Social",
+                      "title":  "【名古屋競馬】落雷の影響で2R・3Rが取り止め…設備不良により開催一時中断"
+                  }
+              ]
+}

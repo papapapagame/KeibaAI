@@ -56,14 +56,14 @@ export async function loadCalendar(options = {}) {
     });
 
     if (!real.ok) {
-      lastError = real.userMessage || real.message || "現在実データを取得できません";
+      lastError = real.userMessage || real.message || "現在データを取得できません";
       cachedPayload = null;
       return {
         ok: false,
         mode,
         blocked: false,
         message: lastError,
-        userMessage: "現在実データを取得できません",
+        userMessage: "現在データを取得できません",
         meetings: [],
         raceStages: {},
         races: [],

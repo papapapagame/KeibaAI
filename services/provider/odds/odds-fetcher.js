@@ -1,65 +1,91 @@
 /* ========================================
-   OddsFetcher — Ver10.2
+   OddsFetcher — Ver10.8
+   GitHub /data/odds/odds.json
    ======================================== */
 
-import {
-  API_BASE_URL,
-  REAL_ODDS_URL,
-  REAL_ODDS_FETCH_TIMEOUT_MS,
-} from "../../../js/config.js";
+import { REAL_ODDS_FETCH_TIMEOUT_MS } from "../../../js/config.js";
+import { liveFetchJson, formatUserError } from "../../runtime/live-http-client.js";
+import { recordConnection } from "../../runtime/connection-telemetry.js";
+import { fetchDataJsonWithFallback } from "../live/data-url-resolver.js";
 
-export const ODDS_FETCHER_VERSION = "10.2.0";
+export const ODDS_FETCHER_VERSION = "10.8.0";
 
 export async function fetchOddsRawData(options = {}) {
-  const url =
-    options.url || REAL_ODDS_URL || `${API_BASE_URL}odds/real-odds.json`;
   const timeoutMs =
-    Number(options.timeoutMs) || REAL_ODDS_FETCH_TIMEOUT_MS || 12000;
+    Number(options.timeoutMs) || REAL_ODDS_FETCH_TIMEOUT_MS || 15000;
   const started = performance.now();
-  const controller =
-    typeof AbortController !== "undefined" ? new AbortController() : null;
-  let timer = null;
-  if (controller) {
-    timer = setTimeout(() => controller.abort(), timeoutMs);
-  }
 
   try {
-    const res = await fetch(url, {
-      cache: options.force ? "no-store" : "default",
-      signal: controller?.signal,
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      throw Object.assign(
-        new Error(`Real Odds 取得失敗 (${res.status})`),
-        { code: "FETCH_HTTP", status: res.status, url }
-      );
+    const res = await fetchDataJsonWithFallback(
+      "data/odds/odds.json",
+      liveFetchJson,
+      {
+        timeoutMs,
+        force: options.force,
+        domain: "odds",
+        providerId: "real-odds",
+        record: false,
+      }
+    );
+    const raw = res.json;
+    const count = Array.isArray(raw?.odds) ? raw.odds.length : 0;
+    if (!count) {
+      throw Object.assign(new Error("Parser Error"), {
+        code: "PARSER_ERROR",
+        status: res.status,
+        url: res.url,
+      });
     }
-    const raw = await res.json();
+
+    recordConnection({
+      domain: "odds",
+      providerId: "real-odds",
+      url: res.url,
+      httpStatus: res.status,
+      ok: true,
+      fetchCount: count,
+      parserCount: count,
+      parserOk: true,
+      parserNote: `odds ${count}`,
+      latencyMs: Math.round(performance.now() - started),
+      downloadSize: res.size,
+      cacheStatus: res.cacheStatus,
+    });
+
     return {
       ok: true,
       raw,
-      url,
+      url: res.url,
+      httpStatus: res.status,
       fetchedAt: new Date().toISOString(),
       latencyMs: Math.round(performance.now() - started),
+      size: res.size,
+      cacheStatus: res.cacheStatus,
       version: ODDS_FETCHER_VERSION,
     };
   } catch (err) {
-    const aborted = err?.name === "AbortError";
+    recordConnection({
+      domain: "odds",
+      providerId: "real-odds",
+      url: err?.url || null,
+      httpStatus: err?.status || null,
+      ok: false,
+      fetchCount: 0,
+      parserCount: 0,
+      parserOk: false,
+      error: formatUserError(err?.code, err?.message),
+      latencyMs: Math.round(performance.now() - started),
+    });
     throw Object.assign(
-      new Error(
-        aborted
-          ? `Real Odds タイムアウト (${timeoutMs}ms)`
-          : err?.message || "オッズ情報を取得できませんでした"
-      ),
+      new Error(formatUserError(err?.code, err?.message)),
       {
-        code: aborted ? "FETCH_TIMEOUT" : err?.code || "FETCH_ERROR",
+        code: err?.code || "FETCH_ERROR",
         cause: err,
-        url,
+        url: err?.url,
+        status: err?.status,
+        userMessage: formatUserError(err?.code, err?.message),
       }
     );
-  } finally {
-    if (timer) clearTimeout(timer);
   }
 }
 

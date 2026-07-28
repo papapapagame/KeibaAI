@@ -48,8 +48,8 @@ export class RealHorseProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: "出馬表を取得できませんでした",
-          userMessage: "出馬表を取得できませんでした",
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation,
           entries: [],
           fetchedAt: fetched.fetchedAt,
@@ -78,8 +78,8 @@ export class RealHorseProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: sync.message || "出馬表を取得できませんでした",
-          userMessage: "出馬表を取得できませんでした",
+          message: sync.message || "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation: sync.validation || validation,
           entries: [],
           sync,
@@ -125,8 +125,8 @@ export class RealHorseProvider extends ProviderInterface {
         ok: false,
         blocked: false,
         providerId: this.id,
-        message: "出馬表を取得できませんでした",
-        userMessage: "出馬表を取得できませんでした",
+        message: "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         error: {
           code: err?.code || "REAL_HORSE_ERROR",
           message: err?.message || String(err),
@@ -231,7 +231,7 @@ export class RealHorseProvider extends ProviderInterface {
       return {
         ok: false,
         health: this._health,
-        note: err?.message || "出馬表を取得できませんでした",
+        note: err?.message || "現在データを取得できません",
       };
     }
   }

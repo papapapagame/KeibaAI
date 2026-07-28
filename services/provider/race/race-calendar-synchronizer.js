@@ -100,7 +100,7 @@ export function syncRaceCalendar(parsed, options = {}) {
         skipped: false,
         reason: "validation_failed",
         validation,
-        message: "現在実データを取得できません",
+        message: "現在データを取得できません",
         state: getRealRaceState(),
       };
     }

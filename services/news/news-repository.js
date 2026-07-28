@@ -23,8 +23,8 @@ export async function fetchNewsRaw(options = {}) {
       return {
         ok: false,
         blocked: false,
-        message: real.userMessage || "ニュース情報を取得できませんでした",
-        userMessage: "ニュース情報を取得できませんでした",
+        message: real.userMessage || "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         providerId: real.providerId || "real-news",
         mode: "real",
         items: [],

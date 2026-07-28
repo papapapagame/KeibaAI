@@ -50,8 +50,8 @@ export class RealNewsProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: "ニュース情報を取得できませんでした",
-          userMessage: "ニュース情報を取得できませんでした",
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation,
           items: [],
           news: [],
@@ -80,8 +80,8 @@ export class RealNewsProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: sync.message || "ニュース情報を取得できませんでした",
-          userMessage: "ニュース情報を取得できませんでした",
+          message: sync.message || "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation: sync.validation || validation,
           items: [],
           news: [],
@@ -136,8 +136,8 @@ export class RealNewsProvider extends ProviderInterface {
         ok: false,
         blocked: false,
         providerId: this.id,
-        message: "ニュース情報を取得できませんでした",
-        userMessage: "ニュース情報を取得できませんでした",
+        message: "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         error: {
           code: err?.code || "REAL_NEWS_ERROR",
           message: err?.message || String(err),
@@ -228,7 +228,7 @@ export class RealNewsProvider extends ProviderInterface {
       return {
         ok: false,
         health: this._health,
-        note: err?.message || "ニュース情報を取得できませんでした",
+        note: err?.message || "現在データを取得できません",
       };
     }
   }

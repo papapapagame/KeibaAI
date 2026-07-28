@@ -22,8 +22,8 @@ export async function fetchWeatherRaw(options = {}) {
       return {
         ok: false,
         blocked: false,
-        message: real.userMessage || "天候情報を取得できませんでした",
-        userMessage: "天候情報を取得できませんでした",
+        message: real.userMessage || "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         providerId: real.providerId || "real-weather",
         mode: "real",
         item: null,

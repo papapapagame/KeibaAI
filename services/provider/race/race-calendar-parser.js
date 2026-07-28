@@ -121,8 +121,12 @@ function parseRaceRow(r = {}, venueLookup = {}, fallbackDate = "") {
         : meta.defaultStage != null
           ? Number(meta.defaultStage)
           : 0,
+    raceId: r.raceId || null,
+    sourceUrl: r.sourceUrl || null,
     weather: r.weather || "",
     trackCondition: r.trackCondition || "",
+    turfCondition: r.turfCondition || "",
+    dirtCondition: r.dirtCondition || "",
     courseLoop: r.courseLoop || r.course || "",
     prize: Number(r.prize ?? r.prizeMoney) || 0,
   };

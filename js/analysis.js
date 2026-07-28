@@ -134,7 +134,14 @@ import {
   getErrorStats,
   getProductionHealth,
   getProviderIntegrationReport,
+  getConnectionTelemetry,
+  recordMockUsage,
+  recordAiPayloadCount,
+  getHttpCacheStats,
+  getProviderModeSnapshot,
+  clearConnectionTelemetry,
 } from "../services/runtime/index.js";
+import { resolveLiveRaceId } from "../services/provider/live/race-id-resolver.js";
 import {
   appendLines,
   applyCardStagger,
@@ -191,6 +198,11 @@ let debateContext = { reports: [], result: {}, race: {} };
 
 export async function initAnalysisPage() {
   const perfStarted = typeof performance !== "undefined" ? performance.now() : Date.now();
+  try {
+    clearConnectionTelemetry();
+  } catch {
+    /* ignore */
+  }
   const params = getSearchParams();
   const detailParams = new URLSearchParams({
     date: params.get("date") || "",
@@ -320,23 +332,43 @@ export async function initAnalysisPage() {
     race.schedules = cal.schedules || [];
   }
 
+  const liveRaceId =
+    params.get("raceId") ||
+    race?.raceId ||
+    resolveLiveRaceId({
+      date: params.get("date") || race.date || "",
+      venueId: params.get("venue") || race.venue || "",
+      raceNumber: raceNumber || race.number,
+    }) ||
+    null;
+  if (liveRaceId && race && typeof race === "object") {
+    race.raceId = liveRaceId;
+  }
+
   const stageNow = raceCtx.analysisStage?.stage ?? 0;
   const confidenceNow = raceCtx.confidence?.percent ?? null;
   const completenessNow = raceCtx.completeness?.percent ?? null;
 
+  const liveCtx = {
+    stage: stageNow,
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    raceId: liveRaceId,
+    emitUpdate: false,
+    silent: true,
+  };
+
   // Ver7.6 Horse Entry — Stage に応じた登録馬
   const entryBundle = await loadEngineSafe(
     "entry",
-    () =>
-      loadEntriesForAi({
-        stage: stageNow,
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
-      }),
-    { ok: false, entries: [], message: "出馬表を取得できませんでした", userMessage: "出馬表を取得できませんでした" }
+    () => loadEntriesForAi(liveCtx),
+    {
+      ok: false,
+      entries: [],
+      message: "現在データを取得できません",
+      userMessage: "現在データを取得できません",
+    }
   );
   bindEntryStatusUi(entryBundle);
   bindEntryAiPanel(entryBundle);
@@ -355,15 +387,10 @@ export async function initAnalysisPage() {
     "draw",
     () =>
       loadDrawForAi({
-        stage: stageNow,
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
+        ...liveCtx,
         baseConfidence: entryBundle?.confidenceHint ?? confidenceNow ?? 72,
       }),
-    { ok: false, message: "Draw 取得失敗" }
+    { ok: false, message: "現在データを取得できません", userMessage: "現在データを取得できません" }
   );
 
   // Ver7.8 Odds & Market — オッズ・人気・市場（Stage6+）
@@ -371,16 +398,16 @@ export async function initAnalysisPage() {
     "odds",
     () =>
       loadOddsForAi({
+        ...liveCtx,
         stage: Math.max(stageNow, Number(drawBundle?.confirmedStage) || 0),
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
         baseConfidence:
           drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
       }),
-    { ok: false, message: "オッズ情報を取得できませんでした", userMessage: "オッズ情報を取得できませんでした" }
+    {
+      ok: false,
+      message: "現在データを取得できません",
+      userMessage: "現在データを取得できません",
+    }
   );
 
   // Ver7.9 Weather & Track — 天候・馬場・風（Stage6+）
@@ -388,16 +415,13 @@ export async function initAnalysisPage() {
     "weather",
     () =>
       loadWeatherForAi({
+        ...liveCtx,
         stage: Math.max(
           stageNow,
           Number(drawBundle?.confirmedStage) || 0,
           Number(oddsBundle?.confirmedStage) || 0
         ),
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
+        surface: race?.surface || race?.track || "",
         baseConfidence:
           oddsBundle?.confidenceHint ??
           drawBundle?.confidenceHint ??
@@ -406,8 +430,8 @@ export async function initAnalysisPage() {
       }),
     {
       ok: false,
-      message: "天候情報を取得できませんでした",
-      userMessage: "天候情報を取得できませんでした",
+      message: "現在データを取得できません",
+      userMessage: "現在データを取得できません",
     }
   );
 
@@ -416,11 +440,7 @@ export async function initAnalysisPage() {
     "news",
     () =>
       loadNewsForAi({
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
+        ...liveCtx,
         baseConfidence:
           weatherBundle?.confidenceHint ??
           oddsBundle?.confidenceHint ??
@@ -429,8 +449,8 @@ export async function initAnalysisPage() {
     {
       ok: false,
       items: [],
-      message: "ニュース情報を取得できませんでした",
-      userMessage: "ニュース情報を取得できませんでした",
+      message: "現在データを取得できません",
+      userMessage: "現在データを取得できません",
     }
   );
 
@@ -439,11 +459,7 @@ export async function initAnalysisPage() {
     "social",
     () =>
       loadSocialForAi({
-        date: params.get("date") || race.date || "",
-        venueId: params.get("venue") || race.venue || "",
-        raceNumber: raceNumber || race.number,
-        emitUpdate: false,
-        silent: true,
+        ...liveCtx,
         baseConfidence:
           newsBundle?.confidenceHint ??
           weatherBundle?.confidenceHint ??
@@ -453,8 +469,8 @@ export async function initAnalysisPage() {
       ok: false,
       items: [],
       trends: null,
-      message: "SNS情報を取得できませんでした",
-      userMessage: "SNS情報を取得できませんでした",
+      message: "現在データを取得できません",
+      userMessage: "現在データを取得できません",
     }
   );
 
@@ -585,6 +601,21 @@ export async function initAnalysisPage() {
   );
   const stagedRace = prepared.race;
   const stagedHorses = prepared.horses;
+  try {
+    recordAiPayloadCount(stagedHorses?.length || 0);
+    // Mock使用は「実際に Mock Provider から取得したとき」のみカウント
+    const mockUsed =
+      (entryBundle?.mode === "mock" ? 1 : 0) +
+      (oddsBundle?.mode === "mock" ? 1 : 0) +
+      (weatherBundle?.mode === "mock" ? 1 : 0) +
+      (newsBundle?.mode === "mock" ? 1 : 0) +
+      (socialBundle?.mode === "mock" ? 1 : 0) +
+      (getCalendarMode() === "mock" ? 1 : 0);
+    if (mockUsed > 0) recordMockUsage(mockUsed);
+  } catch {
+    /* telemetry optional */
+  }
+  bindLiveConnectionUi();
 
   initIntelligenceManager();
   const intelPacket = await buildIntelligencePacket({
@@ -2746,6 +2777,134 @@ function bindReleaseRcUi(meta = {}) {
       : "Production quality guards active"
   );
   bindProductionIntegrationUi(meta).catch(() => {});
+  bindLiveConnectionUi();
+}
+
+function bindLiveConnectionUi() {
+  let telemetry = null;
+  try {
+    telemetry = getConnectionTelemetry();
+  } catch {
+    telemetry = null;
+  }
+  const summary = telemetry?.summary || {};
+  const rows = telemetry?.rows || [];
+  const modes = (() => {
+    try {
+      return getProviderModeSnapshot();
+    } catch {
+      return {};
+    }
+  })();
+  const cacheStats = (() => {
+    try {
+      return getHttpCacheStats();
+    } catch {
+      return { entries: 0, totalSize: 0 };
+    }
+  })();
+
+  const providers = Object.entries(modes)
+    .map(([k, v]) => `${k}:${v === "real" ? "real" : v}`)
+    .join(" / ");
+  setText("dev-live-provider", providers || "real");
+  const urls = (summary.connectedUrls || []).filter(Boolean);
+  setText("dev-live-url", urls.length ? urls.slice(0, 4).join(" | ") : "—");
+  setText(
+    "dev-live-http",
+    (summary.httpStatuses || [])
+      .map((x) => `${x.domain}:${x.status ?? "—"}`)
+      .join(" / ") || "—"
+  );
+  const latestAt = rows.map((r) => r.at).filter(Boolean).sort().slice(-1)[0];
+  setText("dev-live-updated", latestAt ? formatUpdateTime(latestAt) : "—");
+  setText(
+    "dev-live-download-time",
+    rows.map((r) => `${r.domain}:${r.latencyMs ?? "—"}ms`).join(" / ") || "—"
+  );
+  setText(
+    "dev-live-download-size",
+    rows
+      .map((r) =>
+        r.downloadSize != null
+          ? `${r.domain}:${Math.round(r.downloadSize / 1024)}KB`
+          : null
+      )
+      .filter(Boolean)
+      .join(" / ") || "—"
+  );
+  setText(
+    "dev-live-parser",
+    (summary.parserResults || [])
+      .map(
+        (x) =>
+          `${x.domain}:${x.ok ? "OK" : "NG"}(${x.count})${x.note ? ` ${x.note}` : ""}`
+      )
+      .join(" / ") || "—"
+  );
+  setText(
+    "dev-live-validator",
+    (summary.validatorResults || [])
+      .map(
+        (x) =>
+          `${x.domain}:${x.ok == null ? "—" : x.ok ? "OK" : "NG"}(e${x.errors}/w${x.warnings})`
+      )
+      .join(" / ") || "—"
+  );
+  const unifiedCount = (summary.fetchCounts || []).reduce(
+    (n, x) => n + (Number(x.count) || 0),
+    0
+  );
+  setText("dev-live-unified", String(unifiedCount));
+  setText(
+    "dev-live-ai-count",
+    telemetry?.aiPayloadCount != null ? String(telemetry.aiPayloadCount) : "—"
+  );
+  setText(
+    "dev-live-cache",
+    `entries ${cacheStats.entries || 0} / ${Math.round((cacheStats.totalSize || 0) / 1024)}KB | ${rows
+      .map((r) => r.cacheStatus || "—")
+      .join(",")}`
+  );
+  setText(
+    "dev-live-mock-count",
+    telemetry?.mockUsageCount != null ? String(telemetry.mockUsageCount) : "0"
+  );
+
+  const body = document.getElementById("dev-live-connection-rows");
+  if (!body) return;
+  clearElement(body);
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 7;
+    td.textContent = "接続ログなし";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+  for (const r of rows) {
+    const tr = createTableRow([
+      r.domain || "—",
+      truncateUrl(r.url || r.requestUrl || "—", 42),
+      r.httpStatus != null ? String(r.httpStatus) : "—",
+      String(r.fetchCount ?? 0),
+      r.parserOk ? `OK(${r.parserCount})` : `NG(${r.parserCount})`,
+      r.validatorOk == null
+        ? "—"
+        : r.validatorOk
+          ? "OK"
+          : `NG(e${r.validatorErrors})`,
+      r.cacheStatus || "—",
+    ]);
+    body.appendChild(tr);
+  }
+}
+
+function truncateUrl(url, max = 48) {
+  const s = String(url || "");
+  if (s.length <= max) return s;
+  return `${s.slice(0, max - 1)}…`;
 }
 
 async function bindProductionIntegrationUi(meta = {}) {
@@ -3344,10 +3503,10 @@ function bindSourceModeControls() {
       if (note) {
         note.textContent =
           next === "real"
-            ? "Real: Provider未接続（現段階では Mock のみ動作）"
+            ? "Real: 公開データへ接続（失敗時は Mock 自動切替なし）"
             : next === "auto"
-              ? "Auto: Real 未接続のため Mock へフォールバック"
-              : "Mock: ローカルJSONを使用";
+              ? "Auto: Real 優先（失敗時は明示エラー。Mock 自動切替なし）"
+              : "Mock: Developer 用ローカルJSON";
       }
       // 反映のため再読込
       location.reload();

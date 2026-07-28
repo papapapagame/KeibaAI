@@ -12,11 +12,11 @@ export function getCalendarMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setCalendarMode(mode) {
-  const next = CALENDAR_MODES.includes(mode) ? mode : "mock";
+  const next = CALENDAR_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(CALENDAR_MODE_KEY, next);
   } catch {

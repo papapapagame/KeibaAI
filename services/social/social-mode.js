@@ -13,11 +13,11 @@ export function getSocialMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setSocialMode(mode) {
-  const next = SOCIAL_MODES.includes(mode) ? mode : "mock";
+  const next = SOCIAL_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(SOCIAL_MODE_KEY, next);
   } catch {

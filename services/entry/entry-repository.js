@@ -23,8 +23,8 @@ export async function fetchEntryRaw(options = {}) {
       return {
         ok: false,
         blocked: false,
-        message: real.userMessage || "出馬表を取得できませんでした",
-        userMessage: "出馬表を取得できませんでした",
+        message: real.userMessage || "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         providerId: real.providerId || "real-horse",
         mode: "real",
         items: [],

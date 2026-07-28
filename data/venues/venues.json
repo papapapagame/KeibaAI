@@ -1,0 +1,18 @@
+{
+  "version": "10.8.0",
+  "source": "real",
+  "providerId": "real-race",
+  "updatedAt": "2026-07-29T00:50:00+09:00",
+  "venues": [
+    { "venueId": "sapporo", "label": "札幌", "latitude": 43.086, "longitude": 141.352 },
+    { "venueId": "hakodate", "label": "函館", "latitude": 41.783, "longitude": 140.736 },
+    { "venueId": "fukushima", "label": "福島", "latitude": 37.764, "longitude": 140.479 },
+    { "venueId": "niigata", "label": "新潟", "latitude": 37.95, "longitude": 139.185 },
+    { "venueId": "tokyo", "label": "東京", "latitude": 35.663, "longitude": 139.485 },
+    { "venueId": "nakayama", "label": "中山", "latitude": 35.662, "longitude": 140.001 },
+    { "venueId": "chukyo", "label": "中京", "latitude": 35.066, "longitude": 136.992 },
+    { "venueId": "kyoto", "label": "京都", "latitude": 34.978, "longitude": 135.726 },
+    { "venueId": "hanshin", "label": "阪神", "latitude": 34.729, "longitude": 135.362 },
+    { "venueId": "kokura", "label": "小倉", "latitude": 33.893, "longitude": 130.877 }
+  ]
+}

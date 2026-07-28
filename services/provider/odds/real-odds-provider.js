@@ -44,8 +44,8 @@ export class RealOddsProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: "オッズ情報を取得できませんでした",
-          userMessage: "オッズ情報を取得できませんでした",
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation,
           items: [],
           odds: [],
@@ -73,8 +73,8 @@ export class RealOddsProvider extends ProviderInterface {
           ok: false,
           blocked: false,
           providerId: this.id,
-          message: sync.message || "オッズ情報を取得できませんでした",
-          userMessage: "オッズ情報を取得できませんでした",
+          message: sync.message || "現在データを取得できません",
+          userMessage: "現在データを取得できません",
           validation: sync.validation || validation,
           items: [],
           odds: [],
@@ -131,8 +131,8 @@ export class RealOddsProvider extends ProviderInterface {
         ok: false,
         blocked: false,
         providerId: this.id,
-        message: "オッズ情報を取得できませんでした",
-        userMessage: "オッズ情報を取得できませんでした",
+        message: "現在データを取得できません",
+        userMessage: "現在データを取得できません",
         error: {
           code: err?.code || "REAL_ODDS_ERROR",
           message: err?.message || String(err),
@@ -230,7 +230,7 @@ export class RealOddsProvider extends ProviderInterface {
       return {
         ok: false,
         health: this._health,
-        note: err?.message || "オッズ情報を取得できませんでした",
+        note: err?.message || "現在データを取得できません",
       };
     }
   }

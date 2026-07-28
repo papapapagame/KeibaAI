@@ -1,5 +1,5 @@
 /* ========================================
-   Runtime / RC helpers — Ver9.0
+   Runtime / RC helpers — Ver9.0 / Ver10.7
    ======================================== */
 
 export {
@@ -33,3 +33,31 @@ export {
   INTEGRATED_REAL_PROVIDER_IDS,
   PROVIDER_INTEGRATION_VERSION,
 } from "./provider-integration.js";
+
+export {
+  LiveHttpClient,
+  liveFetch,
+  liveFetchJson,
+  liveFetchText,
+  formatUserError,
+  LIVE_HTTP_CLIENT_VERSION,
+} from "./live-http-client.js";
+
+export {
+  ConnectionTelemetry,
+  recordConnection,
+  recordMockUsage,
+  recordAiPayloadCount,
+  getConnectionTelemetry,
+  clearConnectionTelemetry,
+  CONNECTION_TELEMETRY_VERSION,
+} from "./connection-telemetry.js";
+
+export {
+  HttpCache,
+  getHttpCacheEntry,
+  setHttpCacheEntry,
+  clearHttpCache,
+  getHttpCacheStats,
+  HTTP_CACHE_VERSION,
+} from "./http-cache.js";

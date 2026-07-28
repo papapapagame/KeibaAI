@@ -69,7 +69,7 @@ export async function initTopPage(goRaceListButton) {
       cal.userMessage ||
         cal.message ||
         (getCalendarMode() === "real"
-          ? "現在実データを取得できません"
+          ? "現在データを取得できません"
           : "カレンダーを読み込めません")
     );
   }
@@ -476,7 +476,7 @@ export async function initRaceListPage() {
       if (listError) {
         listError.hidden = false;
         listError.textContent =
-          cal.userMessage || "現在実データを取得できません";
+          cal.userMessage || "現在データを取得できません";
       }
       filtered = [];
     } else {

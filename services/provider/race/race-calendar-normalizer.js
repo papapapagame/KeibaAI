@@ -37,6 +37,7 @@ export function normalizeRaceCalendar(parsed = {}) {
         kai: r.kai,
         day: r.day,
         number: r.number,
+        raceId: r.raceId || null,
         raceName: r.raceName,
         name: r.raceName,
         distance: r.distance,
@@ -100,6 +101,7 @@ export function normalizeRaceCalendar(parsed = {}) {
       day: r.day,
       totalDays: r.totalDays,
       number: r.number,
+      raceId: r.raceId || null,
       name: r.raceName,
       raceName: r.raceName,
       time: r.startTime,
@@ -115,9 +117,12 @@ export function normalizeRaceCalendar(parsed = {}) {
       fieldSize: r.fieldSize,
       weather: r.weather,
       trackCondition: r.trackCondition,
+      turfCondition: r.turfCondition || "",
+      dirtCondition: r.dirtCondition || "",
       courseLoop: r.courseLoop,
       prize: r.prize,
       stage: r.defaultStage,
+      sourceUrl: r.sourceUrl || null,
     }))
     .sort(compareRaceOrder);
 

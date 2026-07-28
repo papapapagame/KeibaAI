@@ -13,11 +13,11 @@ export function getOddsMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setOddsMode(mode) {
-  const next = ODDS_MODES.includes(mode) ? mode : "mock";
+  const next = ODDS_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(ODDS_MODE_KEY, next);
   } catch {

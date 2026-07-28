@@ -12,11 +12,11 @@ export function getSourceMode() {
   } catch {
     /* ignore */
   }
-  return "mock";
+  return "real";
 }
 
 export function setSourceMode(mode) {
-  const next = SOURCE_MODES.includes(mode) ? mode : "mock";
+  const next = SOURCE_MODES.includes(mode) ? mode : "real";
   try {
     localStorage.setItem(SOURCE_MODE_KEY, next);
   } catch {
