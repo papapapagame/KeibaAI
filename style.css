@@ -5258,3 +5258,113 @@ body.has-home-fab .scroll-top {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Ver6.5.0 AI Race Review & Knowledge Learning
+   ========================================================================== */
+
+.page--v65 {
+  gap: 1.1rem;
+}
+
+.v65-block-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.v65-block {
+  padding: 0.9rem 1rem;
+}
+
+.v65-block__title {
+  margin: 0 0 0.4rem;
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+.v65-block__text {
+  margin: 0;
+  color: rgba(255, 248, 230, 0.92);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.v65-block__why {
+  margin: 0.45rem 0 0;
+  color: var(--gold-bright);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  opacity: 0.92;
+}
+
+.v65-watch-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.v65-watch-card {
+  padding: 0.7rem 0.8rem;
+}
+
+.v65-watch-card__name {
+  margin: 0 0 0.25rem;
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.v65-watch-card__reason {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(255, 248, 230, 0.88);
+}
+
+.v65-memo-grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.v65-memo-card {
+  padding: 0.85rem 0.95rem;
+}
+
+.v65-memo-card__name {
+  margin: 0 0 0.3rem;
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.v65-memo-card__tags {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.v65-memo-card__note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.v65-explain-item {
+  margin-bottom: 0.65rem;
+}
+
+@media (min-width: 768px) {
+  .v65-block-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .v65-memo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .page--v65 {
+    padding-left: max(0.7rem, env(safe-area-inset-left));
+    padding-right: max(0.7rem, env(safe-area-inset-right));
+  }
+}

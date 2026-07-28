@@ -1,0 +1,151 @@
+{
+  "version": "6.5.0",
+  "updatedAt": "2026-07-28T13:00:00+09:00",
+  "policy": {
+    "displayBodiesForbidden": true,
+    "note": "本文・投稿は含めない。AIが使う要約シグナルのみ。"
+  },
+  "signals": [
+    {
+      "type": "market",
+      "label": "市場全般",
+      "tone": "neutral",
+      "strength": 55,
+      "summary": "週末メインは本命支持が集まりやすい傾向（要約）。"
+    }
+  ],
+  "races": [
+    {
+      "raceId": "hist-001",
+      "venueLabel": "東京",
+      "number": 11,
+      "official": {
+        "venueLabel": "東京",
+        "number": 11,
+        "name": "メインレース",
+        "track": "芝",
+        "distance": 1600,
+        "trackCondition": "良"
+      },
+      "lap": {
+        "paceLabel": "ハイ",
+        "first3f": 33.8,
+        "last3f": 34.1,
+        "sections": [12.4, 10.9, 10.5],
+        "summary": "前半速め。差し相対有利。"
+      },
+      "payout": {
+        "win": 280,
+        "quinella": 980,
+        "summary": "順当寄りの払戻水準"
+      },
+      "track": {
+        "condition": "良",
+        "bias": "やや外",
+        "speed": "高速",
+        "summary": "高速馬場。反応の速さが重要。"
+      },
+      "weather": "晴",
+      "training": [
+        {
+          "horseId": 1,
+          "tone": "仕上がり良",
+          "summary": "最終追いで気配上々（要約）。"
+        }
+      ],
+      "news": [
+        {
+          "topic": "レース後総評",
+          "tone": "positive",
+          "summary": "勝ち馬の末脚持続が焦点（本文なし）。"
+        }
+      ],
+      "jockeyComments": [
+        {
+          "horseId": 1,
+          "sentiment": "positive",
+          "summary": "想定の位置で運べた（要約）。"
+        }
+      ],
+      "trainerComments": [
+        {
+          "horseId": 1,
+          "sentiment": "positive",
+          "summary": "仕上がりは予定通り（要約）。"
+        }
+      ],
+      "marketX": {
+        "heat": 70,
+        "sentiment": "本命安心",
+        "overheat": false,
+        "summary": "支持は堅め。過熱までは至らず。"
+      },
+      "expert": [
+        {
+          "stance": "順当",
+          "focus": "末脚",
+          "summary": "高速馬場での反応差が決めた（要約）。"
+        }
+      ]
+    },
+    {
+      "raceId": "hist-002",
+      "venueLabel": "東京",
+      "number": 11,
+      "official": {
+        "venueLabel": "東京",
+        "number": 11,
+        "name": "オープン",
+        "track": "芝",
+        "distance": 1600,
+        "trackCondition": "良"
+      },
+      "lap": {
+        "paceLabel": "スロー",
+        "first3f": 36.2,
+        "last3f": 33.5,
+        "summary": "スローからの瞬発力勝負。"
+      },
+      "payout": {
+        "win": 1240,
+        "summary": "波乱寄りの払戻"
+      },
+      "track": {
+        "condition": "良",
+        "bias": "内",
+        "speed": "標準",
+        "summary": "内枠先行が残りやすい。"
+      },
+      "weather": "曇",
+      "training": [],
+      "news": [
+        {
+          "topic": "波乱レース",
+          "tone": "surprise",
+          "summary": "人気薄の差し切りが焦点（本文なし）。"
+        }
+      ],
+      "jockeyComments": [
+        {
+          "horseId": 1,
+          "sentiment": "cautious",
+          "summary": "流れが向かず（要約）。"
+        }
+      ],
+      "trainerComments": [],
+      "marketX": {
+        "heat": 88,
+        "sentiment": "本命過熱",
+        "overheat": true,
+        "summary": "1番人気への資金集中が強い。"
+      },
+      "expert": [
+        {
+          "stance": "波乱",
+          "focus": "展開",
+          "summary": "スローで人気馬の位置取りが不発（要約）。"
+        }
+      ]
+    }
+  ]
+}

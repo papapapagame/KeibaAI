@@ -205,6 +205,26 @@ AIによる最適な買い目提案を実現する。
 
 ---
 
+## Ver6.5 - AI Race Review & Knowledge Learning（実装済）
+
+テーマ：AIがレースを振り返り、知識を蓄積する
+
+### 実装内容
+
+- RaceReviewEngine / WinnerAnalyzer / LoserAnalyzer / RaceFlowAnalyzer
+- KnowledgeManager / LessonGenerator / FuturePredictionManager
+- Explain Review（結論＋なぜ）
+- Horse AI Memo
+- Review Dashboard（`review.html`）
+- Learning AI への引き渡し（ロジック非改変）
+- 記事・SNS本文は非表示（要約・考察のみ）
+
+### 目標
+
+公開情報を基にした独自考察で Knowledge Base を長期育成する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

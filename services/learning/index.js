@@ -11,6 +11,7 @@ export {
   updateAnalyzerWeights,
   resetAnalyzerWeights,
   resetLearningAiData,
+  acceptReviewHandoff,
   loadWeights,
   proposeWeights,
   analyzePerformance,

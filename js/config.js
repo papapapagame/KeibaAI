@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "6.0.0";
+export const VERSION = "6.5.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -26,6 +26,10 @@ export const INTEL_CACHE_TTL_MS = DATA_CACHE_TTL_MS;
 /** Learning AI Engine（services/learning） */
 export const LEARNING_AI_VERSION = "5.5.0";
 export const LEARNING_AI_DB_KEY = "papapa_iq_learning_ai_v55";
+
+/** Race Review Knowledge Base（services/review） */
+export const REVIEW_AI_VERSION = "6.5.0";
+export const REVIEW_KB_KEY = "papapa_iq_review_kb_v65";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

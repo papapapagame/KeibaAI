@@ -183,6 +183,37 @@ export function resetLearningAiData() {
   return getLearningDashboard({ ensureDemo: true });
 }
 
+/**
+ * Ver6.5 Race Review からの引き渡しを Learning 履歴へ記録
+ * ※ 評価ロジック・重みの自動書換は行わない
+ */
+export function acceptReviewHandoff(handoff = {}) {
+  if (!handoff || typeof handoff !== "object") {
+    return { accepted: false, reason: "empty" };
+  }
+  let db = loadLearningDatabase();
+  const lessons = handoff.reviewSummary?.lessons || [];
+  const message =
+    handoff.reviewSummary?.overview ||
+    lessons[0] ||
+    "Race Review を Learning へ引き渡し";
+  db = appendHistoryEvent(db, {
+    type: "review_handoff",
+    message: String(message).slice(0, 200),
+    raceId: handoff.race?.id || null,
+    meta: {
+      handoffVersion: handoff.handoffVersion || null,
+      policy: handoff.policy || null,
+      lessonCount: lessons.length,
+      predictionGap: handoff.reviewSummary?.predictionGap || null,
+      // ロジック非改変の証跡
+      autoRewriteForbidden: true,
+    },
+  });
+  saveLearningDatabase(db);
+  return { accepted: true, historyCount: (db.history || []).length };
+}
+
 function buildAccuracySeries(records) {
   const closed = records.filter((r) => r?.result && r?.diff);
   const out = [];

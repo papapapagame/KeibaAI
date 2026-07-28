@@ -1,48 +1,66 @@
 # PAPAPA IQ KEIBA
 
-**Ver6.0.0** — Betting Intelligence AI（AI馬券戦略システム）
+**Ver6.5.0** — AI Race Review & Knowledge Learning
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-「どの馬が強いか」だけでなく、「どう買えば期待値が高いか」を提案します。
+レース終了後の公開情報を AI が考察し、Knowledge Base へ蓄積します。記事・SNS本文は表示しません。
 
-## Betting Intelligence AI
+## AI Race Review
 
 ```
-services/betting/
-  betting-engine.js
-  ticket-generator.js
-  value-analyzer.js
-  risk-analyzer.js
-  bankroll-manager.js
-  combination-optimizer.js
-  explain-betting.js
-  betting-storage.js
+services/review/
+  race-review-engine.js      # RaceReviewEngine
+  winner-analyzer.js         # WinnerAnalyzer
+  loser-analyzer.js          # LoserAnalyzer
+  race-flow-analyzer.js      # RaceFlowAnalyzer
+  knowledge-manager.js       # KnowledgeManager
+  lesson-generator.js        # LessonGenerator
+  future-prediction-manager.js
+  explain-review.js
+  review-sources.js
+  learning-bridge.js
+  review-dashboard.js
 ```
 
-### システム構成
+### Review Flow
 
-IQ / Value / Support / Risk / Market / 期待値 / オッズ / 展開 / 馬場 / 脚質 / 市場心理 / Learning AI を統合し、券種横断の買い目を生成します。人気順だけの機械生成はしません。
+1. 公開情報ソースを統合（JRA結果・ラップ・払戻・馬場・天候・調教・ニュース要約・騎手/調教師コメント要約・X市場反応・専門家要約）  
+2. RaceFlow / Winner / Loser 分析  
+3. Lessons Learned 生成  
+4. Future Watch List 選出  
+5. Horse AI Memo 追記  
+6. Explain Review（結論＋なぜ）  
+7. Knowledge Base へ保存  
+8. Learning AI へ引き渡し可能なペイロードを生成（ロジック非改変）
 
-### 買い目生成フロー
+### Knowledge Base
 
-1. 本命・対抗・穴・危険馬を役割抽出  
-2. TicketGenerator が単勝〜三連単＋フォーメーションを生成  
-3. Value / Risk でスコアリング  
-4. CombinationOptimizer が戦略別（安全 / 期待値 / 穴 / バランス）に最適化  
-5. BankrollManager が予算配分  
-6. Explain Betting で理由を付与  
+保存キー: `papapa_iq_review_kb_v65`  
 
-### 期待値計算
+Race ID / Horse ID / Review / Lessons / Horse Memo / Winner・Loser Analysis / Future Watch / Version / Timestamp  
 
-馬ごとの能力・オッズ・Market Value Opportunity から EV / ROI予測 / 妙味 / 過剰人気 / 過小評価を算出。
+将来の SQLite・クラウド DB 移行を想定した JSON ドキュメント構造です。
 
-### 資金配分
+### Lesson System
 
-1000 / 3000 / 5000 / 10000 円プリセット。本線・押さえ・穴へ配分。
+毎レース「今回学んだこと」を生成し Knowledge に蓄積。ペース・馬場・市場過熱・予想差異などを言語化します。
+
+### Horse Memo
+
+馬ごとにタグ付き AI メモ（例: 終い優秀、重馬場苦手、過熱注意）を追記可能。
 
 ### 画面
 
-`ticket.html` — Betting Dashboard / 券種 / 比較 / Explain / Confidence / 保存・CSV・JSON。
+`review.html` — Review Dashboard（最新レビュー / Lessons / 注目馬 / 危険人気 / Knowledge件数 / 履歴）
+
+### Learning 連携
+
+`buildLearningHandoff()` → `acceptReviewHandoff()`  
+Review 考察を Learning 履歴へ渡せます。重み・評価ロジックの自動書換は行いません。
+
+## Ver6.0 Betting Intelligence（維持）
+
+`ticket.html` / `services/betting/` — 券種横断の買い目提案。
 
 ## 確認方法
 
@@ -50,6 +68,6 @@ IQ / Value / Support / Risk / Market / 期待値 / オッズ / 展開 / 馬場 /
 python -m http.server 5500
 ```
 
-1. 買い目生成画面で Dashboard・Explain Betting を確認  
-2. 戦略切替（安全/期待値/穴/バランス）  
-3. CSV / JSON / コピー / お気に入り  
+1. `review.html` で Dashboard・Explain・Lessons を確認  
+2. 「Learningへ引き渡し」で履歴連携  
+3. 記事本文が出ていないことを確認  
