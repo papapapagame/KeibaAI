@@ -79,16 +79,51 @@ export function initLoadingScreen() {
 }
 
 export function initScrollTopButton() {
-  const scrollTopButton = document.getElementById("scroll-top");
-  if (!scrollTopButton) return;
+  const button = ensureScrollTopButton();
+  if (!button) return;
 
-  scrollTopButton.addEventListener("click", () => {
+  let scrollPulseTimer = 0;
+
+  button.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  window.addEventListener("scroll", () => {
-    scrollTopButton.classList.toggle("is-visible", window.scrollY > 300);
-  });
+  const onScroll = () => {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    button.classList.toggle("is-visible", y > 300);
+    if (y > 300) {
+      button.classList.add("is-scrolling");
+      window.clearTimeout(scrollPulseTimer);
+      scrollPulseTimer = window.setTimeout(() => {
+        button.classList.remove("is-scrolling");
+      }, 180);
+    }
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
+/** 全ページ共通「TOPへ戻る」ボタン（なければ自動生成） */
+export function ensureScrollTopButton() {
+  let button = document.getElementById("scroll-top");
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.id = "scroll-top";
+    button.className = "scroll-top";
+    document.body.appendChild(button);
+  }
+
+  button.type = "button";
+  button.classList.add("scroll-top");
+  button.setAttribute("aria-label", "TOPへ戻る");
+  button.innerHTML =
+    '<svg class="scroll-top__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<path d="M12 5l-7 7h4v7h6v-7h4l-7-7z" fill="currentColor"/>' +
+    "</svg>" +
+    '<span class="scroll-top__label">TOPへ戻る</span>';
+  return button;
 }
 
 export function initPageLinkTransitions() {

@@ -1,11 +1,12 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver3.2.0 AI分析感強化（表示層のみ）
+   Ver4.0.0 正式版（表示層 / AI対決連携）
    AIロジックは ai-engine.js / thinking-engine.js を変更しない
    ======================================== */
 
 import { analyzeRace } from "./ai-engine.js";
 import { saveLastPrediction } from "./learning-engine.js";
+import { initAiDebateMode } from "./ai-debate.js";
 import {
   appendLines,
   applyCardStagger,
@@ -59,6 +60,7 @@ let selectedTicketType = "三連複";
 let selectedStrategy = "AIおすすめ";
 let cachedTickets = null;
 let sequenceStarted = false;
+let debateContext = { reports: [], result: {}, race: {} };
 
 export async function initAnalysisPage() {
   const params = getSearchParams();
@@ -115,6 +117,9 @@ export async function initAnalysisPage() {
 
   renderAnalysis(analysisResult, race);
   runAnalysisSequence();
+  initAiDebateMode({
+    getContext: () => debateContext,
+  });
 
   document.getElementById("back-to-detail").href =
     `race-detail.html?${detailParams.toString()}`;
@@ -224,6 +229,7 @@ export function renderAnalysis(result, race = {}) {
   document.getElementById("final-comment-text").textContent =
     result.finalComment || "";
 
+  debateContext = { reports, result, race };
   applyCardStagger();
 }
 

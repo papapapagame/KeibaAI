@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading page-analysis">
+<body class="is-loading page-analysis page-v40">
   <div class="ai-scan-overlay" id="ai-scan-overlay" aria-hidden="true">
     <div class="ai-scan-overlay__glow"></div>
     <div class="ai-scan-overlay__line"></div>
@@ -43,20 +43,29 @@
 
   <div class="bg-layer" aria-hidden="true"></div>
   <div class="bg-glow" aria-hidden="true"></div>
+  <div class="gold-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
 
   <header class="site-header">
     <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper page--v31 page--v32">
+  <main class="page page--analysis page--paper page--v31 page--v32 page--v40">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
-      <div class="gold-line" aria-hidden="true"></div>
+      <div class="gold-line gold-line--glow" aria-hidden="true"></div>
     </header>
 
+    <nav class="analysis-view-tabs reveal" aria-label="分析ビュー切替">
+      <button type="button" class="analysis-view-tab is-active" id="tab-view-paper">AI新聞</button>
+      <button type="button" class="analysis-view-tab" id="tab-view-debate">AI対決</button>
+    </nav>
+
+    <div id="view-paper" class="analysis-view">
     <!-- ① AIシミュレーション -->
     <section class="paper-section v32-sim reveal" aria-label="AIシミュレーション">
       <h2 class="paper-section__title">AIシミュレーション ×1000</h2>
@@ -310,6 +319,33 @@
       <div class="ticket-bet-list" id="paper-ticket-bets"></div>
       <p class="paper-ticket-note" id="paper-ticket-note"></p>
     </section>
+    </div>
+
+    <!-- AI対決モード -->
+    <div id="view-debate" class="analysis-view analysis-view--debate is-hidden" hidden>
+      <section class="paper-section debate-panel reveal is-visible" aria-label="AI対決">
+        <div class="debate-panel__head">
+          <h2 class="paper-section__title">AI対決</h2>
+          <p class="paper-section__lead">5つのAIが異なる視点で討論し、最終結論を導きます</p>
+          <button type="button" class="btn-secondary" id="debate-start-btn">討論をやり直す</button>
+        </div>
+
+        <div class="debate-scan" id="debate-scan" aria-hidden="true">
+          <div class="debate-scan__glow"></div>
+          <div class="debate-scan__line"></div>
+        </div>
+
+        <div class="debate-ai-grid" id="debate-ai-grid"></div>
+
+        <div class="debate-banner is-hidden" id="debate-banner" hidden>
+          <p class="debate-banner__icon" aria-hidden="true">🤖</p>
+          <p class="debate-banner__text">5つのAIが討論を開始します</p>
+        </div>
+
+        <div class="debate-log" id="debate-log" aria-live="polite"></div>
+        <div class="debate-final-wrap is-hidden" id="debate-final" hidden></div>
+      </section>
+    </div>
 
     <div class="page-actions page-actions--stack reveal">
       <button type="button" class="btn-primary" id="go-ticket">買い目生成へ</button>
@@ -319,10 +355,10 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 3.2.0</p>
+    <p>Version 4.0.0</p>
   </footer>
 
-  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
 
   <script type="module" src="js/main.js"></script>
 </body>
