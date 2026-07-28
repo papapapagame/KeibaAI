@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading page-analysis page-v40 page-v50">
+<body class="is-loading page-analysis page-v40 page-v50 page-v51 page-v52">
   <div class="ai-scan-overlay" id="ai-scan-overlay" aria-hidden="true">
     <div class="ai-scan-overlay__glow"></div>
     <div class="ai-scan-overlay__line"></div>
@@ -56,13 +56,99 @@
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50">
+  <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver5</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver5.2</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
     </header>
+
+    <!-- Ver5.1 データソース / 更新時刻 -->
+    <section class="paper-section v51-data-meta reveal" aria-label="データ取得状況">
+      <div class="v51-meta-grid">
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Data Source</p>
+          <p class="v51-meta-card__value" id="data-source-label">Dummy Data</p>
+        </div>
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Last Update</p>
+          <p class="v51-meta-card__value" id="data-updated-label">—</p>
+        </div>
+      </div>
+
+      <div class="v51-error-banner" id="data-error-banner" hidden>
+        <p class="v51-error-banner__title">通信失敗</p>
+        <p class="v51-error-banner__detail" id="data-error-detail">現在はキャッシュ表示中</p>
+        <button type="button" class="btn-secondary" id="data-retry-btn">再取得</button>
+      </div>
+
+      <aside class="v51-dev-panel glass-card" id="dev-data-panel" hidden>
+        <p class="v51-dev-panel__title">Developer Panel</p>
+        <ul class="v51-dev-list">
+          <li>Provider: <span id="dev-provider">—</span></li>
+          <li>Data Source: <span id="dev-source">—</span></li>
+          <li>Cache Status: <span id="dev-cache">—</span></li>
+          <li>Update Time: <span id="dev-updated">—</span></li>
+          <li>取得件数: <span id="dev-count">—</span></li>
+          <li>Validation: <span id="dev-validation">—</span></li>
+        </ul>
+
+        <p class="v51-dev-panel__subtitle">Provider Monitor</p>
+        <div class="v52-monitor-wrap">
+          <table class="v52-monitor-table" aria-label="Provider Monitor">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>状態</th>
+                <th>最終取得</th>
+                <th>件数</th>
+                <th>エラー</th>
+                <th>応答ms</th>
+              </tr>
+            </thead>
+            <tbody id="dev-provider-monitor"></tbody>
+          </table>
+        </div>
+
+        <p class="v51-dev-panel__subtitle">AI情報源管理</p>
+        <ul class="v51-intel-status" id="dev-intel-status" aria-label="Intelligence Providers"></ul>
+
+        <p class="v51-dev-panel__subtitle">データ取得ログ</p>
+        <div class="v51-intel-logs" id="dev-intel-logs" aria-label="Fetch logs"></div>
+
+        <p class="v51-dev-panel__subtitle">Debug</p>
+        <div class="v52-debug-tabs" role="tablist" aria-label="Debug views">
+          <button type="button" class="v52-debug-tab is-active" data-debug="raw">取得JSON</button>
+          <button type="button" class="v52-debug-tab" data-debug="normalized">Normalizer</button>
+          <button type="button" class="v52-debug-tab" data-debug="cache">Cache</button>
+        </div>
+        <pre class="v52-debug-view" id="dev-debug-view" aria-label="Debug JSON">—</pre>
+
+        <div class="v51-dev-actions">
+          <button type="button" class="btn-secondary" id="dev-clear-cache">Clear Cache</button>
+          <button type="button" class="btn-secondary" id="dev-force-error">Simulate Error</button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Ver5.1 独自AI指標（ダミー表示） -->
+    <section class="paper-section v51-scores reveal" aria-label="独自AI指標">
+      <h2 class="paper-section__title">独自AI指標</h2>
+      <p class="paper-section__lead">Intelligence Connect 連携後のプレースホルダ指標（評価ロジック非接続）</p>
+      <div class="v51-score-grid" id="v51-score-grid">
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">IQ Score</p><p class="v51-score-card__value" id="score-iq">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Pace Score</p><p class="v51-score-card__value" id="score-pace">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Value Score</p><p class="v51-score-card__value" id="score-value">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Trust Score</p><p class="v51-score-card__value" id="score-trust">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Danger Score</p><p class="v51-score-card__value" id="score-danger">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Trend Score</p><p class="v51-score-card__value" id="score-trend">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Buzz Score</p><p class="v51-score-card__value" id="score-buzz">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Support Score</p><p class="v51-score-card__value" id="score-support">—</p></article>
+        <article class="glass-card v51-score-card"><p class="v51-score-card__label">Risk Score</p><p class="v51-score-card__value" id="score-risk">—</p></article>
+        <article class="glass-card v51-score-card v51-score-card--wide"><p class="v51-score-card__label">Market Sentiment</p><p class="v51-score-card__value" id="score-sentiment">—</p></article>
+      </div>
+    </section>
 
     <nav class="analysis-view-tabs reveal" aria-label="分析ビュー切替">
       <button type="button" class="analysis-view-tab is-active" id="tab-view-paper">AI新聞</button>
@@ -389,7 +475,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 5.0.0</p>
+    <p>Version 5.2.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

@@ -1,0 +1,23 @@
+{
+  "version": "5.2.0",
+  "updatedAt": "2026-07-28T03:00:00+09:00",
+  "note": "性齢・所属などの補完プロファイル",
+  "entries": [
+    { "number": 1, "sexAge": "牡5", "affiliation": "美浦" },
+    { "number": 2, "sexAge": "牡4", "affiliation": "栗東" },
+    { "number": 3, "sexAge": "牡4", "affiliation": "美浦" },
+    { "number": 4, "sexAge": "牝4", "affiliation": "美浦" },
+    { "number": 5, "sexAge": "牡5", "affiliation": "美浦" },
+    { "number": 6, "sexAge": "牡6", "affiliation": "栗東" },
+    { "number": 7, "sexAge": "牡5", "affiliation": "栗東" },
+    { "number": 8, "sexAge": "牝4", "affiliation": "栗東" },
+    { "number": 9, "sexAge": "牡4", "affiliation": "美浦" },
+    { "number": 10, "sexAge": "牝3", "affiliation": "栗東" },
+    { "number": 11, "sexAge": "牡4", "affiliation": "栗東" },
+    { "number": 12, "sexAge": "牡5", "affiliation": "美浦" },
+    { "number": 13, "sexAge": "牡6", "affiliation": "栗東" },
+    { "number": 14, "sexAge": "牝4", "affiliation": "栗東" },
+    { "number": 15, "sexAge": "牡5", "affiliation": "栗東" },
+    { "number": 16, "sexAge": "牡7", "affiliation": "美浦" }
+  ]
+}

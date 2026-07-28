@@ -1,6 +1,6 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver5.0.0 正式版（表示層 / AI対決・思考ログ連携）
+   Ver5.2.0 Real Intelligence Connect（表示層）
    AIロジックは ai-engine.js / thinking-engine.js を変更しない
    ======================================== */
 
@@ -9,13 +9,27 @@ import { saveLastPrediction } from "./learning-engine.js";
 import { initAiDebateMode } from "./ai-debate.js";
 import { initV5Extras } from "./v5-extras.js";
 import {
+  clearDataCache,
+  fetchAnalysisBundle,
+  formatUpdateTime,
+  getDataStatus,
+} from "../services/data-provider.js";
+import {
+  buildIntelligencePacket,
+  clearAllIntelligenceState,
+  clearProviderCache,
+  getDebugSnapshot,
+  getProviderMetas,
+  initIntelligenceManager,
+} from "../services/intelligence/index.js";
+import { DEBUG, DEBUG_MODE } from "./config.js";
+import {
   appendLines,
   applyCardStagger,
   clearElement,
   createElement,
   createTableRow,
   getSearchParams,
-  loadJson,
   navigateWithFade,
 } from "./utils.js";
 
@@ -76,15 +90,18 @@ export async function initAnalysisPage() {
   });
 
   const raceNumber = Number(params.get("race") || 0);
-  const [raceData, horsesData, settingsData] = await Promise.all([
-    loadJson("race"),
-    loadJson("horses"),
-    loadJson("settings"),
-  ]);
+  const forceError = params.get("forceError") === "1";
+
+  const bundle = await fetchAnalysisBundle({
+    raceNumber,
+    forceError,
+  });
+
+  bindDataStatusUi(bundle.status);
+  bindDataErrorUi(bundle, raceNumber);
 
   const race =
-    raceData.races.find((item) => item.number === raceNumber) ||
-    raceData.races[0] ||
+    bundle.legacy?.race ||
     {
       date: params.get("date") || "",
       venue: params.get("venue") || "",
@@ -94,9 +111,26 @@ export async function initAnalysisPage() {
       time: params.get("time") || "",
     };
 
+  const horses = bundle.legacy?.horses || [];
+  const settingsData = bundle.legacy?.settings || {};
+
+  initIntelligenceManager();
+  const intelPacket = await buildIntelligencePacket({
+    race,
+    horses,
+    forceRefresh: false,
+  });
+  bindIntelligenceScores(intelPacket.scores);
+  bindDeveloperPanel(bundle, intelPacket);
+
+  if (!horses.length) {
+    document.getElementById("data-error-banner")?.classList.add("is-visible");
+    return;
+  }
+
   const analysisResult = await analyzeRace({
     race,
-    horses: horsesData.entries,
+    horses,
     settings: settingsData,
   });
 
@@ -132,6 +166,279 @@ export async function initAnalysisPage() {
   document.getElementById("detail-close")?.addEventListener("click", () => {
     hideDetail();
   });
+}
+
+function bindDataStatusUi(status) {
+  const source = document.getElementById("data-source-label");
+  const updated = document.getElementById("data-updated-label");
+  if (source) source.textContent = status?.sourceLabel || "Dummy Data";
+  if (updated) {
+    // Dummy でも画面表示は現在時刻。キャッシュ期限判定は fetchedAt を使用。
+    updated.textContent =
+      status?.providerId === "dummy"
+        ? formatUpdateTime(new Date().toISOString())
+        : status?.updatedLabel || formatUpdateTime(new Date().toISOString());
+  }
+}
+
+function bindDataErrorUi(bundle, raceNumber) {
+  const banner = document.getElementById("data-error-banner");
+  const detail = document.getElementById("data-error-detail");
+  const retry = document.getElementById("data-retry-btn");
+  if (!banner) return;
+
+  const status = bundle.status || getDataStatus();
+  const show = Boolean(status.error);
+  banner.classList.toggle("is-visible", show);
+  banner.hidden = !show;
+  if (detail) {
+    detail.textContent = status.usingCacheFallback
+      ? `通信失敗のためキャッシュ表示中: ${status.error || ""}`
+      : status.error || "通信に失敗しました";
+  }
+
+  if (retry && !retry.dataset.bound) {
+    retry.dataset.bound = "1";
+    retry.addEventListener("click", async () => {
+      banner.classList.remove("is-visible");
+      banner.hidden = true;
+      clearDataCache();
+      clearProviderCache();
+      const fresh = await fetchAnalysisBundle({
+        raceNumber,
+        forceRefresh: true,
+      });
+      bindDataStatusUi(fresh.status);
+      bindDeveloperPanel(fresh);
+      if (fresh.status?.error && !(fresh.legacy?.horses || []).length) {
+        banner.classList.add("is-visible");
+        banner.hidden = false;
+        if (detail) detail.textContent = fresh.status.error;
+        return;
+      }
+      location.reload();
+    });
+  }
+}
+
+function bindIntelligenceScores(scores = {}) {
+  setText("score-iq", formatScore(scores.iqScore));
+  setText("score-pace", formatScore(scores.paceScore));
+  setText("score-value", formatScore(scores.valueScore));
+  setText("score-trust", formatScore(scores.trustScore));
+  setText("score-danger", formatScore(scores.dangerScore));
+  setText("score-trend", formatScore(scores.trendScore));
+  setText("score-buzz", formatScore(scores.buzzScore));
+  setText("score-support", formatScore(scores.supportScore));
+  setText("score-risk", formatScore(scores.riskScore));
+  setText("score-sentiment", scores.marketSentiment || "—");
+}
+
+function formatScore(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return String(Number(value));
+}
+
+function bindDeveloperPanel(bundle, intelPacket = null) {
+  const panel = document.getElementById("dev-data-panel");
+  if (!panel) return;
+  const enabled = Boolean(DEBUG || DEBUG_MODE);
+  panel.hidden = !enabled;
+  panel.classList.toggle("is-visible", enabled);
+  if (!enabled) return;
+
+  const status = bundle.status || getDataStatus();
+  setText("dev-provider", status.providerId || "—");
+  setText("dev-source", status.sourceLabel || "—");
+  setText(
+    "dev-cache",
+    status.fromCache
+      ? status.usingCacheFallback
+        ? "HIT (fallback)"
+        : "HIT"
+      : "MISS"
+  );
+  setText("dev-updated", status.updatedLabel || "—");
+  setText(
+    "dev-count",
+    `races ${status.count?.races || 0} / horses ${status.count?.horses || 0}`
+  );
+
+  const vs = intelPacket?.validationSummary;
+  setText(
+    "dev-validation",
+    vs
+      ? `issues ${vs.issueCount} (missing ${vs.missing} / anomaly ${vs.anomaly} / dup ${vs.duplicate})`
+      : "—"
+  );
+
+  renderIntelStatus(intelPacket);
+  renderIntelLogs(intelPacket);
+  renderProviderMonitor(intelPacket);
+  bindDebugPanel(intelPacket);
+
+  const clearBtn = document.getElementById("dev-clear-cache");
+  if (clearBtn && !clearBtn.dataset.bound) {
+    clearBtn.dataset.bound = "1";
+    clearBtn.addEventListener("click", () => {
+      clearDataCache();
+      clearProviderCache();
+      clearAllIntelligenceState();
+      setText("dev-cache", "CLEARED");
+      const view = document.getElementById("dev-debug-view");
+      if (view) view.textContent = "cache cleared";
+    });
+  }
+
+  const forceBtn = document.getElementById("dev-force-error");
+  if (forceBtn && !forceBtn.dataset.bound) {
+    forceBtn.dataset.bound = "1";
+    forceBtn.addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("forceError", "1");
+      window.location.href = url.toString();
+    });
+  }
+}
+
+function renderProviderMonitor(intelPacket) {
+  const body = document.getElementById("dev-provider-monitor");
+  if (!body) return;
+  clearElement(body);
+
+  const rows = intelPacket?.monitor || [];
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.textContent = "モニタなし";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    const cells = [
+      row.label || row.providerId,
+      row.status || "—",
+      row.lastFetchedAt ? formatUpdateTime(row.lastFetchedAt) : "—",
+      String(row.lastCount != null ? row.lastCount : "—"),
+      String(row.errorCount != null ? row.errorCount : 0),
+      String(row.lastResponseMs != null ? row.lastResponseMs : "—"),
+    ];
+    cells.forEach((text, idx) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (idx === 1) {
+        td.className = `v52-monitor-status status-${String(row.status || "")
+          .toLowerCase()
+          .replace(/\s+/g, "-")}`;
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  }
+}
+
+function bindDebugPanel(intelPacket) {
+  const view = document.getElementById("dev-debug-view");
+  const tabs = document.querySelectorAll(".v52-debug-tab");
+  if (!view) return;
+
+  const snapshot = intelPacket?.debug || getDebugSnapshot() || {};
+  panelDebugState.snapshot = snapshot;
+  if (!panelDebugState.mode) panelDebugState.mode = "raw";
+
+  renderDebugView(panelDebugState.mode, snapshot);
+
+  tabs.forEach((tab) => {
+    if (tab.dataset.bound) return;
+    tab.dataset.bound = "1";
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("is-active"));
+      tab.classList.add("is-active");
+      panelDebugState.mode = tab.dataset.debug || "raw";
+      renderDebugView(panelDebugState.mode, panelDebugState.snapshot);
+    });
+  });
+}
+
+const panelDebugState = { mode: "raw", snapshot: null };
+
+function renderDebugView(mode, snapshot) {
+  const view = document.getElementById("dev-debug-view");
+  if (!view) return;
+  const data = snapshot || {};
+  let payload = null;
+  if (mode === "normalized") {
+    payload = {
+      counts: data.normalizedCounts || {},
+      sample: data.normalizedSample || data.normalized || {},
+      validations: data.validations || [],
+    };
+  } else if (mode === "cache") {
+    payload = data.cache || [];
+  } else {
+    payload = {
+      collectedAt: data.collectedAt,
+      providers: data.providers || [],
+      rawSample: data.rawSample || data.rawByProvider || {},
+    };
+  }
+  try {
+    view.textContent = JSON.stringify(payload, null, 2);
+  } catch {
+    view.textContent = String(payload);
+  }
+}
+
+function renderIntelStatus(intelPacket) {
+  const list = document.getElementById("dev-intel-status");
+  if (!list) return;
+  clearElement(list);
+
+  const metas = getProviderMetas();
+  const runtime = new Map(
+    (intelPacket?.providers || []).map((p) => [p.providerId, p])
+  );
+
+  for (const meta of metas) {
+    const runtimeRow = runtime.get(meta.id);
+    const status = runtimeRow?.status || meta.status || "READY";
+    const li = createElement("li", {
+      className: `v51-intel-status__item status-${String(status).toLowerCase()}`,
+    });
+    const name = createElement("span", { className: "v51-intel-status__name" });
+    name.textContent = meta.implemented === false ? `${meta.label} (TODO)` : meta.label;
+    const badge = createElement("span", {
+      className: `v51-status-badge v51-status-badge--${String(status)
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`,
+    });
+    badge.textContent = status;
+    li.append(name, badge);
+    list.appendChild(li);
+  }
+}
+
+function renderIntelLogs(intelPacket) {
+  const box = document.getElementById("dev-intel-logs");
+  if (!box) return;
+  clearElement(box);
+
+  const rows = (intelPacket?.providers || []).slice(0, 12);
+  if (!rows.length) {
+    box.textContent = "ログなし";
+    return;
+  }
+
+  for (const row of rows) {
+    const line = createElement("p", { className: "v51-intel-logs__row" });
+    const updated = row.updatedAt ? formatUpdateTime(row.updatedAt) : "—";
+    line.textContent = `${row.label} · ${row.count}件 · ${updated} · cache ${row.cacheStatus || "—"} · ${row.responseMs || 0}ms · ${row.status}`;
+    box.appendChild(line);
+  }
 }
 
 export function renderAnalysis(result, race = {}) {

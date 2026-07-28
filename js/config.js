@@ -4,12 +4,24 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "5.0.0";
+export const VERSION = "5.2.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
 /** ローカルJSON: "data/" / 本番API例: "https://api.example.com/v1/" */
 export const API_BASE_URL = "data/";
+
+/**
+ * データ取得 Provider 切替
+ * dummy | csv | api | jra
+ * ※ Ver5.1 は dummy のみ実装済み
+ * Intelligence Platform（複数情報源）は services/intelligence/ を参照
+ */
+export const DATA_PROVIDER = "dummy";
+
+/** Intelligence Cache TTL（ms）— Ver5.2 差分更新と併用 */
+export const DATA_CACHE_TTL_MS = 10 * 60 * 1000;
+export const INTEL_CACHE_TTL_MS = DATA_CACHE_TTL_MS;
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;
