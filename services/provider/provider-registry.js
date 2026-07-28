@@ -1,5 +1,5 @@
 /* ========================================
-   Provider Registry — Ver7.4
+   Provider Registry — Ver7.4 / 7.6.1 fix
    Mock のみ有効。他は登録・無効。
    ======================================== */
 
@@ -11,19 +11,20 @@ const registry = new Map();
 let initialized = false;
 
 export function ensureRegistry() {
-  if (initialized) return getRegisteredProviders();
-  for (const id of listFactoryIds()) {
-    const provider = createProvider(id);
-    if (!provider) continue;
-    // Ver7.4: Mock のみ有効
-    provider.enabled = id === "mock";
-    registry.set(id, provider);
+  if (!initialized) {
+    for (const id of listFactoryIds()) {
+      const provider = createProvider(id);
+      if (!provider) continue;
+      // Ver7.4: Mock のみ有効
+      provider.enabled = id === "mock";
+      registry.set(id, provider);
+    }
+    initialized = true;
+    logProviderEvent("registry_init", {
+      message: `registered ${registry.size} providers (mock enabled)`,
+    });
   }
-  initialized = true;
-  logProviderEvent("registry_init", {
-    message: `registered ${registry.size} providers (mock enabled)`,
-  });
-  return getRegisteredProviders();
+  return [...registry.values()];
 }
 
 export function registerProvider(provider, { enable = null } = {}) {
@@ -52,8 +53,7 @@ export function getProvider(id) {
 }
 
 export function getRegisteredProviders() {
-  ensureRegistry();
-  return [...registry.values()];
+  return ensureRegistry();
 }
 
 export function getEnabledProviders() {

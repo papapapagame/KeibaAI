@@ -57,7 +57,7 @@ export function createRaceSession(raw = {}) {
 
 export function createAnalysisStage(stageOrRaw) {
   const stage =
-    typeof stageOrRaw === "object"
+    stageOrRaw != null && typeof stageOrRaw === "object"
       ? clampStage(stageOrRaw.stage)
       : clampStage(stageOrRaw);
   const meta = ANALYSIS_STAGES.find((s) => s.stage === stage) || ANALYSIS_STAGES[0];
