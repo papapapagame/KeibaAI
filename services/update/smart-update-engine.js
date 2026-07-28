@@ -25,6 +25,7 @@ import { refreshRaceDataOnly } from "../race-connect/race-data-connector.js";
 import { refreshEntriesOnly } from "../entry/horse-entry-manager.js";
 import { refreshDrawOnly } from "../draw/draw-manager.js";
 import { refreshOddsOnly } from "../odds/odds-manager.js";
+import { refreshWeatherOnly } from "../weather/weather-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -328,6 +329,62 @@ async function handleIncomingEventInner(event) {
       };
     } catch {
       /* Odds 失敗時は従来トリガへ */
+    }
+  }
+
+  // Ver7.9: Weather 変更時のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.weatherOnly ||
+    event?.source === "weather-engine" ||
+    [
+      "weather_change",
+      "track_change",
+      "wind_speed_change",
+      "wind_direction_change",
+      "moisture_updated",
+    ].includes(event?.type)
+  ) {
+    try {
+      const weatherRefresh = await refreshWeatherOnly({
+        emitUpdate: false,
+        silent: true,
+        stage: snapshot.stage,
+      });
+      if (!weatherRefresh.ok || !weatherRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: weatherRefresh.ok
+            ? "Weather情報に変更が無いため再分析をスキップしました。"
+            : `Weather 再取得失敗: ${weatherRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Weather: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Weather変更なし（スキップ）",
+        });
+        return { skipped: true, weatherOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        weatherFingerprint: weatherRefresh.fingerprint,
+        stage: Math.max(
+          Number(snapshot.stage) || 0,
+          Number(weatherRefresh.confirmedStage) || 0
+        ),
+      };
+    } catch {
+      /* Weather 失敗時は従来トリガへ */
     }
   }
 

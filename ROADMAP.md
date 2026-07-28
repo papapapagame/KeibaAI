@@ -392,6 +392,25 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver7.9 - Weather & Track Intelligence（実装済）
+
+テーマ：天候・馬場状態・気象情報をAI分析へ反映する
+
+### 実装内容
+
+- WeatherManager / Repository / Synchronizer / Validator / HistoryManager / TrackConditionManager
+- Track / Weather / Surface Score
+- Stage6 前日天候・馬場 / Stage7 当日最新
+- 天候・馬場・風・芝ダート・含水率補正（統合・エンジン非改変）
+- Smart Update（変更時のみ）/ Validation / Completeness
+- Odds / Draw / Entry 連携を維持
+
+### 目標
+
+天候・馬場を単独要因にせず、他分析要素と統合して評価する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

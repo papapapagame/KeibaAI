@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "7.8.0";
+export const VERSION = "7.9.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -60,6 +60,9 @@ export const DRAW_ENGINE_VERSION = "7.7.0";
 
 /** Odds & Market Intelligence（services/odds） */
 export const ODDS_ENGINE_VERSION = "7.8.0";
+
+/** Weather & Track Intelligence（services/weather） */
+export const WEATHER_ENGINE_VERSION = "7.9.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

@@ -1,57 +1,58 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.8.0** — Odds & Market Intelligence
+**Ver7.9.0** — Weather & Track Intelligence
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-オッズ・人気・市場動向を取得し、AI分析の**補助要素**として反映します。  
-ニュース・SNS・レース後レビューは本バージョンの対象外です。
+天候・馬場・気象情報を取得し、他要素と統合して AI 分析へ反映します。  
+ニュース・SNS・レース後情報は本バージョンの対象外です。
 
-## Odds Engine
+## Weather Engine
 
 ```
-services/odds/
-  OddsManager
-  OddsRepository
-  OddsSynchronizer
-  OddsValidator
-  OddsHistoryManager
-  MarketAnalyzer
+services/weather/
+  WeatherManager
+  WeatherRepository
+  WeatherSynchronizer
+  WeatherValidator
+  WeatherHistoryManager
+  TrackConditionManager
 ```
 
 ### 取得対象
 
-単勝オッズ・複勝オッズ・人気順位・更新時刻・オッズ変動履歴・市場指数
+天候・気温・湿度・風速・風向・馬場状態・芝／ダート状態・含水率（Provider対応時）・更新時刻
 
-### Market Intelligence
+### Track Intelligence
 
 | Score | 意味 |
 |-------|------|
-| Market Score | 市場注目度 |
-| Support Score | 複勝側の支持 |
-| Value Score | 期待値（人気順依存にしない） |
+| Track Score | 馬場コンディション |
+| Weather Score | 天候・気温・湿度 |
+| Surface Score | 芝／ダート適性環境 |
 
-過剰人気 / 過小評価 / 期待値あり をラベル化します。
+天候・馬場・風・芝ダート・含水率の補正を統合評価します（単独要因化しません）。
 
 ### Analysis Stage
 
 | Stage | 内容 |
 |-------|------|
-| 6 | 前日情報 → オッズ反映 |
-| 7 | 当日最終分析 → 最新オッズ反映 |
+| 6 | 前日天候・馬場情報 |
+| 7 | 当日最新天候・馬場情報 |
 
 ### Validation / Synchronization
 
-オッズ異常・人気重複・欠損・型を検証。失敗データは AI へ渡しません。  
-オッズ更新・人気変動・市場指数更新時のみ Smart Update 再分析します。
+異常値・欠損・型・更新時刻を検証。失敗データは AI へ渡しません。  
+天候・馬場・風速・風向・含水率の変更時のみ Smart Update 再分析します。
 
 ### Data Completeness
 
-オッズ / 人気 / 市場情報の取得率を表示。ニュース・SNSは **0%**。Overall を Confidence へ反映します。
+天候 / 馬場 / 風 / 含水率の取得率を表示。ニュース・SNSは **0%**。Overall を Confidence へ反映します。
 
-## Draw & Entry（維持）
+## Odds / Draw / Entry（維持）
 
-- Ver7.7 Draw & Jockey（枠・騎手・斤量）
-- Ver7.6 Horse Entry（登録〜出走予定）
+- Ver7.8 Odds & Market
+- Ver7.7 Draw & Jockey
+- Ver7.6 Horse Entry
 
 ## 確認方法
 
@@ -59,10 +60,10 @@ services/odds/
 python -m http.server 5500
 ```
 
-1. 分析画面「取得済み: 人気・オッズ・市場情報」  
-2. Odds Completeness / Dev Panel「Odds & Market」  
-3. Mock Events のオッズ系で変更なしスキップを確認  
+1. 分析画面「取得済み: 天候・馬場状態・風・気象情報」  
+2. Weather Completeness / Dev Panel「Weather & Track」  
+3. Mock Events の天候・馬場変更で変更なしスキップを確認  
 
 ## 維持機能
 
-Ver7.7 Draw & Jockey Intelligence までの全機能を維持しています。
+Ver7.8 Odds & Market Intelligence までの全機能を維持しています。

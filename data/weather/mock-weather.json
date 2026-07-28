@@ -1,0 +1,49 @@
+{
+  "version": "7.9.0",
+  "source": "mock",
+  "updatedAt": "2026-07-28T17:30:00+09:00",
+  "raceDate": "2026-07-27",
+  "venueId": "tokyo",
+  "raceNumber": 7,
+  "phase": "final",
+  "note": "Weather and track only (news/SNS/post-race excluded)",
+  "weather": {
+    "weather": "晴",
+    "temperature": 28.5,
+    "humidity": 62,
+    "windSpeed": 3.2,
+    "windDirection": "南西",
+    "trackCondition": "良",
+    "surface": "芝",
+    "surfaceState": "標準",
+    "moisture": 12.5,
+    "moistureAvailable": true,
+    "updatedAt": "2026-07-28T17:25:00+09:00",
+    "history": [
+      {
+        "at": "2026-07-27T18:00:00+09:00",
+        "weather": "曇",
+        "trackCondition": "良",
+        "windSpeed": 2.0,
+        "windDirection": "南",
+        "moisture": 14.0
+      },
+      {
+        "at": "2026-07-28T12:00:00+09:00",
+        "weather": "晴",
+        "trackCondition": "良",
+        "windSpeed": 2.8,
+        "windDirection": "南西",
+        "moisture": 13.0
+      },
+      {
+        "at": "2026-07-28T17:25:00+09:00",
+        "weather": "晴",
+        "trackCondition": "良",
+        "windSpeed": 3.2,
+        "windDirection": "南西",
+        "moisture": 12.5
+      }
+    ]
+  }
+}

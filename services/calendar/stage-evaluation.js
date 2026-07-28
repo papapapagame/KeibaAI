@@ -91,14 +91,27 @@ export function sanitizeForStage(race, horses, stage) {
     raceOut.weather = "未確定";
   }
 
-  // Stage6: 前日情報 — 当日馬場・最終オッズ・気象は暫定のまま扱わない
+  // Stage6: 前日情報 — 当日最終は暫定
   if (s === 6) {
-    raceOut.trackCondition = raceOut.trackCondition
-      ? `${raceOut.trackCondition}（前日時点）`
-      : "前日時点・当日未確定";
-    raceOut.weather = raceOut.weather
-      ? `${raceOut.weather}（予報）`
-      : "予報・当日未確定";
+    if (raceOut.weatherConfirmed) {
+      if (
+        raceOut.trackCondition &&
+        !String(raceOut.trackCondition).includes("前日")
+      ) {
+        raceOut.trackCondition = `${raceOut.trackCondition}（前日時点）`;
+      }
+      if (raceOut.weather && !String(raceOut.weather).includes("予報")) {
+        raceOut.weather = `${raceOut.weather}（予報）`;
+      }
+      raceOut._weatherProvisional = true;
+    } else {
+      raceOut.trackCondition = raceOut.trackCondition
+        ? `${raceOut.trackCondition}（前日時点）`
+        : "前日時点・当日未確定";
+      raceOut.weather = raceOut.weather
+        ? `${raceOut.weather}（予報）`
+        : "予報・当日未確定";
+    }
     horseOut = horseOut.map((h) => ({
       ...h,
       odds: h.odds,

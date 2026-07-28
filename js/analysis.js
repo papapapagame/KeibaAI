@@ -47,6 +47,12 @@ import {
   getOddsDashboard,
   applyOddsMarketAdjustments,
 } from "../services/odds/index.js";
+import {
+  loadWeatherForAi,
+  mergeRaceWithWeather,
+  getWeatherDashboard,
+  applyWeatherTrackAdjustments,
+} from "../services/weather/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -287,10 +293,30 @@ export async function initAnalysisPage() {
       drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
   });
 
+  // Ver7.9 Weather & Track — 天候・馬場・風（Stage6+）
+  const weatherBundle = await loadWeatherForAi({
+    stage: Math.max(
+      stageNow,
+      Number(drawBundle?.confirmedStage) || 0,
+      Number(oddsBundle?.confirmedStage) || 0
+    ),
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+    silent: true,
+    baseConfidence:
+      oddsBundle?.confidenceHint ??
+      drawBundle?.confidenceHint ??
+      entryBundle?.confidenceHint ??
+      82,
+  });
+
   const effectiveStage = Math.max(
     stageNow,
     Number(drawBundle?.confirmedStage) || 0,
-    Number(oddsBundle?.confirmedStage) || 0
+    Number(oddsBundle?.confirmedStage) || 0,
+    Number(weatherBundle?.confirmedStage) || 0
   );
   bindDrawStatusUi(drawBundle);
   bindDrawAiPanel(drawBundle, effectiveStage);
@@ -298,24 +324,31 @@ export async function initAnalysisPage() {
   bindOddsStatusUi(oddsBundle);
   bindOddsAiPanel(oddsBundle, effectiveStage);
   bindOddsDevUi(oddsBundle);
+  bindWeatherStatusUi(weatherBundle);
+  bindWeatherAiPanel(weatherBundle, effectiveStage);
+  bindWeatherDevUi(weatherBundle);
 
-  // Completeness / Confidence（Odds > Draw > Entry）
+  // Completeness / Confidence（Weather > Odds > Draw > Entry）
   const confHint =
-    oddsBundle?.ok && oddsBundle.confidenceHint != null
-      ? oddsBundle.confidenceHint
-      : drawBundle?.ok && drawBundle.confidenceHint != null
-        ? drawBundle.confidenceHint
-        : entryBundle?.confidenceHint;
+    weatherBundle?.ok && weatherBundle.confidenceHint != null
+      ? weatherBundle.confidenceHint
+      : oddsBundle?.ok && oddsBundle.confidenceHint != null
+        ? oddsBundle.confidenceHint
+        : drawBundle?.ok && drawBundle.confidenceHint != null
+          ? drawBundle.confidenceHint
+          : entryBundle?.confidenceHint;
   if (confHint != null) {
     const confEl = document.getElementById("stage-confidence");
     if (confEl) confEl.textContent = `${confHint}%`;
   }
   const completenessPct =
-    oddsBundle?.ok && oddsBundle.oddsCompleteness?.overall != null
-      ? oddsBundle.oddsCompleteness.overall
-      : drawBundle?.ok && drawBundle.drawCompleteness?.overall != null
-        ? drawBundle.drawCompleteness.overall
-        : null;
+    weatherBundle?.ok && weatherBundle.weatherCompleteness?.overall != null
+      ? weatherBundle.weatherCompleteness.overall
+      : oddsBundle?.ok && oddsBundle.oddsCompleteness?.overall != null
+        ? oddsBundle.oddsCompleteness.overall
+        : drawBundle?.ok && drawBundle.drawCompleteness?.overall != null
+          ? drawBundle.drawCompleteness.overall
+          : null;
   if (completenessPct != null) {
     setText("stage-completeness", `${completenessPct}%`);
   }
@@ -346,7 +379,7 @@ export async function initAnalysisPage() {
     effectiveStage
   );
 
-  const prepared = prepareAiInput(
+  const raceWithWeather = mergeRaceWithWeather(
     {
       ...race,
       date: params.get("date") || race.date,
@@ -354,6 +387,12 @@ export async function initAnalysisPage() {
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
     },
+    weatherBundle,
+    effectiveStage
+  );
+
+  const prepared = prepareAiInput(
+    raceWithWeather,
     oddsMerged,
     effectiveStage
   );
@@ -383,6 +422,17 @@ export async function initAnalysisPage() {
       "良",
     weather: stagedRace.weather || intelRace?.weather || "",
     grade: stagedRace.grade || intelRace?.grade || "",
+    temperature: stagedRace.temperature,
+    humidity: stagedRace.humidity,
+    windSpeed: stagedRace.windSpeed,
+    windDirection: stagedRace.windDirection,
+    moisture: stagedRace.moisture,
+    weatherConfirmed: Boolean(stagedRace.weatherConfirmed),
+    trackConfirmed: Boolean(stagedRace.trackConfirmed),
+    trackScore: stagedRace.trackScore,
+    weatherScore: stagedRace.weatherScore,
+    surfaceScore: stagedRace.surfaceScore,
+    weatherAdjustments: stagedRace.weatherAdjustments || [],
   };
 
   // Ver5.3: 取得データを統合解析（既存 ai-engine とは独立）
@@ -422,6 +472,7 @@ export async function initAnalysisPage() {
       stage: effectiveStage,
       confidence: confHint ?? confidenceNow,
       completeness:
+        weatherBundle?.weatherCompleteness?.overall ??
         oddsBundle?.oddsCompleteness?.overall ??
         drawBundle?.drawCompleteness?.overall ??
         completenessNow,
@@ -437,6 +488,7 @@ export async function initAnalysisPage() {
       return {
         confidence: confHint ?? confidenceNow,
         completeness:
+          weatherBundle?.weatherCompleteness?.overall ??
           oddsBundle?.oddsCompleteness?.overall ??
           drawBundle?.drawCompleteness?.overall ??
           completenessNow,
@@ -492,7 +544,12 @@ export async function initAnalysisPage() {
     _drawAdjustments: adjMap.get(Number(h.number)) || h._drawAdjustments || [],
   }));
   ranked = applyDrawScoreAdjustments(ranked, effectiveStage);
-  ranked = applyOddsMarketAdjustments(ranked, effectiveStage).sort(
+  ranked = applyOddsMarketAdjustments(ranked, effectiveStage);
+  ranked = applyWeatherTrackAdjustments(
+    ranked,
+    raceForEngine,
+    effectiveStage
+  ).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
       b.indexes.total - a.indexes.total
@@ -1088,6 +1145,133 @@ function bindOddsDevUi(oddsBundle) {
     "dev-odds-updated",
     oddsBundle?.fetchedAt
       ? formatUpdateTime(oddsBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindWeatherStatusUi(weatherBundle) {
+  const wc = weatherBundle?.weatherCompleteness || {};
+  const w = weatherBundle?.weather || {};
+  setText("wc-weather", wc.weather != null ? `${wc.weather}%` : "—");
+  setText("wc-track", wc.track != null ? `${wc.track}%` : "—");
+  setText("wc-wind", wc.wind != null ? `${wc.wind}%` : "—");
+  setText("wc-moisture", wc.moisture != null ? `${wc.moisture}%` : "—");
+  setText("wc-news", `${wc.news ?? 0}%`);
+  setText("wc-sns", `${wc.sns ?? 0}%`);
+  setText("wc-overall", wc.overall != null ? `${wc.overall}%` : "—");
+  setText("wc-note", wc.note || "");
+  setText("weather-label", w.weather || "—");
+  setText("weather-track", w.trackCondition || "—");
+  setText(
+    "weather-wind",
+    w.windSpeed != null
+      ? `${w.windSpeed}m/s ${w.windDirection || ""}`.trim()
+      : "—"
+  );
+  setText(
+    "weather-updated",
+    weatherBundle?.fetchedAt
+      ? formatUpdateTime(weatherBundle.fetchedAt)
+      : "—"
+  );
+  setText("weather-stage-note", weatherBundle?.stageNote || "");
+}
+
+function bindWeatherAiPanel(weatherBundle, stage) {
+  const panel = weatherBundle?.stagePanel;
+  if (!panel || !weatherBundle?.ok) return;
+  const s = Number(stage ?? panel.stage) || 0;
+  if (s < 6) return;
+
+  setText("entry-ai-title", panel.title || "現在分析段階");
+  setText("entry-ai-stage", panel.stageLabel || `Stage${s}`);
+  setText("entry-ai-mode", panel.mode || "—");
+  setText("entry-ai-using-label", "取得済み");
+  setText("entry-ai-pending-label", "未取得");
+  setText(
+    "entry-ai-provisional",
+    panel.provisionalText || "当日最新の天候・馬場を反映した分析です。"
+  );
+
+  const fillList = (id, items) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    clearElement(el);
+    const list = items || [];
+    if (!list.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      el.appendChild(li);
+      return;
+    }
+    list.forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      el.appendChild(li);
+    });
+  };
+  fillList("entry-ai-using", panel.acquired);
+  fillList("entry-ai-pending", panel.pending);
+
+  setText("stage-mode", panel.mode || "—");
+  setText("stage-provisional", panel.provisionalText || "");
+  setText(
+    "stage-note",
+    `取得済み: ${(panel.acquired || []).join("・") || "—"}`
+  );
+  const pendingEl = document.getElementById("stage-pending");
+  if (pendingEl) {
+    clearElement(pendingEl);
+    (panel.pending || []).forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      pendingEl.appendChild(li);
+    });
+  }
+}
+
+function bindWeatherDevUi(weatherBundle) {
+  const dash = getWeatherDashboard();
+  const w = weatherBundle?.weather || dash.weather || {};
+  const intel = weatherBundle?.trackIntel || dash.trackIntel || {};
+  setText(
+    "dev-weather-status",
+    weatherBundle?.ok
+      ? `${w.weather || "—"} / ${w.temperature ?? "—"}℃ / ${weatherBundle.phase || "—"}`
+      : "—"
+  );
+  setText(
+    "dev-track-status",
+    weatherBundle?.ok
+      ? `${w.trackCondition || "—"} T${intel.trackScore ?? "—"} W${intel.weatherScore ?? "—"} S${intel.surfaceScore ?? "—"}`
+      : "—"
+  );
+  setText(
+    "dev-weather-validation",
+    weatherBundle?.validation?.ok
+      ? `OK (warn ${weatherBundle.validation.warnings?.length || 0})`
+      : `NG ${weatherBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-weather-sync",
+    weatherBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  const hist = weatherBundle?.history || dash.history || [];
+  setText(
+    "dev-weather-history",
+    hist.length
+      ? hist
+          .slice(0, 3)
+          .map((h) => h.type)
+          .join(", ")
+      : "—"
+  );
+  setText(
+    "dev-weather-updated",
+    weatherBundle?.fetchedAt
+      ? formatUpdateTime(weatherBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"
