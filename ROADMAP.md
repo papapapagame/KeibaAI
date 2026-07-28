@@ -469,6 +469,25 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver8.3 - Prediction Explainability（実装済）
+
+テーマ：AI予想の根拠をユーザーへ分かりやすく説明する
+
+### 実装内容
+
+- ExplainManager / PredictionExplainer / EvidenceExplainer / ReasonBuilder / ContributionAnalyzer / ConfidenceExplainer / Validator
+- Discussion 採用 Evidence に基づく説明（推測禁止）
+- 寄与率14要素・合計100%
+- Prediction Diff（順位・Confidence・Evidence）
+- Unified Model（Explain / Contribution / Diff / Reason / Evidence / Confidence）
+- Analysis / Dev Panel 表示
+
+### 目標
+
+「なぜこの予想になったのか」を透明に示し、ユーザーの理解を最優先する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

@@ -1,53 +1,52 @@
 # PAPAPA IQ KEIBA
 
-**Ver8.2.0** — AI Discussion Engine
+**Ver8.3.0** — Prediction Explainability
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-各データソースの評価を独立 Evidence として収集し、**単純な平均・加算ではなく**信頼度・鮮度・重要度・取得率・一致／矛盾を比較して最終判断します。
+AI 予想の根拠は **Discussion Engine の採用／除外 Evidence** のみを基に説明します（推測で理由を作りません）。
 
-## AI Discussion Engine
+## Prediction Explainability
 
 ```
-services/discussion/
-  DiscussionManager
-  DiscussionEngine
-  EvidenceCollector
-  ConflictResolver
-  ConsensusEngine
-  ReasoningBuilder
-  DiscussionValidator
+services/explain/
+  ExplainManager
+  PredictionExplainer
+  EvidenceExplainer
+  ReasonBuilder
+  ContributionAnalyzer
+  ConfidenceExplainer
+  ExplanationValidator
 ```
 
-### Evidence
+### Contribution Analysis
 
-収集対象: Horse / Race / Entry / Draw / Odds / Weather / News / Social / Learning  
+能力評価 / 近走成績 / 距離適性 / コース適性 / 馬場適性 / 枠順 / 騎手 / 斤量 / オッズ / 市場情報 / 天候 / ニュース / SNS / Learning  
 
-各 Evidence に Confidence / Freshness / Reliability / Coverage / Importance を付与します。
+寄与率合計は **100%**（largest remainder 法）。
 
-### Conflict Resolution
+### Reason Builder
 
-同一主張タイプで矛盾した場合、信頼度・更新時刻・重要度・取得率を比較して採用／除外を決定します。
+総合評価理由・各馬の評価理由・加点／減点・採用／除外 Evidence・Confidence 理由・Analysis Stage 影響を生成します。
 
-### Consensus Engine
+### Prediction Diff
 
-| Score | 意味 |
-|-------|------|
-| Consensus Score | 合意度（上位 Evidence の質を重視） |
-| Agreement Score | 一致度 |
-| Conflict Score | 矛盾度 |
-| Final Confidence | 最終信頼度 |
+前回分析との順位変動・Confidence 変化・新規／除外 Evidence・重要変更点を保持します。
 
-### Reasoning
+### Confidence Explanation
 
-一致した根拠・矛盾した根拠・採用した根拠・除外した根拠と判断理由を内部保持し、AI へ構造化ペイロードとして渡します。
+Discussion の Consensus / Agreement / Conflict / Final Confidence と Stage から理由を説明します。
+
+### Validation
+
+寄与率合計100%・Evidence整合・Reason欠損・Confidence整合を検証。異常データは表示しません。
 
 ### Unified Model
 
-`Discussion` / `Evidence` / `Consensus` / `Conflict` / `Reasoning` を統合。AI は Unified Model のみ参照します。
+`Explain` / `Contribution` / `PredictionDiff` / `Reason` / `Evidence` / `Confidence` を統合。AI は Unified Model のみ参照します。
 
-## Social / News（維持）
+## Discussion / Social / News（維持）
 
-Ver8.1 Social Intelligence・Ver8.0 News Intelligence を維持（投稿／記事本文は非転載）。
+Ver8.2 Discussion・Ver8.1 Social・Ver8.0 News を維持しています。
 
 ## 確認方法
 
@@ -55,10 +54,10 @@ Ver8.1 Social Intelligence・Ver8.0 News Intelligence を維持（投稿／記�
 python -m http.server 5500
 ```
 
-1. 分析画面「Discussion Status / Evidence数 / Consensus / Conflict / Final Confidence」  
-2. Dev Panel「Evidence一覧 / Conflict一覧 / Consensus結果 / Validation」  
-3. 単純平均ではなく採用・除外理由が残ること  
+1. 分析画面「総合評価理由 / 重要な根拠 / 寄与率 / Confidence理由 / Stage / 差分」  
+2. Dev Panel「Contribution / Evidence / Reason / Diff / Validation」  
+3. 寄与率合計が100%、説明が Discussion 根拠に紐づくこと  
 
 ## 維持機能
 
-Ver8.1 までの全機能を維持しています。
+Ver8.2 までの全機能を維持しています。

@@ -70,6 +70,10 @@ import {
   getDiscussionDashboard,
   applyDiscussionScoreAdjustments,
 } from "../services/discussion/index.js";
+import {
+  loadExplainForAi,
+  getExplainDashboard,
+} from "../services/explain/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -742,6 +746,50 @@ export async function initAnalysisPage() {
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
       b.indexes.total - a.indexes.total
   );
+
+  // Ver8.3 Prediction Explainability — Discussion Evidence に基づく説明
+  const raceKey = [
+    params.get("date") || raceForEngine.date || "",
+    params.get("venue") || raceForEngine.venue || "",
+    raceForEngine.number || "",
+  ].join("_");
+  const blendedConfEl = document.getElementById("stage-confidence");
+  const blendedConfNum = blendedConfEl?.textContent
+    ? Number(String(blendedConfEl.textContent).replace("%", ""))
+    : discussionBundle?.consensus?.finalConfidence ?? confHint ?? null;
+
+  const explainBundle = loadExplainForAi({
+    discussion: discussionBundle,
+    ranked,
+    stage: effectiveStage,
+    blendedConfidence: Number.isFinite(blendedConfNum)
+      ? blendedConfNum
+      : null,
+    raceKey,
+    hasWeather: Boolean(weatherBundle?.ok),
+    hasNews: Boolean(newsBundle?.ok),
+    hasSocial: Boolean(socialBundle?.ok),
+    hasLearning: true,
+  });
+
+  if (explainBundle?.ok && explainBundle.aiExplain) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.explain = explainBundle.aiExplain;
+      }
+      if (raceForEngine && typeof raceForEngine === "object") {
+        raceForEngine.explain = explainBundle.unified || null;
+      }
+    } catch {
+      /* explain inject must not break analysis */
+    }
+  }
+  bindExplainStatusUi(explainBundle);
+  bindExplainDevUi(explainBundle);
 
   // Ver5.5: 予想スナップショットを Learning DB へ蓄積（ロジック書換なし）
   try {
@@ -1727,6 +1775,166 @@ function bindDiscussionDevUi(discussionBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+}
+
+function bindExplainStatusUi(explainBundle) {
+  const display = explainBundle?.ok ? explainBundle.display : null;
+  if (!display) {
+    setText("explain-overall", "—");
+    setText("explain-confidence", "—");
+    setText("explain-stage", "—");
+    setText("explain-status", explainBundle?.status?.label || "未生成");
+    setText("explain-stage-note", explainBundle?.stageNote || "");
+    clearList("explain-important-list", "—");
+    clearList("explain-contribution-list", "—");
+    clearList("explain-diff-list", "—");
+    return;
+  }
+
+  setText(
+    "explain-status",
+    explainBundle?.status?.label || "説明生成済"
+  );
+  setText("explain-overall", display.overallReason || "—");
+  setText("explain-confidence", display.confidenceReason || "—");
+  setText(
+    "explain-stage",
+    display.stageReason ||
+      (display.stage != null ? `Stage${display.stage}` : "—")
+  );
+  setText("explain-stage-note", explainBundle?.stageNote || "");
+
+  clearList("explain-important-list");
+  const important = display.important || [];
+  if (!important.length) {
+    clearList("explain-important-list", "—");
+  } else {
+    important.forEach((t) => appendListItem("explain-important-list", t));
+  }
+
+  clearList("explain-contribution-list");
+  const contribs = (display.contributions || []).filter((c) => c.percent > 0);
+  if (!contribs.length) {
+    clearList("explain-contribution-list", "—");
+  } else {
+    contribs.forEach((c) =>
+      appendListItem("explain-contribution-list", `${c.label} ${c.percent}%`)
+    );
+  }
+
+  clearList("explain-diff-list");
+  const diffs = display.diffHighlights || [];
+  if (!diffs.length) {
+    clearList("explain-diff-list", "—");
+  } else {
+    diffs.forEach((t) => appendListItem("explain-diff-list", t));
+  }
+}
+
+function bindExplainDevUi(explainBundle) {
+  const dash = getExplainDashboard();
+  setText(
+    "dev-explain-status",
+    explainBundle?.status?.label ||
+      (explainBundle?.ok ? "OK" : "—")
+  );
+  setText(
+    "dev-explain-validation",
+    explainBundle?.validation?.ok
+      ? `OK (warn ${explainBundle.validation.warnings?.length || 0})`
+      : `NG ${explainBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-explain-updated",
+    explainBundle?.fetchedAt
+      ? formatUpdateTime(explainBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+
+  clearList("dev-explain-contributions");
+  const contribs = explainBundle?.contributions?.items || [];
+  if (!explainBundle?.ok || !contribs.length) {
+    clearList("dev-explain-contributions", "—");
+  } else {
+    contribs.forEach((c) =>
+      appendListItem(
+        "dev-explain-contributions",
+        `${c.label}: ${c.percent}%`
+      )
+    );
+  }
+
+  clearList("dev-explain-evidence");
+  const adopted = explainBundle?.evidenceView?.adopted || [];
+  const excluded = explainBundle?.evidenceView?.excluded || [];
+  if (!explainBundle?.ok) {
+    clearList("dev-explain-evidence", "—");
+  } else if (!adopted.length && !excluded.length) {
+    clearList("dev-explain-evidence", "—");
+  } else {
+    adopted.slice(0, 8).forEach((e) =>
+      appendListItem(
+        "dev-explain-evidence",
+        `採用 [${e.sourceLabel}] ${e.claim}`
+      )
+    );
+    excluded.slice(0, 6).forEach((e) =>
+      appendListItem(
+        "dev-explain-evidence",
+        `除外 [${e.sourceLabel}] ${e.claim}`
+      )
+    );
+  }
+
+  clearList("dev-explain-reasons");
+  if (!explainBundle?.ok) {
+    clearList("dev-explain-reasons", "—");
+  } else {
+    const overall = explainBundle.reasons?.overall?.text;
+    if (overall) appendListItem("dev-explain-reasons", overall);
+    (explainBundle.reasons?.plus || []).slice(0, 4).forEach((r) =>
+      appendListItem("dev-explain-reasons", `＋ ${r.text}`)
+    );
+    (explainBundle.reasons?.minus || []).slice(0, 4).forEach((r) =>
+      appendListItem("dev-explain-reasons", `− ${r.text}`)
+    );
+  }
+
+  clearList("dev-explain-diff");
+  const highlights = explainBundle?.diff?.highlights || [];
+  const rankChanges = explainBundle?.diff?.rankChanges || [];
+  if (!explainBundle?.ok) {
+    clearList("dev-explain-diff", "—");
+  } else {
+    highlights.forEach((t) => appendListItem("dev-explain-diff", t));
+    rankChanges.slice(0, 6).forEach((r) =>
+      appendListItem("dev-explain-diff", r.text || String(r))
+    );
+    if (!highlights.length && !rankChanges.length) {
+      clearList("dev-explain-diff", "—");
+    }
+  }
+}
+
+function clearList(id, placeholder = null) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  clearElement(el);
+  if (placeholder != null) {
+    const li = document.createElement("li");
+    li.textContent = placeholder;
+    el.appendChild(li);
+  }
+}
+
+function appendListItem(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const li = document.createElement("li");
+  li.textContent = text;
+  el.appendChild(li);
 }
 
 async function renderProviderFrameworkTable(bundle) {

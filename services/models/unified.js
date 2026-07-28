@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "8.2.0";
+export const UNIFIED_VERSION = "8.3.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -219,6 +219,7 @@ export function createEvidence(raw = {}) {
         }
       : null,
     available: raw.available !== false,
+    role: raw.role || null,
     meta: raw.meta || {},
   };
 }
@@ -305,6 +306,115 @@ export function createDiscussion(raw = {}) {
       : createReasoning({}),
     aiPayload: raw.aiPayload || null,
     validation: raw.validation || null,
+    updatedAt: raw.updatedAt || null,
+    version: raw.version || null,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
+  };
+}
+
+/** Ver8.3 Contribution */
+export function createContribution(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Contribution",
+    factor: raw.factor || "",
+    label: raw.label || raw.factor || "",
+    percent: Number(raw.percent) || 0,
+    weightRaw: raw.weightRaw != null ? Number(raw.weightRaw) : null,
+  };
+}
+
+/** Ver8.3 Reason（説明文単位） */
+export function createReason(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Reason",
+    type: raw.type || "overall",
+    text: raw.text || "",
+    evidenceId: raw.evidenceId || null,
+    horseNames: Array.isArray(raw.horseNames) ? raw.horseNames : [],
+    polarity: raw.polarity || null,
+  };
+}
+
+/** Ver8.3 Confidence 説明 */
+export function createConfidence(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Confidence",
+    finalConfidence:
+      raw.finalConfidence != null ? Number(raw.finalConfidence) : null,
+    consensusScore:
+      raw.consensusScore != null ? Number(raw.consensusScore) : null,
+    agreementScore:
+      raw.agreementScore != null ? Number(raw.agreementScore) : null,
+    conflictScore:
+      raw.conflictScore != null ? Number(raw.conflictScore) : null,
+    stage: raw.stage != null ? Number(raw.stage) : null,
+    summary: raw.summary || "",
+    details: Array.isArray(raw.details) ? raw.details : [],
+  };
+}
+
+/** Ver8.3 Prediction Diff */
+export function createPredictionDiff(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "PredictionDiff",
+    available: raw.available === true,
+    previousAt: raw.previousAt || null,
+    rankChanges: Array.isArray(raw.rankChanges) ? raw.rankChanges : [],
+    confidenceDelta:
+      raw.confidenceDelta != null ? Number(raw.confidenceDelta) : null,
+    confidenceFrom:
+      raw.confidenceFrom != null ? Number(raw.confidenceFrom) : null,
+    confidenceTo: raw.confidenceTo != null ? Number(raw.confidenceTo) : null,
+    newEvidence: Array.isArray(raw.newEvidence) ? raw.newEvidence : [],
+    removedEvidence: Array.isArray(raw.removedEvidence)
+      ? raw.removedEvidence
+      : [],
+    highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+    stageFrom: raw.stageFrom != null ? Number(raw.stageFrom) : null,
+    stageTo: raw.stageTo != null ? Number(raw.stageTo) : null,
+  };
+}
+
+/** Ver8.3 Explain — 予想根拠の説明パッケージ */
+export function createExplain(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Explain",
+    available: raw.available !== false,
+    status: raw.status || "idle",
+    overallReason: raw.overallReason || "",
+    contributions: Array.isArray(raw.contributions)
+      ? raw.contributions.map((c) =>
+          c?.kind === "Contribution" ? c : createContribution(c)
+        )
+      : [],
+    reasons: Array.isArray(raw.reasons)
+      ? raw.reasons.map((r) => (r?.kind === "Reason" ? r : createReason(r)))
+      : [],
+    evidence: Array.isArray(raw.evidence)
+      ? raw.evidence.map((e) =>
+          e?.kind === "Evidence" ? e : createEvidence(e)
+        )
+      : [],
+    confidence: raw.confidence
+      ? raw.confidence.kind === "Confidence"
+        ? raw.confidence
+        : createConfidence(raw.confidence)
+      : createConfidence({}),
+    diff: raw.diff
+      ? raw.diff.kind === "PredictionDiff"
+        ? raw.diff
+        : createPredictionDiff(raw.diff)
+      : createPredictionDiff({ available: false }),
+    aiPayload: raw.aiPayload || null,
+    validation: raw.validation || null,
+    stage: raw.stage != null ? Number(raw.stage) : null,
     updatedAt: raw.updatedAt || null,
     version: raw.version || null,
     analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
@@ -457,6 +567,9 @@ export function createRace(raw = {}, horses = []) {
     discussion: raw.discussion
       ? createDiscussion(raw.discussion)
       : createDiscussion({ available: false }),
+    explain: raw.explain
+      ? createExplain(raw.explain)
+      : createExplain({ available: false }),
     // AIエンジン互換
     name: raw.raceName || raw.name || "",
     time: raw.startTime || raw.time || "",

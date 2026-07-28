@@ -5737,6 +5737,13 @@ body.has-home-fab .scroll-top {
   letter-spacing: 0.05em;
 }
 
+.v73-data-block__subtitle {
+  margin: 0.65rem 0 0.25rem;
+  color: rgba(232, 212, 139, 0.88);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+}
+
 .v73-data-block__note {
   margin: 0.45rem 0 0;
   font-size: 0.75rem;
