@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="PAPAPA IQ KEIBA AI Performance。自己学習の精度・回収率・Analyzer成績を確認。">
+  <meta name="theme-color" content="#070707">
+  <title>AI Performance | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading page-performance page-v55">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">AI Analyzing...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="gold-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page page--list page--performance page--v55">
+    <header class="hero hero--compact reveal">
+      <p class="eyebrow">LEARNING AI ENGINE</p>
+      <h1 class="title title--page">AI Performance</h1>
+      <p class="subtitle subtitle--small">自己学習ダッシュボード（ロジック自動書換なし）</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="paper-section v55-meta reveal" aria-label="Version">
+      <div class="v51-meta-grid">
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">AI Engine Version</p>
+          <p class="v51-meta-card__value" id="learn-engine-ver">—</p>
+        </div>
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Learning Version</p>
+          <p class="v51-meta-card__value" id="learn-learning-ver">—</p>
+        </div>
+      </div>
+      <p class="paper-section__lead" id="learn-policy-note">予想ロジックの自動書換は禁止。蓄積・分析・重み提案のみ。</p>
+    </section>
+
+    <section class="paper-section reveal" aria-label="AI成績">
+      <h2 class="paper-section__title">AI成績</h2>
+      <div class="v55-stat-grid" id="learn-stats">
+        <article class="glass-card v55-stat"><p class="v55-stat__label">総レース数</p><p class="v55-stat__value" id="stat-races">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">的中率</p><p class="v55-stat__value" id="stat-hit">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">回収率</p><p class="v55-stat__value" id="stat-recovery">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">ROI</p><p class="v55-stat__value" id="stat-roi">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">平均人気</p><p class="v55-stat__value" id="stat-pop">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">平均期待値</p><p class="v55-stat__value" id="stat-ev">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">平均IQ Score</p><p class="v55-stat__value" id="stat-iq">—</p></article>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Analyzer成績">
+      <h2 class="paper-section__title">Analyzer精度ランキング</h2>
+      <div class="v55-rank" id="analyzer-rank"></div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Learning Dashboard">
+      <h2 class="paper-section__title">Learning Dashboard</h2>
+      <div class="v55-dash-grid">
+        <article class="glass-card v55-dash-card">
+          <h3 class="v55-dash-card__title">最近学習したレース</h3>
+          <ul class="v55-list" id="recent-learn"></ul>
+        </article>
+        <article class="glass-card v55-dash-card">
+          <h3 class="v55-dash-card__title">改善ポイント</h3>
+          <ul class="v55-list" id="improve-points"></ul>
+        </article>
+        <article class="glass-card v55-dash-card">
+          <h3 class="v55-dash-card__title">命中率推移</h3>
+          <div class="v55-bars" id="hit-series"></div>
+        </article>
+        <article class="glass-card v55-dash-card">
+          <h3 class="v55-dash-card__title">回収率推移</h3>
+          <div class="v55-bars" id="roi-series"></div>
+        </article>
+        <article class="glass-card v55-dash-card v55-dash-card--wide">
+          <h3 class="v55-dash-card__title">Analyzer精度推移（直近）</h3>
+          <div class="v55-bars" id="acc-series"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Explain Learning">
+      <h2 class="paper-section__title">Explain Learning</h2>
+      <p class="paper-section__lead">AIが「なぜ学習したか」を説明します（自動書換はしません）</p>
+      <div class="v53-explain-card glass-card">
+        <ul class="v53-explain-list" id="explain-learning-list"></ul>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Weight Optimizer">
+      <h2 class="paper-section__title">Weight Optimizer</h2>
+      <p class="paper-section__lead">手動調整可能な Analyzer 重み（Ver6.0まで自動反映なし）</p>
+      <div class="v55-weights" id="weight-list"></div>
+      <div class="v55-weight-actions">
+        <button type="button" class="btn-secondary" id="btn-reset-weights">重みを初期化</button>
+        <button type="button" class="btn-secondary" id="btn-apply-proposed">提案値を保存（反映はVer6.0）</button>
+      </div>
+      <ul class="v55-list" id="weight-suggestions"></ul>
+    </section>
+
+    <div class="page-actions page-actions--stack reveal">
+      <button type="button" class="btn-secondary" id="btn-reset-learning">学習データをリセット</button>
+      <a href="analysis.html" class="btn-secondary">AI分析へ</a>
+      <a href="settings.html" class="btn-secondary">設定へ</a>
+      <a href="index.html" class="btn-primary">トップへ戻る</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 5.5.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

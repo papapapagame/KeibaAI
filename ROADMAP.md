@@ -105,7 +105,25 @@
 
 ---
 
-## Ver5.5 - Live Data Update
+## Ver5.5 - Learning AI Engine（実装済）
+
+テーマ：自己学習AI基盤
+
+### 実装内容
+
+- services/learning（LearningEngine / ResultAnalyzer / WeightOptimizer / AccuracyTracker / PerformanceAnalyzer / LearningHistory）
+- Learning Database（localStorage、Version管理）
+- AI Performance 画面（成績・Analyzerランキング・Dashboard・Explain Learning）
+- 重みは手動調整・提案のみ（予想ロジック自動書換は禁止）
+- ※ 既存 ai-engine / thinking-engine / js/learning-engine.js は維持
+
+### 目標
+
+結果を蓄積し、将来Ver6.0で安全に重み反映できる自己学習基盤を完成させる。
+
+---
+
+## Ver5.6 - Live Data Update
 
 テーマ：リアルタイム競馬データ
 
@@ -125,7 +143,7 @@
 
 ---
 
-## Ver5.6 - AI Engine Upgrade
+## Ver5.7 - AI Engine Upgrade
 
 テーマ：既存評価エンジン強化（thinking / index）
 
@@ -148,7 +166,7 @@
 
 ---
 
-## Ver5.7 - Betting AI
+## Ver5.8 - Betting AI
 
 テーマ：AI馬券アシスタント
 

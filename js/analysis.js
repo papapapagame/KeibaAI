@@ -1,6 +1,6 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver5.4.0 Market Intelligence AI（表示層）
+   Ver5.5.0 Learning AI Engine 連携（表示層）
    既存 ai-engine.js / thinking-engine.js は変更しない
    ======================================== */
 
@@ -24,6 +24,7 @@ import {
 } from "../services/intelligence/index.js";
 import { runIntelligenceEngine } from "../services/ai/index.js";
 import { runMarketEngine } from "../services/market/index.js";
+import { recordPrediction } from "../services/learning/index.js";
 import { DEBUG, DEBUG_MODE } from "./config.js";
 import {
   appendLines,
@@ -174,6 +175,23 @@ export async function initAnalysisPage() {
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
       b.indexes.total - a.indexes.total
   );
+
+  // Ver5.5: 予想スナップショットを Learning DB へ蓄積（ロジック書換なし）
+  try {
+    recordPrediction({
+      race: raceForEngine,
+      topNumbers: ranked.slice(0, 5).map((h) => h.number),
+      rankedNumbers: ranked.slice(0, 8).map((h) => h.number),
+      topPopularity: ranked[0]?.popularity ?? null,
+      scores: {
+        ...(engineResult.scores || {}),
+        finalIqScore: marketResult.finalIq?.finalIqScore,
+      },
+      analyzerSnapshot: {},
+    });
+  } catch {
+    /* learning store failure must not break analysis */
+  }
 
   saveLastPrediction({
     race,

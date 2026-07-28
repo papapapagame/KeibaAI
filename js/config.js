@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "5.4.0";
+export const VERSION = "5.5.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -22,6 +22,10 @@ export const DATA_PROVIDER = "dummy";
 /** Intelligence Cache TTL（ms）— Ver5.2 差分更新と併用 */
 export const DATA_CACHE_TTL_MS = 10 * 60 * 1000;
 export const INTEL_CACHE_TTL_MS = DATA_CACHE_TTL_MS;
+
+/** Learning AI Engine（services/learning） */
+export const LEARNING_AI_VERSION = "5.5.0";
+export const LEARNING_AI_DB_KEY = "papapa_iq_learning_ai_v55";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

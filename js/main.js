@@ -14,6 +14,7 @@ import { initAnalysisPage } from "./analysis.js";
 import { initTicketPage } from "./ticket.js";
 import { initBalancePage } from "./balance.js";
 import { initSettingsPage } from "./settings.js";
+import { initPerformancePage } from "./performance.js";
 import { exposeLearningApi } from "./learning-engine.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -57,6 +58,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (document.getElementById("save-settings")) {
       await initSettingsPage();
+    }
+
+    if (document.getElementById("learn-stats")) {
+      await initPerformancePage();
     }
   } catch (error) {
     console.error(error);
