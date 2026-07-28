@@ -1,5 +1,5 @@
 /* ========================================
-   Past Race Report — Ver10.9.1
+   Past Race Report — Ver10.9.2
    過去レース: 結果 / レース前AI評価 / 勝因 / 推奨外れ考察
    （ai-engine.js 非改変）
    ======================================== */
@@ -11,7 +11,7 @@ import { analyzeRaceFlow } from "./race-flow-analyzer.js";
 import { integrateSources } from "./review-sources.js";
 import { toNum } from "./utils.js";
 
-export const PAST_RACE_REPORT_VERSION = "10.9.1";
+export const PAST_RACE_REPORT_VERSION = "10.9.2";
 
 /** 複勝圏外 = 馬券外（4着以下） */
 const OUT_OF_MONEY_FINISH = 4;

@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.9.0 Low-Risk Public Intelligence
+   Ver10.9.2 Jul26 Full Card Past Results
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.9.1";
+export const VERSION = "10.9.2";
 export const RELEASE_CHANNEL = "Past Race Report";
 export const BUILD_DATE = "2026-07-29";
-export const BUILD_NUMBER = "20260729.1091";
+export const BUILD_NUMBER = "20260729.1092";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
