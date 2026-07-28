@@ -26,6 +26,17 @@ import {
   getCalendarMode,
 } from "../services/calendar/index.js";
 import {
+  startSmartUpdateEngine,
+  getUpdateStatus,
+  setAutoUpdate,
+  getAutoUpdate,
+  fireMockEvent,
+  tickSchedule,
+  notifyStageChange,
+  AnalysisTrigger,
+  listMockEventTypes,
+} from "../services/update/index.js";
+import {
   buildIntelligencePacket,
   clearAllIntelligenceState,
   clearProviderCache,
@@ -168,6 +179,10 @@ export async function initAnalysisPage() {
   }
   bindAnalysisStageUi(raceCtx);
 
+  const stageNow = raceCtx.analysisStage?.stage ?? 0;
+  const confidenceNow = raceCtx.confidence?.percent ?? null;
+  const completenessNow = raceCtx.completeness?.percent ?? null;
+
   const prepared = prepareAiInput(
     {
       ...race,
@@ -226,6 +241,57 @@ export async function initAnalysisPage() {
   bindIntelligenceEngineUi(engineResult);
   bindMarketIntelligenceUi(marketResult);
   bindDeveloperPanel(bundle, intelPacket, marketResult);
+  bindSmartUpdateDevControls();
+
+  // Ver7.2 Smart Update Engine（AI本体は変更せず、必要時のみ再分析トリガ）
+  const snapshotBase = AnalysisTrigger.buildSnapshot({
+    race: stagedRace,
+    horses: stagedHorses,
+    stage: stageNow,
+  });
+  AnalysisTrigger.setBaseline(snapshotBase);
+
+  startSmartUpdateEngine({
+    contextProvider: () => ({
+      isMeetingDay: Boolean(params.get("date")),
+      raceStartAt: null,
+      stage: stageNow,
+      confidence: confidenceNow,
+      completeness: completenessNow,
+      snapshot: AnalysisTrigger.buildSnapshot({
+        race: stagedRace,
+        horses: stagedHorses,
+        stage: stageNow,
+      }),
+    }),
+    analysisHandler: async (job) => {
+      setText("ai-update-reason", job.reason || "再分析しました。");
+      bindUpdateStatusUi();
+      return {
+        confidence: confidenceNow,
+        completeness: completenessNow,
+        stage: stageNow,
+      };
+    },
+  });
+
+  // Stage 変化連携
+  try {
+    const prevKey = "papapa_iq_last_stage_v72";
+    const rawPrev = sessionStorage.getItem(prevKey);
+    if (rawPrev != null) {
+      const prev = Number(rawPrev);
+      if (Number.isFinite(prev) && prev !== stageNow) {
+        notifyStageChange(prev, stageNow);
+      }
+    }
+    sessionStorage.setItem(prevKey, String(stageNow));
+  } catch {
+    /* ignore */
+  }
+
+  bindUpdateStatusUi();
+  setText("ai-update-reason", "初回分析です。");
 
   if (!stagedHorses.length && (raceCtx.analysisStage?.stage ?? 0) < 1) {
     // Stage0 は開催情報のみ — AIエンジンは空馬で呼ばず通知のみ
@@ -561,6 +627,69 @@ function bindAnalysisStageUi(raceCtx) {
       });
     }
   }
+}
+
+function bindUpdateStatusUi() {
+  const status = getUpdateStatus();
+  setText("ai-update-status", status.statusLabel || status.status || "—");
+  setText("ai-update-next", status.nextUpdateLabel || status.schedule?.statusLabel || "—");
+  setText("ai-update-auto", status.autoUpdate ? "ON" : "OFF");
+  setText("dev-auto-update", status.autoUpdate ? "ON" : "OFF");
+  setText("dev-scheduler-phase", status.schedule?.phaseLabel || "—");
+  setText("dev-watch-count", String((status.watchTargets || []).length));
+  if (status.lastReason && status.lastReason !== "—") {
+    setText("ai-update-reason", status.lastReason);
+  }
+}
+
+function bindSmartUpdateDevControls() {
+  const panel = document.getElementById("dev-data-panel");
+  if (!panel || panel.hidden) return;
+
+  document.querySelectorAll("[data-auto-update]").forEach((btn) => {
+    const on = btn.getAttribute("data-auto-update") === "on";
+    btn.classList.toggle("is-active", on === getAutoUpdate());
+    if (btn.dataset.boundUpdate) return;
+    btn.dataset.boundUpdate = "1";
+    btn.addEventListener("click", () => {
+      setAutoUpdate(on);
+      bindUpdateStatusUi();
+      document.querySelectorAll("[data-auto-update]").forEach((b) => {
+        b.classList.toggle(
+          "is-active",
+          (b.getAttribute("data-auto-update") === "on") === getAutoUpdate()
+        );
+      });
+    });
+  });
+
+  const mockBox = document.getElementById("dev-mock-events");
+  if (mockBox && !mockBox.dataset.bound) {
+    mockBox.dataset.bound = "1";
+    clearElement(mockBox);
+    listMockEventTypes().forEach((ev) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "v70-source-btn";
+      btn.textContent = ev.label;
+      btn.addEventListener("click", () => {
+        fireMockEvent(ev.type);
+        setTimeout(bindUpdateStatusUi, 40);
+      });
+      mockBox.appendChild(btn);
+    });
+  }
+
+  const tickBtn = document.getElementById("dev-schedule-tick");
+  if (tickBtn && !tickBtn.dataset.bound) {
+    tickBtn.dataset.bound = "1";
+    tickBtn.addEventListener("click", () => {
+      tickSchedule(true);
+      setTimeout(bindUpdateStatusUi, 40);
+    });
+  }
+
+  bindUpdateStatusUi();
 }
 
 function formatScore(value) {

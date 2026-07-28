@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "7.1.0";
+export const VERSION = "7.2.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -37,6 +37,11 @@ export const DATA_SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v70";
 /** Race Calendar Intelligence（services/calendar） */
 export const CALENDAR_VERSION = "7.1.0";
 export const CALENDAR_MODE_KEY = "papapa_iq_calendar_mode_v71";
+
+/** Smart Update Engine（services/update） */
+export const UPDATE_ENGINE_VERSION = "7.2.0";
+export const UPDATE_HISTORY_KEY = "papapa_iq_update_history_v72";
+export const UPDATE_STATE_KEY = "papapa_iq_update_state_v72";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

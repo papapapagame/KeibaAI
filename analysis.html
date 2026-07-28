@@ -91,6 +91,19 @@
       </div>
     </section>
 
+    <!-- Ver7.2 Smart Update Reason -->
+    <section class="paper-section v72-update reveal" aria-label="AI Update Reason">
+      <h2 class="paper-section__title">AI Update Reason</h2>
+      <article class="glass-card v72-reason">
+        <p class="v72-reason__text" id="ai-update-reason">初回分析です。</p>
+        <p class="v72-reason__meta">
+          更新状態: <span id="ai-update-status">—</span>
+          · 次回: <span id="ai-update-next">—</span>
+          · Auto: <span id="ai-update-auto">—</span>
+        </p>
+      </article>
+    </section>
+
     <!-- Ver5.1 データソース / 更新時刻 -->
     <section class="paper-section v51-data-meta reveal" aria-label="データ取得状況">
       <div class="v51-meta-grid">
@@ -129,6 +142,21 @@
           <button type="button" class="v70-source-btn" data-source-mode="auto">Auto</button>
         </div>
         <p class="v51-dev-panel__note" id="dev-source-mode-note">現段階は Mock のみ動作。Real は Provider未接続。</p>
+
+        <p class="v51-dev-panel__subtitle">Smart Update（Ver7.2）</p>
+        <ul class="v51-dev-list">
+          <li>Auto Update: <span id="dev-auto-update">—</span></li>
+          <li>Scheduler: <span id="dev-scheduler-phase">—</span></li>
+          <li>Watch: <span id="dev-watch-count">—</span></li>
+        </ul>
+        <div class="v70-source-switch" id="dev-auto-update-controls" role="group" aria-label="Auto Update">
+          <button type="button" class="v70-source-btn" data-auto-update="on">Auto ON</button>
+          <button type="button" class="v70-source-btn" data-auto-update="off">Auto OFF</button>
+        </div>
+        <p class="v51-dev-panel__subtitle">Mock Events</p>
+        <div class="v72-mock-grid" id="dev-mock-events"></div>
+        <button type="button" class="btn-secondary" id="dev-schedule-tick">Scheduler Tick</button>
+        <p class="v51-dev-panel__note" id="dev-update-note">変更が無い場合は再分析しません。</p>
 
         <p class="v51-dev-panel__subtitle">Provider Monitor</p>
         <div class="v52-monitor-wrap">
@@ -611,6 +639,7 @@
     <div class="page-actions page-actions--stack reveal">
       <button type="button" class="btn-primary" id="go-ticket">買い目生成へ</button>
       <a href="data.html" class="btn-secondary">Data Platform</a>
+      <a href="update.html" class="btn-secondary">Smart Update</a>
       <a href="performance.html" class="btn-secondary">AI Performance</a>
       <a href="review.html" class="btn-secondary">AI Race Review</a>
       <a href="race-detail.html" class="btn-secondary" id="back-to-detail">レース詳細へ戻る</a>
@@ -619,7 +648,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 7.1.0</p>
+    <p>Version 7.2.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

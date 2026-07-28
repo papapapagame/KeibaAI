@@ -1,51 +1,62 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.1.0** — Race Calendar Intelligence
+**Ver7.2.0** — Smart Update Engine
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-開催日・開催場・分析段階（Analysis Stage）を AI が理解する仕組みです。Mock カレンダーで動作します。
+時間スケジュールとデータ変化イベントの両方を見て、必要なときだけ AI 再分析します。
 
-## Race Calendar Intelligence
+## Smart Update Engine
 
 ```
-services/calendar/
-  race-calendar-engine.js
-  race-date-manager.js
-  venue-manager.js
-  race-session-manager.js
-  calendar-validator.js
-  stage-evaluation.js
-  models.js
+services/update/
+  smart-update-engine.js
+  update-scheduler.js
+  event-watcher.js
+  refresh-manager.js
+  analysis-trigger.js
+  update-history-manager.js
 ```
 
-### 開催日カレンダー
+### Scheduler
 
-- 開催日のみ選択可（非開催日はグレーアウト）
-- 過去・未来の開催日に対応
-- Mock / Real 切替（Real は Provider未接続）
+| 条件 | 間隔 |
+|------|------|
+| 月〜水 | 6時間 |
+| 木 | 3時間 |
+| 金 | 1時間 |
+| 開催日当日 | 30分 |
+| 発走90〜15分前 | 15分 |
+| 発走15分前 | 最終分析 |
+| 発走後 | Race Review 待機 |
 
-### 開催場自動切替
+### Event Trigger
 
-日付選択後、その日の開催場のみ表示（例: 2026/07/26 → 札幌・新潟・中京）
+枠順確定 / 騎手変更 / 取消 / 除外 / 斤量 / 馬場 / 天候 / オッズ急変 / 開催情報 / Provider / ニュース / Stage変化  
 
-### Analysis Stage（Stage0〜7）
+Mock イベントで手動発火可能。Real Provider へ切替可能な構造です。
 
-開催決定 → 特別登録 → 出走予定 → 枠順 → 騎手 → 斤量 → 前日 → 当日最終  
+### Update Priority
 
-未確定情報は確定として扱いません（入力サニタイズ後に AI へ渡す）。
+- **Critical**（騎手・取消・除外・枠順・Stage）→ 即時再分析  
+- **High**（馬場・天候）→ 優先再分析  
+- **Medium**（オッズ等）→ 通常  
+- **Low**（ニュース）→ 次回更新時  
 
-### Unified Calendar Model
+### Update Flow
 
-RaceDate / RaceVenue / RaceSession / AnalysisStage / DataCompleteness
+```
+Event / Schedule
+  → AnalysisTrigger（差分比較）
+  → 変更なしならスキップ
+  → RefreshManager
+  → 再分析 + Update Reason 表示
+  → Update Log 保存
+```
 
 ### 画面
 
-- `index.html` — カレンダー UI・開催情報・Calendar Dev Panel  
-- `analysis.html` — Stage / Confidence / Completeness / AI通知  
-
-## データフロー（維持）
-
-Ver7.0 Data Platform: Provider → Normalizer → Validator → Cache → Unified Model → AI
+- `update.html` — Update Dashboard  
+- `analysis.html` — AI Update Reason / Dev Panel（Auto ON/OFF・Mock Events）
 
 ## 確認方法
 
@@ -53,6 +64,10 @@ Ver7.0 Data Platform: Provider → Normalizer → Validator → Cache → Unifie
 python -m http.server 5500
 ```
 
-1. トップで開催日のみ選択できること  
-2. 2026-07-26 選択で札幌・新潟・中京のみ出ること  
-3. 分析画面で Stage / 暫定評価通知を確認  
+1. `update.html` で状態・履歴を確認  
+2. Mock Events を発火し、理由表示と履歴を確認  
+3. 同一内容の連続 Tick ではスキップされること  
+
+## 維持機能
+
+Ver7.1 Calendar / Ver7.0 Data Platform / Review / Betting / Learning を維持しています。

@@ -5676,3 +5676,47 @@ body.has-home-fab .scroll-top {
     padding-right: max(0.7rem, env(safe-area-inset-right));
   }
 }
+
+/* ==========================================================================
+   Ver7.2.0 Smart Update Engine
+   ========================================================================== */
+
+.page--v72 {
+  gap: 1.1rem;
+}
+
+.v72-reason {
+  padding: 0.95rem 1.05rem;
+}
+
+.v72-reason__text {
+  margin: 0 0 0.45rem;
+  color: var(--gold-bright);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.v72-reason__meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(232, 212, 139, 0.85);
+}
+
+.v72-mock-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+#dev-schedule-tick {
+  margin-top: 0.55rem;
+}
+
+@media (max-width: 767px) {
+  .page--v72 {
+    padding-left: max(0.7rem, env(safe-area-inset-left));
+    padding-right: max(0.7rem, env(safe-area-inset-right));
+  }
+}

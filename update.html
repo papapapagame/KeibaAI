@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="PAPAPA IQ KEIBA Smart Update。必要なタイミングだけAI再分析。">
+  <meta name="theme-color" content="#070707">
+  <title>Smart Update | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading page-update page-v72">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">Smart Updating...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="gold-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page page--list page--update page--v72">
+    <header class="hero hero--compact reveal">
+      <p class="eyebrow">SMART UPDATE ENGINE</p>
+      <h1 class="title title--page">Update Dashboard</h1>
+      <p class="subtitle subtitle--small">必要時のみ再分析 · 理由を明示</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="paper-section reveal" aria-label="Version">
+      <div class="v51-meta-grid">
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Update Engine</p>
+          <p class="v51-meta-card__value" id="upd-version">7.2.0</p>
+        </div>
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Auto Update</p>
+          <p class="v51-meta-card__value" id="upd-auto">ON</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="状態">
+      <h2 class="paper-section__title">現在の更新状態</h2>
+      <div class="v55-stat-grid" id="update-stats">
+        <article class="glass-card v55-stat"><p class="v55-stat__label">状態</p><p class="v55-stat__value v55-stat__value--sm" id="upd-status">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">次回更新予定</p><p class="v55-stat__value v55-stat__value--sm" id="upd-next">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">スケジュール</p><p class="v55-stat__value v55-stat__value--sm" id="upd-phase">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">前回更新</p><p class="v55-stat__value v55-stat__value--sm" id="upd-last-update">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">最終分析</p><p class="v55-stat__value v55-stat__value--sm" id="upd-last-analysis">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">キュー</p><p class="v55-stat__value" id="upd-queue">—</p></article>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="更新理由">
+      <h2 class="paper-section__title">AI Update Reason</h2>
+      <article class="glass-card v72-reason">
+        <p class="v72-reason__text" id="upd-reason">—</p>
+        <p class="v72-reason__meta">イベント: <span id="upd-event">—</span> · 優先度: <span id="upd-priority">—</span></p>
+      </article>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Auto Update">
+      <h2 class="paper-section__title">Auto Update</h2>
+      <div class="v70-source-switch">
+        <button type="button" class="v70-source-btn" id="btn-auto-on" data-auto-state="on">ON</button>
+        <button type="button" class="v70-source-btn" id="btn-auto-off" data-auto-state="off">OFF</button>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Mock Events">
+      <h2 class="paper-section__title">Mock Events（手動発火）</h2>
+      <p class="paper-section__lead">変更検知 → 必要時のみ再分析</p>
+      <div class="v72-mock-grid" id="mock-event-buttons"></div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="監視対象">
+      <h2 class="paper-section__title">現在の監視対象</h2>
+      <ul class="v55-list" id="upd-watch-targets"></ul>
+    </section>
+
+    <section class="paper-section reveal" aria-label="更新履歴">
+      <h2 class="paper-section__title">更新履歴</h2>
+      <ul class="v55-list" id="upd-history"></ul>
+    </section>
+
+    <div class="page-actions page-actions--stack reveal">
+      <button type="button" class="btn-secondary" id="btn-update-refresh">再読み込み</button>
+      <button type="button" class="btn-secondary" id="btn-update-tick">スケジュールTick</button>
+      <button type="button" class="btn-secondary" id="btn-update-reset">履歴リセット</button>
+      <a href="analysis.html" class="btn-secondary">AI分析へ</a>
+      <a href="data.html" class="btn-secondary">Data Platform</a>
+      <a href="index.html" class="btn-primary">トップへ戻る</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 7.2.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

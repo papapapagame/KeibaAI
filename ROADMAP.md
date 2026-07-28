@@ -263,6 +263,24 @@ AIによる最適な買い目提案を実現する。
 
 ---
 
+## Ver7.2 - Smart Update Engine（実装済）
+
+テーマ：AIが最適なタイミングで自動的に再分析する
+
+### 実装内容
+
+- SmartUpdateEngine / UpdateScheduler / EventWatcher / RefreshManager / AnalysisTrigger / UpdateHistoryManager
+- 曜日・発走タイミング別スケジュール（Mock）
+- Critical〜Low 優先度と差分検知（変更なしはスキップ）
+- Update Dashboard（`update.html`）
+- AI Update Reason 表示・Stage連携・Dev Panel（Auto / Mock Events）
+
+### 目標
+
+無駄な再分析を避け、更新理由が説明可能な更新システムを実現する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI
