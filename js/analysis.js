@@ -14,11 +14,12 @@ import {
   getDataStatus,
 } from "../services/data-provider.js";
 import {
-  fetchAnalysisBundleViaPlatform,
+  clearPlatformCache,
   getSourceMode,
   setSourceMode,
-  clearPlatformCache,
 } from "../services/data/index.js";
+import { loadRaceForAi } from "../services/race/index.js";
+import { confidenceFromCompleteness } from "../services/race/data-completeness.js";
 import {
   getCalendarDashboard,
   getRaceAnalysisContext,
@@ -117,12 +118,14 @@ export async function initAnalysisPage() {
   const raceNumber = Number(params.get("race") || 0);
   const forceError = params.get("forceError") === "1";
 
-  const bundle = await fetchAnalysisBundleViaPlatform({
+  const bundle = await loadRaceForAi({
     raceNumber,
     forceError,
+    stage: params.get("stage") != null ? Number(params.get("stage")) : undefined,
   });
 
   bindDataStatusUi(bundle.status);
+  bindIntegrationDataUi(bundle);
   bindDataErrorUi(bundle, raceNumber);
 
   const race =
@@ -369,12 +372,71 @@ function bindDataStatusUi(status) {
   const updated = document.getElementById("data-updated-label");
   if (source) source.textContent = status?.sourceLabel || "Dummy Data";
   if (updated) {
-    // Dummy でも画面表示は現在時刻。キャッシュ期限判定は fetchedAt を使用。
     updated.textContent =
-      status?.providerId === "dummy"
+      status?.providerId === "dummy" || status?.providerId === "mock"
         ? formatUpdateTime(new Date().toISOString())
         : status?.updatedLabel || formatUpdateTime(new Date().toISOString());
   }
+}
+
+function bindIntegrationDataUi(bundle) {
+  const status = bundle?.dataStatus;
+  const comp = bundle?.completeness;
+  if (status) {
+    setMark("ds-meeting", status.meeting);
+    setMark("ds-card", status.card);
+    setMark("ds-jockey", status.jockey);
+    setMark("ds-weight", status.weight);
+    setMark("ds-frame", status.frame);
+    setMark("ds-track", status.track);
+    setMark("ds-odds", status.odds);
+  }
+  if (comp) {
+    setText("dc-race", `${comp.race}%`);
+    setText("dc-horse", `${comp.horse}%`);
+    setText("dc-odds", `${comp.odds}%`);
+    setText("dc-market", `${comp.market}%`);
+    setText("dc-overall", `${comp.overall}%`);
+    setText("dc-note", comp.note || "");
+  }
+  setText("dev-map-status", bundle?.mapping?.status || "—");
+  setText("dev-map-provider", bundle?.providerId || "—");
+  setText(
+    "dev-validation-v73",
+    bundle?.validation?.ok
+      ? `OK (warn ${bundle.validation.warnings?.length || 0})`
+      : `NG ${bundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-completeness",
+    comp ? `Overall ${comp.overall}%` : "—"
+  );
+  setText(
+    "dev-count-v73",
+    `races ${bundle?.count?.races || 0} / horses ${bundle?.count?.horses || 0}`
+  );
+
+  // Confidence 表示へ Completeness を反映（評価ロジック非改変）
+  if (comp?.overall != null) {
+    const blended = confidenceFromCompleteness(
+      bundle?.confidenceHint ?? 72,
+      comp
+    );
+    const confEl = document.getElementById("stage-confidence");
+    if (confEl && blended != null) {
+      confEl.textContent = `${blended}%`;
+    }
+  }
+}
+
+function setMark(id, cell) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = cell?.mark || "—";
+  el.title = cell?.label || "";
+  el.classList.toggle("is-ok", cell?.mark === "〇");
+  el.classList.toggle("is-partial", cell?.mark === "△");
+  el.classList.toggle("is-ng", cell?.mark === "×");
 }
 
 function bindDataErrorUi(bundle, raceNumber) {
@@ -401,11 +463,12 @@ function bindDataErrorUi(bundle, raceNumber) {
       clearDataCache();
       clearProviderCache();
       clearPlatformCache();
-      const fresh = await fetchAnalysisBundleViaPlatform({
+      const fresh = await loadRaceForAi({
         raceNumber,
         forceRefresh: true,
       });
       bindDataStatusUi(fresh.status);
+      bindIntegrationDataUi(fresh);
       bindDeveloperPanel(fresh);
       if (fresh.status?.error && !(fresh.legacy?.horses || []).length) {
         banner.classList.add("is-visible");

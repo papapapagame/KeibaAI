@@ -117,6 +117,29 @@
         </div>
       </div>
 
+      <!-- Ver7.3 Data Status / Completeness -->
+      <div class="v73-data-block glass-card">
+        <p class="v73-data-block__title">現在取得済み（Data Status）</p>
+        <ul class="v73-status-list">
+          <li>開催情報 <span id="ds-meeting">—</span></li>
+          <li>出馬表 <span id="ds-card">—</span></li>
+          <li>騎手 <span id="ds-jockey">—</span></li>
+          <li>斤量 <span id="ds-weight">—</span></li>
+          <li>枠順 <span id="ds-frame">—</span></li>
+          <li>馬場 <span id="ds-track">—</span></li>
+          <li>オッズ <span id="ds-odds">—</span></li>
+        </ul>
+        <p class="v73-data-block__title">Data Completeness</p>
+        <div class="v73-comp-grid">
+          <span>Race <strong id="dc-race">—</strong></span>
+          <span>Horse <strong id="dc-horse">—</strong></span>
+          <span>Odds <strong id="dc-odds">—</strong></span>
+          <span>Market <strong id="dc-market">—</strong></span>
+          <span class="v73-comp-overall">Overall <strong id="dc-overall">—</strong></span>
+        </div>
+        <p class="v73-data-block__note" id="dc-note"></p>
+      </div>
+
       <div class="v51-error-banner" id="data-error-banner" hidden>
         <p class="v51-error-banner__title">通信失敗</p>
         <p class="v51-error-banner__detail" id="data-error-detail">現在はキャッシュ表示中</p>
@@ -157,6 +180,15 @@
         <div class="v72-mock-grid" id="dev-mock-events"></div>
         <button type="button" class="btn-secondary" id="dev-schedule-tick">Scheduler Tick</button>
         <p class="v51-dev-panel__note" id="dev-update-note">変更が無い場合は再分析しません。</p>
+
+        <p class="v51-dev-panel__subtitle">Race & Horse Integration（Ver7.3）</p>
+        <ul class="v51-dev-list">
+          <li>Provider: <span id="dev-map-provider">—</span></li>
+          <li>Mapping: <span id="dev-map-status">—</span></li>
+          <li>Validation: <span id="dev-validation-v73">—</span></li>
+          <li>Completeness: <span id="dev-completeness">—</span></li>
+          <li>取得件数: <span id="dev-count-v73">—</span></li>
+        </ul>
 
         <p class="v51-dev-panel__subtitle">Provider Monitor</p>
         <div class="v52-monitor-wrap">
@@ -648,7 +680,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 7.2.0</p>
+    <p>Version 7.3.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

@@ -5720,3 +5720,68 @@ body.has-home-fab .scroll-top {
     padding-right: max(0.7rem, env(safe-area-inset-right));
   }
 }
+
+/* ==========================================================================
+   Ver7.3.0 Race & Horse Data Integration
+   ========================================================================== */
+
+.v73-data-block {
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+}
+
+.v73-data-block__title {
+  margin: 0 0 0.45rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+}
+
+.v73-data-block__note {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  color: rgba(232, 212, 139, 0.8);
+}
+
+.v73-status-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.v73-status-list span {
+  float: right;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.v73-status-list span.is-ok { color: #c8e6a0; }
+.v73-status-list span.is-partial { color: #e8d48b; }
+.v73-status-list span.is-ng { color: rgba(255, 200, 160, 0.75); }
+
+.v73-comp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  font-size: 0.84rem;
+  color: rgba(255, 248, 230, 0.88);
+}
+
+.v73-comp-grid strong {
+  color: var(--gold-bright);
+  margin-left: 0.2rem;
+}
+
+.v73-comp-overall {
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .v73-status-list {
+    grid-template-columns: 1fr;
+  }
+}

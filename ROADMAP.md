@@ -281,6 +281,24 @@ AIによる最適な買い目提案を実現する。
 
 ---
 
+## Ver7.3 - Race & Horse Data Integration（実装済）
+
+テーマ：実データ接続へ向けた Race / Horse 共通基盤
+
+### 実装内容
+
+- RaceDataManager / HorseManager と Mapper・Validator・Repository
+- Unified Model 正式実装（Jockey / Trainer / Odds 等）
+- Provider差異吸収（JRA / netkeiba / JBIS / Mock）
+- Data Status（〇△×）と Data Completeness
+- AI は RaceDataManager → Unified Model 経由のみ
+
+### 目標
+
+Provider を切り替えても AI 側修正が不要なデータ基盤を完成させる。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

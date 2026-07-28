@@ -25,7 +25,7 @@ import {
   buildIntelligencePacket,
   initIntelligenceManager,
 } from "../services/intelligence/index.js";
-import { getRaceBundleForAi } from "../services/data/index.js";
+import { loadRaceForAi } from "../services/race/index.js";
 import {
   clearElement,
   createElement,
@@ -55,7 +55,7 @@ export async function initTicketPage() {
     `analysis.html?${analysisParams.toString()}`;
 
   const raceNumber = Number(params.get("race") || 0);
-  const platformBundle = await getRaceBundleForAi({ raceNumber });
+  const platformBundle = await loadRaceForAi({ raceNumber });
 
   if (!platformBundle.ok || !(platformBundle.horses || []).length) {
     const msg =
