@@ -38,16 +38,20 @@ export function createWeight(raw) {
 }
 
 export function createOdds(raw = {}) {
-  const win = Number(raw.win ?? raw.odds);
+  const src = raw && typeof raw === "object" ? raw : {};
+  const win = Number(src.win ?? (typeof raw === "number" ? raw : src.odds));
   return {
     win: Number.isFinite(win) ? win : null,
-    place: Number.isFinite(Number(raw.place)) ? Number(raw.place) : null,
-    confirmed: raw.confirmed !== false && Number.isFinite(win),
-    updatedAt: raw.updatedAt || null,
+    place: Number.isFinite(Number(src.place)) ? Number(src.place) : null,
+    confirmed: src.confirmed !== false && Number.isFinite(win),
+    updatedAt: src.updatedAt || null,
   };
 }
 
 export function createPopularity(raw) {
+  if (raw == null) {
+    return { value: null, confirmed: false };
+  }
   const value = Number(raw?.value ?? raw?.popularity ?? raw);
   return {
     value: Number.isFinite(value) ? value : null,
@@ -65,8 +69,17 @@ export function createResult(raw = {}) {
 }
 
 export function createJockey(raw = {}) {
+  if (raw == null || raw === "") {
+    return {
+      jockeyId: null,
+      name: "",
+      winRate: null,
+      placeRate: null,
+      confirmed: false,
+    };
+  }
   if (typeof raw === "string") {
-    return { jockeyId: null, name: raw, winRate: null, placeRate: null };
+    return { jockeyId: null, name: raw, winRate: null, placeRate: null, confirmed: false };
   }
   return {
     jockeyId: raw.jockeyId || raw.id || null,
@@ -78,8 +91,17 @@ export function createJockey(raw = {}) {
 }
 
 export function createTrainer(raw = {}) {
+  if (raw == null || raw === "") {
+    return {
+      trainerId: null,
+      name: "",
+      winRate: null,
+      placeRate: null,
+      confirmed: false,
+    };
+  }
   if (typeof raw === "string") {
-    return { trainerId: null, name: raw, winRate: null, placeRate: null };
+    return { trainerId: null, name: raw, winRate: null, placeRate: null, confirmed: false };
   }
   return {
     trainerId: raw.trainerId || raw.id || null,
@@ -115,7 +137,9 @@ export function createHorse(raw = {}) {
   const jockey = createJockey(raw.jockey);
   const trainer = createTrainer(raw.trainer);
   const odds = createOdds(
-    typeof raw.odds === "object" ? raw.odds : { win: raw.odds, popularity: raw.popularity }
+    raw.odds != null && typeof raw.odds === "object"
+      ? raw.odds
+      : { win: raw.odds, popularity: raw.popularity }
   );
   const popularity = createPopularity(
     raw.popularity != null ? { value: raw.popularity } : {}

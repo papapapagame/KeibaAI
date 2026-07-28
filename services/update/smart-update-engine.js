@@ -28,6 +28,7 @@ const ENGINE_VERSION = "7.2.0";
 let unsub = null;
 let analysisHandler = null;
 let contextProvider = null;
+let handlingEvent = false;
 
 /**
  * 表示層から再分析ハンドラを登録
@@ -81,6 +82,19 @@ export function stopSmartUpdateEngine() {
 }
 
 async function handleIncomingEvent(event) {
+  // 再入禁止（イベント → refresh → emit → イベント の無限ループを遮断）
+  if (handlingEvent) {
+    return { skipped: true, reason: "re-entrancy" };
+  }
+  handlingEvent = true;
+  try {
+    return await handleIncomingEventInner(event);
+  } finally {
+    handlingEvent = false;
+  }
+}
+
+async function handleIncomingEventInner(event) {
   const state = loadUpdateState();
   if (!state.autoUpdate && event?.source !== "manual-force") {
     appendUpdateLog({
@@ -107,6 +121,7 @@ async function handleIncomingEvent(event) {
     try {
       const raceRefresh = await refreshRaceDataOnly({
         emitUpdate: false,
+        silent: true,
       });
       if (!raceRefresh.ok || !raceRefresh.changed) {
         appendUpdateLog({
@@ -133,7 +148,6 @@ async function handleIncomingEvent(event) {
         });
         return { skipped: true, raceOnly: true };
       }
-      // Race メタをスナップショットへ反映（Horse/Odds は触らない）
       const hit =
         (raceRefresh.races || []).find(
           (r) => Number(r.number) === Number(snapshot.raceId)
@@ -162,6 +176,7 @@ async function handleIncomingEvent(event) {
     try {
       const entryRefresh = await refreshEntriesOnly({
         emitUpdate: false,
+        silent: true,
         stage: snapshot.stage,
       });
       if (!entryRefresh.ok || !entryRefresh.changed) {

@@ -30,7 +30,7 @@ import {
 import {
   mergeMeetingsWithOverlay,
   getRaceConnectOverlay,
-} from "../race-connect/race-data-synchronizer.js";
+} from "../race-connect/race-connect-overlay.js";
 
 const PLATFORM_VERSION = "7.1.0";
 let cachedPayload = null;

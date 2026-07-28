@@ -1,101 +1,100 @@
 /* ========================================
-   Entry Synchronizer — Ver7.6
-   Smart Update / Calendar 連携
+   Entry Synchronizer — Ver7.6.1
+   変更時のみ通知。再入禁止。一方向フロー。
    ======================================== */
 
 import { emitEvent } from "../update/event-watcher.js";
 import {
   diffEntryStatuses,
   recordStatusChange,
-  getEntryStateSnapshot,
 } from "./entry-state-manager.js";
 import { fingerprintEntries } from "./entry-data-connector.js";
-
-const OVERLAY_KEY = "papapa_iq_entry_overlay_v76";
-
-let memoryOverlay = null;
-let lastFingerprint = null;
-
-export function getEntryOverlay() {
-  if (memoryOverlay) return memoryOverlay;
-  try {
-    const raw = sessionStorage.getItem(OVERLAY_KEY);
-    if (!raw) return null;
-    memoryOverlay = JSON.parse(raw);
-    return memoryOverlay;
-  } catch {
-    return null;
-  }
-}
-
-export function clearEntryOverlay() {
-  memoryOverlay = null;
-  lastFingerprint = null;
-  try {
-    sessionStorage.removeItem(OVERLAY_KEY);
-  } catch {
-    /* ignore */
-  }
-}
+import {
+  getEntryOverlay,
+  setEntryOverlay,
+  clearEntryOverlay,
+  getLastEntryFingerprint,
+  setLastEntryFingerprint,
+  beginEntrySync,
+  endEntrySync,
+} from "./entry-overlay.js";
 
 /**
  * @returns {{ changed: boolean, changes: array, fingerprint: string }}
  */
 export function syncEntries(entries = [], options = {}) {
-  const prev = getEntryOverlay()?.entries || getEntryStateSnapshot().entries || [];
-  const fp = fingerprintEntries(entries);
-  const changes = diffEntryStatuses(prev, entries);
-  const changed = options.force || fp !== lastFingerprint;
-
-  const overlay = {
-    version: "7.6.0",
-    source: "entry-engine",
-    updatedAt: new Date().toISOString(),
-    entries,
-    fingerprint: fp,
-    meta: options.meta || {},
-  };
-  memoryOverlay = overlay;
-  try {
-    sessionStorage.setItem(OVERLAY_KEY, JSON.stringify(overlay));
-  } catch {
-    /* ignore */
+  if (!beginEntrySync()) {
+    return {
+      changed: false,
+      changes: [],
+      fingerprint: getLastEntryFingerprint(),
+      skipped: true,
+      reason: "re-entrancy",
+    };
   }
 
-  if (changed && changes.length) {
-    for (const c of changes) {
-      if (c.from && c.to) {
-        recordStatusChange(c.horseId, c.from, c.to, c.horseName || "");
+  try {
+    const prev = getEntryOverlay()?.entries || [];
+    const fp = fingerprintEntries(entries);
+    const prevFp = getLastEntryFingerprint();
+    const changes = diffEntryStatuses(prev, entries);
+    // force は再取得フラグであり、内容同一なら changed=false
+    const changed = fp !== prevFp;
+
+    const overlay = {
+      version: "7.6.0",
+      source: "entry-engine",
+      updatedAt: new Date().toISOString(),
+      entries,
+      fingerprint: fp,
+      meta: options.meta || {},
+    };
+    setEntryOverlay(overlay);
+    setLastEntryFingerprint(fp);
+
+    if (changed && changes.length) {
+      for (const c of changes) {
+        if (c.from && c.to) {
+          recordStatusChange(c.horseId, c.from, c.to, c.horseName || "");
+        }
       }
     }
+
+    // 明示的 emitUpdate:true かつ内容変更かつ初回でないときのみ通知
+    const allowEmit =
+      changed &&
+      options.emitUpdate === true &&
+      prevFp != null &&
+      !options.silent &&
+      changes.length > 0;
+
+    if (allowEmit) {
+      const primary = changes[0];
+      emitEvent({
+        type: primary?.type || "entry_status_changed",
+        detail: summarizeChanges(changes),
+        payload: {
+          entryOnly: true,
+          changes,
+          fingerprint: fp,
+          count: entries.length,
+        },
+        source: "entry-engine",
+      });
+    }
+
+    return { changed, changes, fingerprint: fp, overlay };
+  } finally {
+    endEntrySync();
   }
-
-  if (changed && options.emitUpdate !== false && lastFingerprint != null) {
-    const primary = changes[0];
-    emitEvent({
-      type: primary?.type || "entry_status_changed",
-      detail: summarizeChanges(changes),
-      payload: {
-        entryOnly: true,
-        changes,
-        fingerprint: fp,
-        count: entries.length,
-      },
-      source: "entry-engine",
-    });
-  }
-
-  lastFingerprint = fp;
-  return { changed, changes, fingerprint: fp, overlay };
 }
 
-export function getLastEntryFingerprint() {
-  return lastFingerprint || getEntryOverlay()?.fingerprint || null;
-}
-
-export function setLastEntryFingerprint(fp) {
-  lastFingerprint = fp || null;
-}
+export {
+  getEntryOverlay,
+  clearEntryOverlay,
+  getLastEntryFingerprint,
+  setLastEntryFingerprint,
+};
 
 function summarizeChanges(changes = []) {
   if (!changes.length) return "Entry 同期";

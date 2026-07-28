@@ -26,6 +26,11 @@ export {
   clearEntryOverlay,
 } from "./entry-synchronizer.js";
 
+export {
+  getEntryOverlay as getEntryOverlayStore,
+  clearEntryOverlay as clearEntryOverlayStore,
+} from "./entry-overlay.js";
+
 export { EntryValidator, validateEntries } from "./entry-validator.js";
 export { EntryRepository, fetchEntryRaw } from "./entry-repository.js";
 

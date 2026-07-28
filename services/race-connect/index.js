@@ -30,6 +30,11 @@ export {
 } from "./race-data-synchronizer.js";
 
 export {
+  getRaceConnectOverlay as getRaceConnectOverlayStore,
+  mergeMeetingsWithOverlay as mergeMeetingsWithOverlayStore,
+} from "./race-connect-overlay.js";
+
+export {
   RaceDataMonitor,
   getRaceConnectMonitor,
   resetRaceConnectMonitor,

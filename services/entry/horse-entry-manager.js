@@ -40,17 +40,18 @@ export async function loadEntriesForAi(options = {}) {
 
   const prevFp = getLastEntryFingerprint();
   const fp = fingerprintEntries(connected.entries);
-  const changed = options.forceRefresh ? true : fp !== prevFp;
+  // forceRefresh は再取得のみ。内容同一なら changed=false
+  const contentChanged = fp !== prevFp;
 
   const sync = syncEntries(connected.entries, {
-    emitUpdate: options.emitUpdate !== false && changed && prevFp != null,
-    force: options.forceRefresh,
+    emitUpdate: options.emitUpdate === true && contentChanged && prevFp != null,
+    silent: options.silent === true || options.emitUpdate === false,
     meta: connected.meta,
   });
   setLastEntryFingerprint(fp);
   setEntryState(connected.entries, {
     updatedAt: connected.fetchedAt,
-    syncStatus: sync.changed ? "synced" : "skipped",
+    syncStatus: contentChanged ? "synced" : "skipped",
   });
 
   const stage = Number(options.stage ?? 0) || 0;
@@ -64,10 +65,10 @@ export async function loadEntriesForAi(options = {}) {
   return {
     ok: true,
     blocked: false,
-    message: changed ? "Entry loaded" : "Entry unchanged",
+    message: contentChanged ? "Entry loaded" : "Entry unchanged",
     providerId: connected.providerId,
     version: ENTRY_ENGINE_VERSION,
-    changed,
+    changed: contentChanged,
     fingerprint: fp,
     entries: connected.entries,
     unified: connected.unified,
@@ -76,7 +77,7 @@ export async function loadEntriesForAi(options = {}) {
     validation: connected.validation,
     stats,
     sync: {
-      status: sync.changed ? "synced" : "skipped",
+      status: contentChanged ? "synced" : "skipped",
       changes: sync.changes?.length || 0,
     },
     count: connected.count,
@@ -206,6 +207,7 @@ export async function refreshEntriesOnly(options = {}) {
     ...options,
     forceRefresh: true,
     emitUpdate: false,
+    silent: true,
   });
 }
 

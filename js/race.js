@@ -39,8 +39,8 @@ export async function initTopPage(goRaceListButton) {
   const sessionBox = document.getElementById("session-info");
   const errorEl = document.getElementById("cal-error");
 
-  // Ver7.5: 開催情報を Race Connect → Calendar へ反映
-  await connectRaceData({ emitUpdate: false });
+  // Ver7.5: 開催情報を Race Connect → Calendar へ反映（通知なし・一方向）
+  await connectRaceData({ emitUpdate: false, silent: true });
   let cal = await getCalendarDashboard();
   let viewYear = 2026;
   let viewMonth = 7;
@@ -94,10 +94,11 @@ export async function initTopPage(goRaceListButton) {
         raceDateInput.value = cell.date;
         renderCalendar();
         populateVenues(cell.date);
-        // Ver7.6: 開催日変更時に登録馬を自動取得
+        // Ver7.6: 開催日変更 → Entry 取得のみ（Calendar 再更新はしない）
         void loadEntriesForAi({
           date: cell.date,
           emitUpdate: false,
+          silent: true,
         });
       });
       grid.appendChild(btn);
@@ -176,7 +177,11 @@ export async function initTopPage(goRaceListButton) {
     viewYear = y;
     viewMonth = m;
     populateVenues(defaultDate);
-    void loadEntriesForAi({ date: defaultDate, emitUpdate: false });
+    void loadEntriesForAi({
+      date: defaultDate,
+      emitUpdate: false,
+      silent: true,
+    });
   }
 
   renderCalendar();
@@ -359,7 +364,7 @@ export async function initRaceListPage() {
   document.getElementById("display-date").textContent = raceDate || "未選択";
   document.getElementById("display-venue").textContent = venueLabel || "未選択";
 
-  await connectRaceData({ emitUpdate: false });
+  await connectRaceData({ emitUpdate: false, silent: true });
   const cal = await getCalendarDashboard({ mode: getCalendarMode() });
   const session = getSessionInfo(cal.meetings || [], raceDate, raceVenue);
 

@@ -138,6 +138,7 @@ export async function initAnalysisPage() {
   const raceConnect = await connectRaceData({
     forceError,
     emitUpdate: false,
+    silent: true,
   });
   bindRaceConnectStatusUi(raceConnect);
 
@@ -245,6 +246,7 @@ export async function initAnalysisPage() {
     venueId: params.get("venue") || race.venue || "",
     raceNumber: raceNumber || race.number,
     emitUpdate: false,
+    silent: true,
   });
   bindEntryStatusUi(entryBundle);
   bindEntryDevUi(entryBundle);

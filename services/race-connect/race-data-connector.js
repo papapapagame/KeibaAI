@@ -91,20 +91,26 @@ export async function connectRaceData(options = {}) {
   const unified = toUnifiedRaces(records);
   const fp = fingerprintRaceConnect(records);
   const prev = getLastRaceFingerprint();
-  const changed = options.forceRefresh ? true : fp !== prev;
+  // forceRefresh は再取得のみ。内容同一なら changed=false（ループ防止）
+  const contentChanged = fp !== prev;
+  const needsWrite = contentChanged || !getRaceConnectOverlay();
 
   let syncResult = { changed: false, overlay: getRaceConnectOverlay(), fingerprint: fp };
-  if (changed || !getRaceConnectOverlay()) {
+  if (needsWrite) {
     syncResult = syncRaceConnectToCalendar(
       { ...parsed, races: records, providerId: fetched.providerId },
-      { emitUpdate: options.emitUpdate !== false && changed && Boolean(prev) }
+      {
+        // デフォルトは通知しない。明示 emitUpdate:true のときのみ
+        emitUpdate: options.emitUpdate === true && contentChanged && Boolean(prev),
+        silent: options.silent === true || options.emitUpdate === false,
+      }
     );
     setLastRaceFingerprint(fp);
     markSuccess({
       providerId: fetched.providerId,
       count: { meetings: parsed.meetings?.length || 0, races: records.length },
       validation,
-      message: "Race Connect synced",
+      message: contentChanged ? "Race Connect synced" : "Race Connect written",
       synced: true,
     });
   } else {
@@ -120,19 +126,19 @@ export async function connectRaceData(options = {}) {
   return {
     ok: true,
     blocked: false,
-    message: changed ? "Race data connected" : "Race data unchanged",
+    message: contentChanged ? "Race data connected" : "Race data unchanged",
     providerId: fetched.providerId,
     sourceLabel: fetched.sourceLabel || `RaceConnect / ${fetched.providerId}`,
     mode,
     version: RACE_CONNECT_VERSION,
-    changed,
+    changed: contentChanged,
     fingerprint: fp,
     races: records,
     meetings: parsed.meetings || [],
     unified,
     validation,
     sync: {
-      status: syncResult.changed || changed ? "synced" : "skipped",
+      status: contentChanged ? "synced" : "skipped",
       overlayUpdatedAt: syncResult.overlay?.updatedAt || null,
     },
     count: {
@@ -154,6 +160,7 @@ export async function refreshRaceDataOnly(options = {}) {
     ...options,
     forceRefresh: true,
     emitUpdate: false,
+    silent: true,
   });
 }
 
