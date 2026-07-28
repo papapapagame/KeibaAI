@@ -83,7 +83,29 @@
 
 ---
 
-## Ver5.4 - Live Data Update
+## Ver5.4 - Market Intelligence AI（実装済）
+
+テーマ：市場心理（Market Intelligence）の分析
+
+### 実装内容
+
+- services/market Market Intelligence Engine
+- Sentiment / Trend / Buzz / News / Social / TipSite Analyzer
+- Market Score（Support / Buzz / Risk / Trend / Confidence / Heat / Expectation / Value Opportunity）
+- Market Dashboard（ゲージ）
+- Explainable Market AI
+- Final IQ Score（能力系 Analyzer + Market 統合）
+- Developer Panel（Market Analyzer 状態）
+- ※ 記事・投稿・予想サイト本文は非表示（AI評価のみ）
+- ※ 既存 ai-engine / thinking-engine は未変更
+
+### 目標
+
+市場心理を解析し、独自の Support / Buzz / Risk 等と Final IQ を生成する。
+
+---
+
+## Ver5.5 - Live Data Update
 
 テーマ：リアルタイム競馬データ
 
@@ -103,7 +125,7 @@
 
 ---
 
-## Ver5.5 - AI Engine Upgrade
+## Ver5.6 - AI Engine Upgrade
 
 テーマ：既存評価エンジン強化（thinking / index）
 
@@ -126,7 +148,7 @@
 
 ---
 
-## Ver5.6 - Betting AI
+## Ver5.7 - Betting AI
 
 テーマ：AI馬券アシスタント
 

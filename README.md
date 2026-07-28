@@ -1,56 +1,47 @@
 # PAPAPA IQ KEIBA
 
-**Ver5.3.0** — AI Intelligence Engine（AI分析エンジン）
+**Ver5.4.0** — Market Intelligence AI（市場心理分析）
 
-既存の評価ロジック（`ai-engine.js` / `thinking-engine.js`）は維持したまま、  
-取得データを統合解析する **独自 Intelligence Engine** を追加しました。
+既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
+記事本文・SNS投稿・予想サイトの内容は**表示・転載しません**。AIが解析した独自スコアのみユーザーへ提示します。
 
-## AI Intelligence Engine
+## Market Intelligence AI
 
 ```
-services/ai/
-  intelligence-engine.js   … 統合オーケストレータ
+services/market/
+  market-engine.js
   analyzers/
-    race-analyzer.js
-    horse-analyzer.js
-    odds-analyzer.js
-    history-analyzer.js
-    pace-analyzer.js
-    track-analyzer.js
-    trend-analyzer.js
     sentiment-analyzer.js
-  score-builder.js         … IQ / Pace / Value / Trust …
-  explainable.js           … 評価根拠
-  comment-generator.js     … 可変コメント
-  report-builder.js        … AI REPORT
+    trend-analyzer.js
+    buzz-analyzer.js
+    news-analyzer.js
+    social-analyzer.js
+    tip-site-analyzer.js
+  score-builder.js
+  explainable.js
+  final-iq.js
+  x-signals.js
 ```
 
-### Analyzer 構造
+### 市場心理分析
 
-各 Analyzer は独立。Race / Horse / Odds / History / Pace / Track / Trend / Sentiment。
+世の中の評価・期待・話題性・不安材料を解析し、馬の能力分析と統合します。
 
-### Score 計算
+### 独自指標（0〜100）
 
-取得データ（レース・馬・オッズ・履歴・ニュース等）から:
+- Support Score / Buzz Score / Risk Score / Trend Score
+- Market Confidence / Market Heat / Public Expectation / Value Opportunity
+- **Final IQ Score**（Horse / Race / Odds / History / Market 統合）
 
-- **IQ Score**（0〜100）
-- Pace / Value / Trust / Danger / Trend / Buzz / Support / Risk
-- Market Sentiment
+### AI統合評価
 
-を生成します。
+Intelligence Engine（能力・展開・オッズ等）と Market Analyzer を合成し Final IQ を生成します。  
+JRA・netkeiba・JBIS・競馬ラボ・ウマークス・ウマニティ・X などは Provider 追加だけで Market Analyzer が利用できる設計です。
 
-### Explainable AI
+### 表示ポリシー
 
-IQ Score に対し「距離適性 +8」「期待値 +12」など寄与要因を表示します。
-
-### AI Confidence / AI REPORT
-
-- Confidence: ★表示 + パーセント
-- REPORT: 総評 / 展開 / 危険馬 / 穴馬 / 期待値ランキング / おすすめ買い目
-
-## Real Intelligence Connect（Ver5.2）
-
-JRA・ニュースは同一オリジン実装。他 Provider は TODO。
+- ニュース本文・X投稿・予想サイト本文は UI に出さない
+- Market Dashboard / Explainable Market AI / Final IQ のみ表示
 
 ## 確認方法
 
@@ -58,5 +49,6 @@ JRA・ニュースは同一オリジン実装。他 Provider は TODO。
 python -m http.server 5500
 ```
 
-1. AI分析画面で独自AI指標・Explainable AI・AI REPORT を確認
-2. 既存の AI新聞 / AI対決 / シミュレーションが従来どおり動くこと
+1. AI分析画面で Market Dashboard・Final IQ を確認
+2. DEBUG 時に Market Analyzer モニタを確認
+3. 記事本文や投稿が表示されていないこと

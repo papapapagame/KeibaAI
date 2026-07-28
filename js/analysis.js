@@ -1,6 +1,6 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver5.3.0 AI Intelligence Engine（表示層）
+   Ver5.4.0 Market Intelligence AI（表示層）
    既存 ai-engine.js / thinking-engine.js は変更しない
    ======================================== */
 
@@ -23,6 +23,7 @@ import {
   initIntelligenceManager,
 } from "../services/intelligence/index.js";
 import { runIntelligenceEngine } from "../services/ai/index.js";
+import { runMarketEngine } from "../services/market/index.js";
 import { DEBUG, DEBUG_MODE } from "./config.js";
 import {
   appendLines,
@@ -143,9 +144,19 @@ export async function initAnalysisPage() {
     horses,
     intelPacket,
   });
-  bindIntelligenceScores(engineResult.scores);
+
+  // Ver5.4: 市場心理分析 → Final IQ（本文・投稿は非表示）
+  const marketResult = runMarketEngine({
+    race: raceForEngine,
+    horses,
+    intelPacket,
+    engineResult,
+  });
+
+  bindIntelligenceScores(engineResult.scores, marketResult);
   bindIntelligenceEngineUi(engineResult);
-  bindDeveloperPanel(bundle, intelPacket);
+  bindMarketIntelligenceUi(marketResult);
+  bindDeveloperPanel(bundle, intelPacket, marketResult);
 
   if (!horses.length) {
     document.getElementById("data-error-banner")?.classList.add("is-visible");
@@ -245,17 +256,90 @@ function bindDataErrorUi(bundle, raceNumber) {
   }
 }
 
-function bindIntelligenceScores(scores = {}) {
+function bindIntelligenceScores(scores = {}, marketResult = null) {
+  const market = marketResult?.scores || {};
+  const finalIq = marketResult?.finalIq?.finalIqScore;
+
+  setText("score-final-iq", formatScore(finalIq));
   setText("score-iq", formatScore(scores.iqScore));
   setText("score-pace", formatScore(scores.paceScore));
   setText("score-value", formatScore(scores.valueScore));
   setText("score-trust", formatScore(scores.trustScore));
   setText("score-danger", formatScore(scores.dangerScore));
-  setText("score-trend", formatScore(scores.trendScore));
-  setText("score-buzz", formatScore(scores.buzzScore));
-  setText("score-support", formatScore(scores.supportScore));
-  setText("score-risk", formatScore(scores.riskScore));
-  setText("score-sentiment", scores.marketSentiment || "—");
+  setText(
+    "score-trend",
+    formatScore(
+      market.trendScore != null ? market.trendScore : scores.trendScore
+    )
+  );
+  setText(
+    "score-buzz",
+    formatScore(market.buzzScore != null ? market.buzzScore : scores.buzzScore)
+  );
+  setText(
+    "score-support",
+    formatScore(
+      market.supportScore != null ? market.supportScore : scores.supportScore
+    )
+  );
+  setText(
+    "score-risk",
+    formatScore(market.riskScore != null ? market.riskScore : scores.riskScore)
+  );
+  setText("score-market-conf", formatScore(market.marketConfidence));
+  setText("score-market-heat", formatScore(market.marketHeat));
+  setText("score-public-exp", formatScore(market.publicExpectation));
+  setText("score-value-opp", formatScore(market.valueOpportunity));
+  setText(
+    "score-sentiment",
+    market.marketSentiment || scores.marketSentiment || "—"
+  );
+}
+
+function bindMarketIntelligenceUi(marketResult = {}) {
+  const scores = marketResult.scores || {};
+  setGauge("support", scores.supportScore);
+  setGauge("buzz", scores.buzzScore);
+  setGauge("risk", scores.riskScore);
+  setGauge("trend", scores.trendScore);
+  setGauge("heat", scores.marketHeat);
+  setGauge("value", scores.valueOpportunity);
+
+  const explain = marketResult.explanations || {};
+  setText(
+    "market-explain-final",
+    formatScore(marketResult.finalIq?.finalIqScore)
+  );
+  setText("market-explain-summary", explain.summary || "—");
+
+  const list = document.getElementById("market-explain-list");
+  if (list) {
+    clearElement(list);
+    const factors = Array.isArray(explain.factors) ? explain.factors : [];
+    if (!factors.length) {
+      const li = createElement("li");
+      li.textContent = "市場根拠データ不足";
+      list.appendChild(li);
+    } else {
+      for (const f of factors) {
+        const li = createElement("li");
+        const delta = Number(f.delta) || 0;
+        const sign = delta > 0 ? `+${delta}` : String(delta);
+        li.textContent = `・${f.label} ${sign}`;
+        li.className = delta >= 0 ? "is-plus" : "is-minus";
+        list.appendChild(li);
+      }
+    }
+  }
+}
+
+function setGauge(key, value) {
+  const n = Number(value);
+  const pct = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+  const fill = document.getElementById(`gauge-${key}`);
+  const label = document.getElementById(`gauge-${key}-val`);
+  if (fill) fill.style.width = `${pct}%`;
+  if (label) label.textContent = Number.isFinite(n) ? String(Math.round(n)) : "—";
 }
 
 function bindIntelligenceEngineUi(engineResult = {}) {
@@ -356,7 +440,7 @@ function formatScore(value) {
   return String(Number(value));
 }
 
-function bindDeveloperPanel(bundle, intelPacket = null) {
+function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
   const panel = document.getElementById("dev-data-panel");
   if (!panel) return;
   const enabled = Boolean(DEBUG || DEBUG_MODE);
@@ -392,6 +476,21 @@ function bindDeveloperPanel(bundle, intelPacket = null) {
   renderIntelStatus(intelPacket);
   renderIntelLogs(intelPacket);
   renderProviderMonitor(intelPacket);
+  renderMarketMonitor(marketResult);
+  setText(
+    "dev-market-cache",
+    marketResult?.cache?.status
+      ? `${marketResult.cache.status} @ ${
+          marketResult.cache.updatedAt
+            ? formatUpdateTime(marketResult.cache.updatedAt)
+            : "—"
+        }`
+      : "—"
+  );
+  setText(
+    "dev-final-iq",
+    formatScore(marketResult?.finalIq?.finalIqScore)
+  );
   bindDebugPanel(intelPacket);
 
   const clearBtn = document.getElementById("dev-clear-cache");
@@ -415,6 +514,44 @@ function bindDeveloperPanel(bundle, intelPacket = null) {
       url.searchParams.set("forceError", "1");
       window.location.href = url.toString();
     });
+  }
+}
+
+function renderMarketMonitor(marketResult) {
+  const body = document.getElementById("dev-market-monitor");
+  if (!body) return;
+  clearElement(body);
+  const rows = marketResult?.analyzerStates || [];
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.textContent = "Market Analyzer なし";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    const cells = [
+      row.name || "—",
+      row.status || "—",
+      String(row.fetchedCount != null ? row.fetchedCount : "—"),
+      String(row.analyzedCount != null ? row.analyzedCount : "—"),
+      row.updatedAt ? formatUpdateTime(row.updatedAt) : "—",
+      String(row.responseMs != null ? row.responseMs : "—"),
+    ];
+    cells.forEach((text, idx) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (idx === 1) {
+        td.className = `v52-monitor-status status-${String(row.status || "")
+          .toLowerCase()
+          .replace(/\s+/g, "-")}`;
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
   }
 }
 
