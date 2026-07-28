@@ -338,15 +338,16 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ## Ver7.6 - Horse Entry Intelligence（実装済）
 
-テーマ：登録馬から確定出走馬までを管理する
+テーマ：登録馬・出走予定馬・確定出走馬を管理する
 
 ### 実装内容
 
-- HorseEntryManager / EntryDataConnector / Synchronizer / Validator / Repository / StateManager
-- Entry Status（Registered〜回避）と変更履歴
+- HorseEntryManager / Repository / Synchronizer / Validator / StateManager / Formatter
+- Entry Status（Registered / Entry Expected / Confirmed / Scratched / Excluded / Withdrawn）と変更履歴
 - Analysis Stage 連携（Stage1登録 / Stage2予定 / Stage3+確定待機）
-- 枠・騎手・斤量・オッズは未確定扱い
-- Smart Update / Calendar 連携
+- Validation・Data Completeness・Confidence 反映
+- Smart Update / Calendar（開催日・開催場）連携
+- 枠・馬番・騎手・斤量・オッズは未確定扱い
 
 ### 目標
 

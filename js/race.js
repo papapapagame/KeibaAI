@@ -97,6 +97,7 @@ export async function initTopPage(goRaceListButton) {
         // Ver7.6: 開催日変更 → Entry 取得のみ（Calendar 再更新はしない）
         void loadEntriesForAi({
           date: cell.date,
+          venueId: raceVenueSelect.value || undefined,
           emitUpdate: false,
           silent: true,
         });
@@ -164,7 +165,20 @@ export async function initTopPage(goRaceListButton) {
     renderCalendar();
   });
 
-  raceVenueSelect.addEventListener("change", refreshSession);
+  raceVenueSelect.addEventListener("change", () => {
+    refreshSession();
+    // Ver7.6: 開催場変更 → 対象開催場の登録馬のみ再取得
+    const date = raceDateInput.value;
+    const venueId = raceVenueSelect.value;
+    if (date && venueId) {
+      void loadEntriesForAi({
+        date,
+        venueId,
+        emitUpdate: false,
+        silent: true,
+      });
+    }
+  });
 
   // 初期: 直近の開催日を選択
   const defaultDate =

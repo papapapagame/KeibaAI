@@ -125,8 +125,7 @@ function defaultStatusByIndex(idx) {
   if (idx === 14) return "scratched";
   if (idx === 15) return "excluded";
   if (idx >= 12) return "registered";
-  if (idx >= 10) return "planned";
-  return "planned";
+  return "entry_expected";
 }
 
 function guessAffiliation(trainer) {
@@ -146,3 +145,4 @@ async function fetchJsonOptional(path) {
 }
 
 export const EntryRepository = { fetch: fetchEntryRaw };
+export const HorseEntryRepository = EntryRepository;

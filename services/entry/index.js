@@ -21,6 +21,7 @@ export {
 
 export {
   EntrySynchronizer,
+  HorseEntrySynchronizer,
   syncEntries,
   getEntryOverlay,
   clearEntryOverlay,
@@ -31,11 +32,21 @@ export {
   clearEntryOverlay as clearEntryOverlayStore,
 } from "./entry-overlay.js";
 
-export { EntryValidator, validateEntries } from "./entry-validator.js";
-export { EntryRepository, fetchEntryRaw } from "./entry-repository.js";
+export {
+  EntryValidator,
+  HorseEntryValidator,
+  validateEntries,
+} from "./entry-validator.js";
+
+export {
+  EntryRepository,
+  HorseEntryRepository,
+  fetchEntryRaw,
+} from "./entry-repository.js";
 
 export {
   EntryStateManager,
+  HorseEntryStateManager,
   setEntryState,
   getEntryStateSnapshot,
   computeEntryStats,
@@ -45,7 +56,24 @@ export {
 } from "./entry-state-manager.js";
 
 export {
+  HorseEntryFormatter,
+  formatEntryStagePanel,
+  usingDataForStage,
+  pendingDataForStage,
+  formatEntryStatusCounts,
+  formatEntryLabel,
+  formatEntrySummaryLine,
+} from "./horse-entry-formatter.js";
+
+export {
+  HorseEntryCompleteness,
+  computeEntryCompleteness,
+  confidenceFromEntryCompleteness,
+} from "./entry-completeness.js";
+
+export {
   EntryStatus,
+  HorseEntryStatus,
   ENTRY_STATUS,
   ENTRY_STATUS_LABEL,
   normalizeEntryStatus,

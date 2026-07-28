@@ -1,34 +1,53 @@
 /* ========================================
    Entry Status — Ver7.6
+   Registered / Entry Expected / Confirmed /
+   Scratched / Excluded / Withdrawn
    ======================================== */
 
 export const ENTRY_STATUS = {
-  REGISTERED: "registered", // Registered / 登録
-  PLANNED: "planned", // 出走予定
-  CONFIRMED: "confirmed", // 出走確定
-  SCRATCHED: "scratched", // 取消
-  EXCLUDED: "excluded", // 除外
-  WITHDRAWN: "withdrawn", // 回避
+  REGISTERED: "registered",
+  ENTRY_EXPECTED: "entry_expected", // Entry Expected（出走予定）
+  CONFIRMED: "confirmed",
+  SCRATCHED: "scratched",
+  EXCLUDED: "excluded",
+  WITHDRAWN: "withdrawn",
 };
+
+/** 後方互換エイリアス */
+ENTRY_STATUS.PLANNED = ENTRY_STATUS.ENTRY_EXPECTED;
 
 export const ENTRY_STATUS_LABEL = {
   [ENTRY_STATUS.REGISTERED]: "Registered（登録）",
-  [ENTRY_STATUS.PLANNED]: "出走予定",
-  [ENTRY_STATUS.CONFIRMED]: "出走確定",
-  [ENTRY_STATUS.SCRATCHED]: "取消",
-  [ENTRY_STATUS.EXCLUDED]: "除外",
-  [ENTRY_STATUS.WITHDRAWN]: "回避",
+  [ENTRY_STATUS.ENTRY_EXPECTED]: "Entry Expected（出走予定）",
+  [ENTRY_STATUS.CONFIRMED]: "Confirmed（出走確定）",
+  [ENTRY_STATUS.SCRATCHED]: "Scratched（取消）",
+  [ENTRY_STATUS.EXCLUDED]: "Excluded（除外）",
+  [ENTRY_STATUS.WITHDRAWN]: "Withdrawn（回避）",
 };
 
-export const ENTRY_STATUS_SET = new Set(Object.values(ENTRY_STATUS));
+export const ENTRY_STATUS_SET = new Set([
+  ENTRY_STATUS.REGISTERED,
+  ENTRY_STATUS.ENTRY_EXPECTED,
+  ENTRY_STATUS.CONFIRMED,
+  ENTRY_STATUS.SCRATCHED,
+  ENTRY_STATUS.EXCLUDED,
+  ENTRY_STATUS.WITHDRAWN,
+]);
 
-/** 枠・騎手・斤量・オッズは Ver7.6 では未確定扱い（確定情報として利用しない） */
-export const UNCONFIRMED_FIELDS = ["frame", "jockey", "weight", "odds", "popularity"];
+/** 本バージョンで確定情報として扱わない項目 */
+export const UNCONFIRMED_FIELDS = [
+  "frame",
+  "number",
+  "jockey",
+  "weight",
+  "odds",
+  "popularity",
+];
 
 export function isActiveEntry(status) {
   return (
     status === ENTRY_STATUS.REGISTERED ||
-    status === ENTRY_STATUS.PLANNED ||
+    status === ENTRY_STATUS.ENTRY_EXPECTED ||
     status === ENTRY_STATUS.CONFIRMED
   );
 }
@@ -44,12 +63,15 @@ export function isRemovedEntry(status) {
 export function normalizeEntryStatus(raw) {
   const s = String(raw || "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/\s+/g, "_");
   const map = {
     registered: ENTRY_STATUS.REGISTERED,
     登録: ENTRY_STATUS.REGISTERED,
-    planned: ENTRY_STATUS.PLANNED,
-    出走予定: ENTRY_STATUS.PLANNED,
+    entry_expected: ENTRY_STATUS.ENTRY_EXPECTED,
+    entryexpected: ENTRY_STATUS.ENTRY_EXPECTED,
+    planned: ENTRY_STATUS.ENTRY_EXPECTED,
+    出走予定: ENTRY_STATUS.ENTRY_EXPECTED,
     confirmed: ENTRY_STATUS.CONFIRMED,
     出走確定: ENTRY_STATUS.CONFIRMED,
     scratched: ENTRY_STATUS.SCRATCHED,
@@ -71,3 +93,5 @@ export const EntryStatus = {
   isRemoved: isRemovedEntry,
   UNCONFIRMED_FIELDS,
 };
+
+export const HorseEntryStatus = EntryStatus;

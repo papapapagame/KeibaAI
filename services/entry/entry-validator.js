@@ -82,3 +82,4 @@ export function validateEntries(entries = []) {
 }
 
 export const EntryValidator = { validate: validateEntries };
+export const HorseEntryValidator = EntryValidator;

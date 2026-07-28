@@ -15,12 +15,14 @@ import {
   getEntryStateSnapshot,
   computeEntryStats,
 } from "./entry-state-manager.js";
-import {
-  ENTRY_STATUS,
-  ENTRY_STATUS_LABEL,
-} from "./entry-status.js";
+import { ENTRY_STATUS, ENTRY_STATUS_LABEL } from "./entry-status.js";
 import { ENTRY_ENGINE_VERSION } from "./entry-data-connector.js";
 import { toLegacyHorse } from "../models/unified.js";
+import {
+  computeEntryCompleteness,
+  confidenceFromEntryCompleteness,
+} from "./entry-completeness.js";
+import { formatEntryStagePanel } from "./horse-entry-formatter.js";
 
 /**
  * 登録馬を取得し、Stage 用に整形して返す
@@ -28,10 +30,15 @@ import { toLegacyHorse } from "../models/unified.js";
 export async function loadEntriesForAi(options = {}) {
   const connected = await connectEntryData(options);
   if (!connected.ok) {
-    setEntryState([], { syncStatus: "error", updatedAt: new Date().toISOString() });
+    setEntryState([], {
+      syncStatus: "error",
+      updatedAt: new Date().toISOString(),
+    });
     return {
       ...connected,
       stats: computeEntryStats([]),
+      entryCompleteness: computeEntryCompleteness([]),
+      stagePanel: formatEntryStagePanel(options.stage || 0, null),
       sync: { status: "error" },
       forStage: [],
       legacyHorses: [],
@@ -40,7 +47,6 @@ export async function loadEntriesForAi(options = {}) {
 
   const prevFp = getLastEntryFingerprint();
   const fp = fingerprintEntries(connected.entries);
-  // forceRefresh は再取得のみ。内容同一なら changed=false
   const contentChanged = fp !== prevFp;
 
   const sync = syncEntries(connected.entries, {
@@ -61,6 +67,8 @@ export async function loadEntriesForAi(options = {}) {
   );
 
   const stats = computeEntryStats(connected.entries);
+  const entryCompleteness = computeEntryCompleteness(connected.entries);
+  const stagePanel = formatEntryStagePanel(stage, entryCompleteness);
 
   return {
     ok: true,
@@ -76,6 +84,8 @@ export async function loadEntriesForAi(options = {}) {
     legacyHorses,
     validation: connected.validation,
     stats,
+    entryCompleteness,
+    stagePanel,
     sync: {
       status: contentChanged ? "synced" : "skipped",
       changes: sync.changes?.length || 0,
@@ -84,13 +94,17 @@ export async function loadEntriesForAi(options = {}) {
     fetchedAt: connected.fetchedAt,
     stage,
     stageNote: stageNote(stage),
+    confidenceHint: confidenceFromEntryCompleteness(
+      options.baseConfidence ?? 72,
+      entryCompleteness
+    ),
   };
 }
 
 /**
  * Stage1: 登録馬のみ
- * Stage2: 出走予定馬
- * Stage3+: 取消・除外・回避を除き確定待ち（未確定フィールドは渡さない）
+ * Stage2: Entry Expected（出走予定）
+ * Stage3+: 取消・除外・回避を除き確定待ち
  */
 export function filterEntriesForStage(entries = [], stage = 0) {
   const s = Number(stage) || 0;
@@ -103,25 +117,24 @@ export function filterEntriesForStage(entries = [], stage = 0) {
   }
 
   if (s === 2) {
-    return list.filter((e) => e.entryStatus === ENTRY_STATUS.PLANNED);
+    return list.filter((e) => e.entryStatus === ENTRY_STATUS.ENTRY_EXPECTED);
   }
 
-  // Stage3+: 取消・除外・回避以外（出走予定＋出走確定）
   return list.filter(
     (e) =>
-      e.entryStatus === ENTRY_STATUS.PLANNED ||
+      e.entryStatus === ENTRY_STATUS.ENTRY_EXPECTED ||
       e.entryStatus === ENTRY_STATUS.CONFIRMED
   );
 }
 
 /**
- * Stage3未満: 枠・騎手・斤量・オッズを確定情報として渡さない
+ * 枠順・馬番・騎手・斤量・オッズは確定情報として渡さない
  */
 export function entryToHorseModel(entry, stage = 0) {
   const s = Number(stage) || 0;
-  const base = {
+  return {
     horseId: entry.horseId,
-    number: entry.number,
+    number: entry.number || 0, // AIエンジン互換の provisional key
     horseName: entry.horseName,
     horse: entry.horseName,
     age: entry.age,
@@ -137,7 +150,8 @@ export function entryToHorseModel(entry, stage = 0) {
     trackType: entry.trackRecord,
     distanceType: entry.distanceRecord,
     entryStatus: entry.entryStatus,
-    entryStatusLabel: entry.entryStatusLabel || ENTRY_STATUS_LABEL[entry.entryStatus],
+    entryStatusLabel:
+      entry.entryStatusLabel || ENTRY_STATUS_LABEL[entry.entryStatus],
     affiliation: entry.affiliation,
     careerRecord: entry.careerRecord,
     courseRecord: entry.courseRecord,
@@ -145,48 +159,26 @@ export function entryToHorseModel(entry, stage = 0) {
     earnings: entry.earnings,
     scratched: entry.entryStatus === ENTRY_STATUS.SCRATCHED,
     excluded: entry.entryStatus === ENTRY_STATUS.EXCLUDED,
-  };
-
-  // Ver7.6: 枠・騎手・斤量・オッズは未確定（Stage に関わらず Entry Engine では確定扱いにしない）
-  // Stage3未満では sanitize でも落とすが、ここでも明示
-  if (s < 3) {
-    return {
-      ...base,
-      frame: 0,
-      jockey: "未定",
-      weight: 55,
-      odds: 99.9,
-      popularity: 99,
-      _frameUnconfirmed: true,
-      _jockeyUnconfirmed: true,
-      _weightUnconfirmed: true,
-      _oddsUnconfirmed: true,
-      _entryProvisional: true,
-    };
-  }
-
-  // Stage3+ でも Entry Engine 自体は未確定フィールドを確定として渡さない
-  // （枠順等は別レイヤの確定後にのみ利用）
-  return {
-    ...base,
     frame: 0,
     jockey: "未定",
     weight: 55,
     odds: 99.9,
     popularity: 99,
     _frameUnconfirmed: true,
+    _numberUnconfirmed: true,
     _jockeyUnconfirmed: true,
     _weightUnconfirmed: true,
     _oddsUnconfirmed: true,
-    _entryAwaitingConfirm: true,
+    _entryProvisional: s < 3,
+    _entryAwaitingConfirm: s >= 3,
   };
 }
 
 function stageNote(stage) {
   const s = Number(stage) || 0;
   if (s < 1) return "開催情報のみ（登録馬なし）";
-  if (s === 1) return "登録馬のみ（暫定・未確定情報は反映しない）";
-  if (s === 2) return "出走予定馬（暫定・枠/騎手/斤量/オッズは未確定）";
+  if (s === 1) return "登録馬情報のみ利用（枠/馬番/騎手/斤量/オッズは未確定）";
+  if (s === 2) return "出走予定馬情報を利用（枠/馬番/騎手/斤量/オッズは未確定）";
   return "確定情報待機（枠・騎手・斤量・オッズは未確定のまま）";
 }
 

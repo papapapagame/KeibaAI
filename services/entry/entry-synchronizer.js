@@ -111,3 +111,5 @@ export const EntrySynchronizer = {
   getFingerprint: getLastEntryFingerprint,
   setFingerprint: setLastEntryFingerprint,
 };
+
+export const HorseEntrySynchronizer = EntrySynchronizer;

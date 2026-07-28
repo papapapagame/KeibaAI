@@ -201,12 +201,13 @@ export function createHorseEntry(raw = {}) {
     odds: null,
     popularity: null,
   });
+  const entryStatus = raw.entryStatus || "registered";
   return {
     modelVersion: UNIFIED_VERSION,
     kind: "HorseEntry",
     ...horse,
-    entryStatus: raw.entryStatus || "registered",
-    entryStatusLabel: raw.entryStatusLabel || raw.entryStatus || "",
+    entryStatus,
+    entryStatusLabel: raw.entryStatusLabel || entryStatus || "",
     affiliation: raw.affiliation || horse.affiliation || "",
     careerRecord: raw.careerRecord || "",
     recentForm: raw.recentForm || raw.last3 || [],
@@ -215,8 +216,12 @@ export function createHorseEntry(raw = {}) {
     trackRecord: raw.trackRecord || "",
     stakesRecord: raw.stakesRecord || "",
     earnings: raw.earnings != null ? Number(raw.earnings) : null,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
     // 確定情報として利用しない
     frameConfirmed: false,
+    numberConfirmed: false,
     jockeyConfirmed: false,
     weightConfirmed: false,
     oddsConfirmed: false,

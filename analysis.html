@@ -89,6 +89,26 @@
         <p class="v71-notice__provisional" id="stage-provisional">この予想は暫定評価です。</p>
         <p class="v71-notice__note" id="stage-note"></p>
       </div>
+      <!-- Ver7.6 Horse Entry AI表示 -->
+      <div class="v76-ai-panel glass-card" id="entry-ai-panel">
+        <p class="v76-ai-panel__title" id="entry-ai-title">現在分析中</p>
+        <p class="v76-ai-panel__stage">
+          Analysis Stage
+          <strong id="entry-ai-stage">—</strong>
+        </p>
+        <p class="v76-ai-panel__mode" id="entry-ai-mode">—</p>
+        <div class="v76-ai-panel__cols">
+          <div>
+            <p class="v76-ai-panel__label">利用中データ</p>
+            <ul class="v76-ai-panel__list" id="entry-ai-using"></ul>
+          </div>
+          <div>
+            <p class="v76-ai-panel__label">未確定情報</p>
+            <ul class="v76-ai-panel__list" id="entry-ai-pending"></ul>
+          </div>
+        </div>
+        <p class="v76-ai-panel__provisional" id="entry-ai-provisional">現在は暫定分析です。</p>
+      </div>
     </section>
 
     <!-- Ver7.2 Smart Update Reason -->
@@ -141,11 +161,24 @@
         <ul class="v73-status-list v76-entry-status">
           <li>登録頭数 <span id="entry-registered">—</span></li>
           <li>出走予定頭数 <span id="entry-planned">—</span></li>
-          <li>取消頭数 <span id="entry-scratched">—</span></li>
-          <li>除外頭数 <span id="entry-excluded">—</span></li>
-          <li>データ充足率 <span id="entry-completeness">—</span></li>
+          <li>取消 <span id="entry-scratched">—</span></li>
+          <li>除外 <span id="entry-excluded">—</span></li>
+          <li>取得率 <span id="entry-completeness">—</span></li>
+          <li>更新時刻 <span id="entry-updated">—</span></li>
         </ul>
         <p class="v73-data-block__note" id="entry-stage-note"></p>
+        <p class="v73-data-block__title">Entry Completeness</p>
+        <div class="v73-comp-grid v76-entry-comp">
+          <span>登録馬 <strong id="ec-registered">—</strong></span>
+          <span>戦績 <strong id="ec-career">—</strong></span>
+          <span>調教師 <strong id="ec-trainer">—</strong></span>
+          <span>距離実績 <strong id="ec-distance">—</strong></span>
+          <span>枠順 <strong id="ec-frame">0%</strong></span>
+          <span>騎手 <strong id="ec-jockey">0%</strong></span>
+          <span>斤量 <strong id="ec-weight">0%</strong></span>
+          <span class="v73-comp-overall">Overall <strong id="ec-overall">—</strong></span>
+        </div>
+        <p class="v73-data-block__note" id="ec-note"></p>
         <p class="v73-data-block__title">Data Completeness</p>
         <div class="v73-comp-grid">
           <span>Race <strong id="dc-race">—</strong></span>
@@ -239,13 +272,13 @@
           <li>Validation: <span id="dev-rc-validation">—</span></li>
         </ul>
 
-        <p class="v51-dev-panel__subtitle">Horse Entry（Ver7.6）</p>
+        <p class="v51-dev-panel__subtitle">Horse Entry Status（Ver7.6）</p>
         <ul class="v51-dev-list">
           <li>取得件数: <span id="dev-entry-count">—</span></li>
-          <li>状態別: <span id="dev-entry-by-status">—</span></li>
-          <li>Validation: <span id="dev-entry-validation">—</span></li>
-          <li>同期: <span id="dev-entry-sync">—</span></li>
-          <li>最終更新: <span id="dev-entry-updated">—</span></li>
+          <li>状態別件数: <span id="dev-entry-by-status">—</span></li>
+          <li>Validation結果: <span id="dev-entry-validation">—</span></li>
+          <li>同期状態: <span id="dev-entry-sync">—</span></li>
+          <li>更新時刻: <span id="dev-entry-updated">—</span></li>
         </ul>
 
         <p class="v51-dev-panel__subtitle">Provider Monitor</p>

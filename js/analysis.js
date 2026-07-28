@@ -249,7 +249,14 @@ export async function initAnalysisPage() {
     silent: true,
   });
   bindEntryStatusUi(entryBundle);
+  bindEntryAiPanel(entryBundle);
   bindEntryDevUi(entryBundle);
+
+  // Entry Completeness → Confidence 反映
+  if (entryBundle?.confidenceHint != null) {
+    const confEl = document.getElementById("stage-confidence");
+    if (confEl) confEl.textContent = `${entryBundle.confidenceHint}%`;
+  }
 
   const horsesWithEntry = mergeHorsesWithEntries(horses, entryBundle.entries);
   const entryFiltered = filterEntriesForStage(entryBundle.entries || [], stageNow);
@@ -619,26 +626,86 @@ function mergeHorsesWithEntries(horses = [], entries = []) {
 
 function bindEntryStatusUi(entryBundle) {
   const stats = entryBundle?.stats || {};
+  const ec = entryBundle?.entryCompleteness || {};
   setText("entry-registered", String(stats.registered ?? "—"));
-  setText("entry-planned", String(stats.planned ?? "—"));
+  setText(
+    "entry-planned",
+    String(stats.entryExpected ?? stats.planned ?? "—")
+  );
   setText("entry-scratched", String(stats.scratched ?? "—"));
   setText("entry-excluded", String(stats.excluded ?? "—"));
   setText(
     "entry-completeness",
-    stats.completeness != null ? `${stats.completeness}%` : "—"
+    ec.overall != null
+      ? `${ec.overall}%`
+      : stats.completeness != null
+        ? `${stats.completeness}%`
+        : "—"
+  );
+  setText(
+    "entry-updated",
+    entryBundle?.fetchedAt ? formatUpdateTime(entryBundle.fetchedAt) : "—"
   );
   setText("entry-stage-note", entryBundle?.stageNote || "");
+
+  setText(
+    "ec-registered",
+    ec.registered != null ? `${ec.registered}%` : "—"
+  );
+  setText("ec-career", ec.career != null ? `${ec.career}%` : "—");
+  setText("ec-trainer", ec.trainer != null ? `${ec.trainer}%` : "—");
+  setText("ec-distance", ec.distance != null ? `${ec.distance}%` : "—");
+  setText("ec-frame", `${ec.frame ?? 0}%`);
+  setText("ec-jockey", `${ec.jockey ?? 0}%`);
+  setText("ec-weight", `${ec.weight ?? 0}%`);
+  setText("ec-overall", ec.overall != null ? `${ec.overall}%` : "—");
+  setText("ec-note", ec.note || "");
+}
+
+function bindEntryAiPanel(entryBundle) {
+  const panel = entryBundle?.stagePanel;
+  if (!panel) return;
+  setText("entry-ai-title", panel.title || "現在分析中");
+  setText("entry-ai-stage", panel.stageLabel || `Stage${panel.stage || 0}`);
+  setText("entry-ai-mode", panel.mode || "—");
+  setText(
+    "entry-ai-provisional",
+    panel.provisionalText || "現在は暫定分析です。"
+  );
+
+  const fillList = (id, items) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    clearElement(el);
+    const list = items || [];
+    if (!list.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      el.appendChild(li);
+      return;
+    }
+    list.forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      el.appendChild(li);
+    });
+  };
+  fillList("entry-ai-using", panel.using);
+  fillList("entry-ai-pending", panel.pending);
 }
 
 function bindEntryDevUi(entryBundle) {
   const dash = getEntryDashboard();
   const stats = entryBundle?.stats || dash.stats || {};
-  setText("dev-entry-count", String(entryBundle?.count ?? stats.registered ?? 0));
+  setText(
+    "dev-entry-count",
+    String(entryBundle?.count ?? stats.total ?? 0)
+  );
   setText(
     "dev-entry-by-status",
     [
       `登${stats.registered ?? 0}`,
-      `予${stats.planned ?? 0}`,
+      `予${stats.entryExpected ?? stats.planned ?? 0}`,
       `確${stats.confirmed ?? 0}`,
       `取${stats.scratched ?? 0}`,
       `除${stats.excluded ?? 0}`,

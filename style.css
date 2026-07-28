@@ -5831,3 +5831,68 @@ body.has-home-fab .scroll-top {
 .v76-entry-status {
   margin-bottom: 0.45rem;
 }
+
+.v76-ai-panel {
+  margin-top: 0.85rem;
+  padding: 1rem 1.1rem;
+}
+
+.v76-ai-panel__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-soft, #c9a227);
+}
+
+.v76-ai-panel__stage {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: var(--text-primary, #f2f2f2);
+}
+
+.v76-ai-panel__stage strong {
+  color: var(--gold, #d4af37);
+  margin-left: 0.35rem;
+}
+
+.v76-ai-panel__mode {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, #b8b8b8);
+}
+
+.v76-ai-panel__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.25rem;
+}
+
+.v76-ai-panel__label {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  color: var(--gold-soft, #c9a227);
+}
+
+.v76-ai-panel__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.84rem;
+  color: var(--text-primary, #f2f2f2);
+}
+
+.v76-ai-panel__provisional {
+  margin: 0.85rem 0 0;
+  font-size: 0.86rem;
+  color: var(--gold, #d4af37);
+}
+
+.v76-entry-comp {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .v76-ai-panel__cols {
+    grid-template-columns: 1fr;
+  }
+}

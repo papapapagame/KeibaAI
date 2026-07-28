@@ -38,7 +38,7 @@ export function getEntryStateSnapshot() {
 export function computeEntryStats(entries = []) {
   const byStatus = {
     [ENTRY_STATUS.REGISTERED]: 0,
-    [ENTRY_STATUS.PLANNED]: 0,
+    [ENTRY_STATUS.ENTRY_EXPECTED]: 0,
     [ENTRY_STATUS.CONFIRMED]: 0,
     [ENTRY_STATUS.SCRATCHED]: 0,
     [ENTRY_STATUS.EXCLUDED]: 0,
@@ -48,29 +48,33 @@ export function computeEntryStats(entries = []) {
     const s = normalizeEntryStatus(e.entryStatus);
     byStatus[s] = (byStatus[s] || 0) + 1;
   }
-  const registered =
+  const total =
     byStatus[ENTRY_STATUS.REGISTERED] +
-    byStatus[ENTRY_STATUS.PLANNED] +
+    byStatus[ENTRY_STATUS.ENTRY_EXPECTED] +
     byStatus[ENTRY_STATUS.CONFIRMED] +
     byStatus[ENTRY_STATUS.SCRATCHED] +
     byStatus[ENTRY_STATUS.EXCLUDED] +
     byStatus[ENTRY_STATUS.WITHDRAWN];
-  const planned = byStatus[ENTRY_STATUS.PLANNED] + byStatus[ENTRY_STATUS.CONFIRMED];
+  const registered = byStatus[ENTRY_STATUS.REGISTERED];
+  const entryExpected = byStatus[ENTRY_STATUS.ENTRY_EXPECTED];
   const scratched = byStatus[ENTRY_STATUS.SCRATCHED];
   const excluded = byStatus[ENTRY_STATUS.EXCLUDED];
-  const active = byStatus[ENTRY_STATUS.PLANNED] + byStatus[ENTRY_STATUS.CONFIRMED];
-  const completeness = registered
-    ? Math.round((active / registered) * 100)
+  const active =
+    byStatus[ENTRY_STATUS.ENTRY_EXPECTED] + byStatus[ENTRY_STATUS.CONFIRMED];
+  const completeness = total
+    ? Math.round((active / total) * 100)
     : 0;
 
   return {
     registered,
-    planned: byStatus[ENTRY_STATUS.PLANNED],
+    entryExpected,
+    planned: entryExpected, // 互換
     confirmed: byStatus[ENTRY_STATUS.CONFIRMED],
     scratched,
     excluded,
     withdrawn: byStatus[ENTRY_STATUS.WITHDRAWN],
     active,
+    total,
     completeness,
     byStatus,
   };
@@ -158,3 +162,5 @@ export const EntryStateManager = {
   diff: diffEntryStatuses,
   history: loadHistory,
 };
+
+export const HorseEntryStateManager = EntryStateManager;
