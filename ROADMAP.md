@@ -488,6 +488,24 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver8.4 - Knowledge Graph（実装済）
+
+テーマ：全データを Knowledge Graph として統合し AI 推論へ活用する
+
+### 実装内容
+
+- KnowledgeGraphManager / Node / Edge / Indexer / Query / Validator / Synchronizer
+- Node・Edge 関係モデルと Graph Intelligence スコア
+- Query（関連・履歴・近似・関連度・重要度）
+- Discussion / Explain / Learning / Prediction が Graph 経由で関連取得
+- Unified Model 統合・Analysis / Dev Panel 表示
+
+### 目標
+
+表示用ではなく、AI 判断の共通推論基盤として全データを結びつける。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

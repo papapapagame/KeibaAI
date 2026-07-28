@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "8.3.0";
+export const UNIFIED_VERSION = "8.4.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -423,6 +423,76 @@ export function createExplain(raw = {}) {
   };
 }
 
+/** Ver8.4 Knowledge Node */
+export function createKnowledgeNode(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "KnowledgeNode",
+    nodeId: raw.id || raw.nodeId || null,
+    type: raw.type || "",
+    key: raw.key || "",
+    label: raw.label || "",
+    props: raw.props || {},
+    scores: raw.scores
+      ? {
+          importance: Number(raw.scores.importance) || 0,
+          reliability: Number(raw.scores.reliability) || 0,
+          freshness: Number(raw.scores.freshness) || 0,
+          connectivity: Number(raw.scores.connectivity) || 0,
+          knowledgeScore: Number(raw.scores.knowledgeScore) || 0,
+        }
+      : null,
+    updatedAt: raw.updatedAt || null,
+  };
+}
+
+/** Ver8.4 Knowledge Edge */
+export function createKnowledgeEdge(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "KnowledgeEdge",
+    edgeId: raw.id || raw.edgeId || null,
+    type: raw.type || "",
+    fromId: raw.fromId || null,
+    toId: raw.toId || null,
+    weight: Number(raw.weight) || 1,
+    props: raw.props || {},
+    updatedAt: raw.updatedAt || null,
+  };
+}
+
+/** Ver8.4 Knowledge Graph — AI推論基盤 */
+export function createKnowledgeGraph(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "KnowledgeGraph",
+    available: raw.available !== false,
+    version: raw.version || null,
+    nodeCount: Number(raw.nodeCount) || 0,
+    edgeCount: Number(raw.edgeCount) || 0,
+    knowledgeScore:
+      raw.knowledgeScore != null ? Number(raw.knowledgeScore) : null,
+    nodes: Array.isArray(raw.nodes)
+      ? raw.nodes.map((n) =>
+          n?.kind === "KnowledgeNode" ? n : createKnowledgeNode(n)
+        )
+      : [],
+    edges: Array.isArray(raw.edges)
+      ? raw.edges.map((e) =>
+          e?.kind === "KnowledgeEdge" ? e : createKnowledgeEdge(e)
+        )
+      : [],
+    validation: raw.validation || null,
+    syncState: raw.syncState || null,
+    indexerState: raw.indexerState || null,
+    queryState: raw.queryState || null,
+    updatedAt: raw.updatedAt || null,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
+  };
+}
+
 export function createReviewRef(raw = {}) {
   return { reviewId: raw.reviewId || raw.id || null, summary: raw.summary || "" };
 }
@@ -570,6 +640,9 @@ export function createRace(raw = {}, horses = []) {
     explain: raw.explain
       ? createExplain(raw.explain)
       : createExplain({ available: false }),
+    knowledgeGraph: raw.knowledgeGraph
+      ? createKnowledgeGraph(raw.knowledgeGraph)
+      : createKnowledgeGraph({ available: false }),
     // AIエンジン互換
     name: raw.raceName || raw.name || "",
     time: raw.startTime || raw.time || "",

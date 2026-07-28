@@ -1,52 +1,58 @@
 # PAPAPA IQ KEIBA
 
-**Ver8.3.0** — Prediction Explainability
+**Ver8.4.0** — Knowledge Graph
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-AI 予想の根拠は **Discussion Engine の採用／除外 Evidence** のみを基に説明します（推測で理由を作りません）。
+Knowledge Graph は **AI 内部推論・検索・関連性分析の基盤** です（表示用DBではありません）。
 
-## Prediction Explainability
+## Knowledge Graph
 
 ```
-services/explain/
-  ExplainManager
-  PredictionExplainer
-  EvidenceExplainer
-  ReasonBuilder
-  ContributionAnalyzer
-  ConfidenceExplainer
-  ExplanationValidator
+services/knowledge/
+  KnowledgeGraphManager
+  KnowledgeNodeManager
+  KnowledgeEdgeManager
+  KnowledgeIndexer
+  KnowledgeQueryEngine
+  KnowledgeValidator
+  KnowledgeSynchronizer
 ```
 
-### Contribution Analysis
+### Node
 
-能力評価 / 近走成績 / 距離適性 / コース適性 / 馬場適性 / 枠順 / 騎手 / 斤量 / オッズ / 市場情報 / 天候 / ニュース / SNS / Learning  
+Horse / Race / Jockey / Trainer / Racecourse / Entry / Draw / Odds / Weather / Track / News / Social / Evidence / Discussion / Reason / Learning / Prediction / AnalysisStage ほか
 
-寄与率合計は **100%**（largest remainder 法）。
+### Edge
 
-### Reason Builder
+Horse→Race/Jockey/Trainer/Racecourse/Distance/Surface/Weather/Odds/News/Social/Evidence/Learning  
+Race→Weather/Track/Odds/Entry  
+Discussion→Evidence / Reason→Evidence / Prediction→Reason/Confidence
 
-総合評価理由・各馬の評価理由・加点／減点・採用／除外 Evidence・Confidence 理由・Analysis Stage 影響を生成します。
+### Query Engine
 
-### Prediction Diff
+関連 Node / Edge、履歴検索、近似検索、関連度検索、重要度検索、馬コンテキスト取得
 
-前回分析との順位変動・Confidence 変化・新規／除外 Evidence・重要変更点を保持します。
+### Graph Intelligence
 
-### Confidence Explanation
+各 Node に Importance / Reliability / Freshness / Connectivity / Knowledge Score を付与
 
-Discussion の Consensus / Agreement / Conflict / Final Confidence と Stage から理由を説明します。
+### Indexer / Synchronization / Validation
 
-### Validation
+Indexer で型・ラベル・隣接を索引化。  
+Synchronizer が各 Engine データを統合同期。  
+Node/Edge 重複・欠損・孤立・循環を検証し、失敗データは Graph へ登録しません。
 
-寄与率合計100%・Evidence整合・Reason欠損・Confidence整合を検証。異常データは表示しません。
+### AI 利用
+
+Discussion / Explainability / Learning / Prediction は Knowledge Graph 経由で関連情報を取得します。
 
 ### Unified Model
 
-`Explain` / `Contribution` / `PredictionDiff` / `Reason` / `Evidence` / `Confidence` を統合。AI は Unified Model のみ参照します。
+`KnowledgeGraph` / `KnowledgeNode` / `KnowledgeEdge` を統合。AI は Unified Model のみ参照します。
 
-## Discussion / Social / News（維持）
+## Explain / Discussion（維持）
 
-Ver8.2 Discussion・Ver8.1 Social・Ver8.0 News を維持しています。
+Ver8.3 Explainability・Ver8.2 Discussion ほか全機能を維持しています。
 
 ## 確認方法
 
@@ -54,10 +60,10 @@ Ver8.2 Discussion・Ver8.1 Social・Ver8.0 News を維持しています。
 python -m http.server 5500
 ```
 
-1. 分析画面「総合評価理由 / 重要な根拠 / 寄与率 / Confidence理由 / Stage / 差分」  
-2. Dev Panel「Contribution / Evidence / Reason / Diff / Validation」  
-3. 寄与率合計が100%、説明が Discussion 根拠に紐づくこと  
+1. 分析画面「Knowledge Status / Node数 / Edge数 / Knowledge Score / 更新時刻」  
+2. Dev Panel「Indexer / Query / Validation / Synchronization」  
+3. Console で `aiInput.knowledgeGraph` が推論用に注入されること  
 
 ## 維持機能
 
-Ver8.2 までの全機能を維持しています。
+Ver8.3 までの全機能を維持しています。

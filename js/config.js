@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "8.3.0";
+export const VERSION = "8.4.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -75,6 +75,9 @@ export const DISCUSSION_ENGINE_VERSION = "8.2.0";
 
 /** Prediction Explainability（services/explain） */
 export const EXPLAIN_ENGINE_VERSION = "8.3.0";
+
+/** Knowledge Graph（services/knowledge） */
+export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

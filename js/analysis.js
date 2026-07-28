@@ -74,6 +74,12 @@ import {
   loadExplainForAi,
   getExplainDashboard,
 } from "../services/explain/index.js";
+import {
+  loadKnowledgeGraphForAi,
+  getKnowledgeDashboard,
+  enrichEngineContext,
+  getKnowledgeQuery,
+} from "../services/knowledge/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -790,6 +796,69 @@ export async function initAnalysisPage() {
   }
   bindExplainStatusUi(explainBundle);
   bindExplainDevUi(explainBundle);
+
+  // Ver8.4 Knowledge Graph — AI推論基盤（全データ統合）
+  const knowledgeBundle = loadKnowledgeGraphForAi({
+    race: raceForEngine,
+    horses: stagedHorses,
+    ranked,
+    stage: effectiveStage,
+    raceKey,
+    entryBundle,
+    drawBundle,
+    oddsBundle,
+    weatherBundle,
+    newsBundle,
+    socialBundle,
+    discussionBundle,
+    explainBundle,
+  });
+
+  if (knowledgeBundle?.ok && knowledgeBundle.aiKnowledge) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.knowledgeGraph = knowledgeBundle.aiKnowledge;
+        // Discussion / Explain / Learning / Prediction は KG 経由で関連取得
+        const kgQuery = getKnowledgeQuery();
+        aiInput.knowledgeQueryMeta = {
+          via: "KnowledgeGraph",
+          capabilities: knowledgeBundle.aiKnowledge.queryCapabilities,
+        };
+        if (aiInput.discussion && typeof aiInput.discussion === "object") {
+          aiInput.discussion.knowledge = enrichEngineContext("Discussion", {
+            horseName: ranked[0]?.horse || ranked[0]?.horseName,
+          });
+        }
+        if (aiInput.explain && typeof aiInput.explain === "object") {
+          aiInput.explain.knowledge = enrichEngineContext("Explainability", {
+            horseName: ranked[0]?.horse || ranked[0]?.horseName,
+          });
+          // top horses contexts
+          aiInput.explain.horseKnowledge = (ranked || [])
+            .slice(0, 5)
+            .map((h) =>
+              kgQuery.horseContext(h.horse || h.horseName || "")
+            )
+            .filter(Boolean);
+        }
+        aiInput.learningKnowledge = enrichEngineContext("Learning", {});
+        aiInput.predictionKnowledge = enrichEngineContext("Prediction", {
+          horseName: ranked[0]?.horse || ranked[0]?.horseName,
+        });
+      }
+      if (raceForEngine && typeof raceForEngine === "object") {
+        raceForEngine.knowledgeGraph = knowledgeBundle.unified || null;
+      }
+    } catch {
+      /* knowledge inject must not break analysis */
+    }
+  }
+  bindKnowledgeStatusUi(knowledgeBundle);
+  bindKnowledgeDevUi(knowledgeBundle);
 
   // Ver5.5: 予想スナップショットを Learning DB へ蓄積（ロジック書換なし）
   try {
@@ -1916,6 +1985,82 @@ function bindExplainDevUi(explainBundle) {
       clearList("dev-explain-diff", "—");
     }
   }
+}
+
+function bindKnowledgeStatusUi(knowledgeBundle) {
+  const status = knowledgeBundle?.status || {};
+  setText(
+    "knowledge-status",
+    status.label || (knowledgeBundle?.ok ? "Graph Ready" : "—")
+  );
+  setText(
+    "knowledge-node-count",
+    String(status.nodeCount ?? knowledgeBundle?.nodeCount ?? "—")
+  );
+  setText(
+    "knowledge-edge-count",
+    String(status.edgeCount ?? knowledgeBundle?.edgeCount ?? "—")
+  );
+  setText(
+    "knowledge-score",
+    status.knowledgeScore != null
+      ? String(status.knowledgeScore)
+      : knowledgeBundle?.knowledgeScore != null
+        ? String(knowledgeBundle.knowledgeScore)
+        : "—"
+  );
+  setText(
+    "knowledge-updated",
+    knowledgeBundle?.updatedAt
+      ? formatUpdateTime(knowledgeBundle.updatedAt)
+      : "—"
+  );
+  setText("knowledge-stage-note", knowledgeBundle?.stageNote || "");
+}
+
+function bindKnowledgeDevUi(knowledgeBundle) {
+  const dash = getKnowledgeDashboard();
+  setText(
+    "dev-knowledge-status",
+    knowledgeBundle?.status?.label ||
+      (knowledgeBundle?.ok ? "OK" : "—")
+  );
+  setText(
+    "dev-knowledge-nodes",
+    String(knowledgeBundle?.nodeCount ?? dash.nodeCount ?? 0)
+  );
+  setText(
+    "dev-knowledge-edges",
+    String(knowledgeBundle?.edgeCount ?? dash.edgeCount ?? 0)
+  );
+  setText(
+    "dev-knowledge-indexer",
+    knowledgeBundle?.indexer?.status || dash.indexer?.status || "—"
+  );
+  setText(
+    "dev-knowledge-query",
+    knowledgeBundle?.queryState?.status ||
+      dash.queryState?.status ||
+      "—"
+  );
+  setText(
+    "dev-knowledge-validation",
+    knowledgeBundle?.validation?.ok
+      ? `OK (warn ${knowledgeBundle.validation.warnings?.length || 0})`
+      : `NG ${knowledgeBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-knowledge-sync",
+    knowledgeBundle?.sync?.status || dash.sync?.status || "—"
+  );
+  setText(
+    "dev-knowledge-updated",
+    knowledgeBundle?.updatedAt
+      ? formatUpdateTime(knowledgeBundle.updatedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
 }
 
 function clearList(id, placeholder = null) {
