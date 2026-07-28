@@ -53,6 +53,12 @@ import {
   getWeatherDashboard,
   applyWeatherTrackAdjustments,
 } from "../services/weather/index.js";
+import {
+  loadNewsForAi,
+  mergeHorsesWithNews,
+  getNewsDashboard,
+  applyNewsScoreAdjustments,
+} from "../services/news/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -312,6 +318,19 @@ export async function initAnalysisPage() {
       82,
   });
 
+  // Ver8.0 News Intelligence — 構造化メタデータのみ（本文なし）
+  const newsBundle = await loadNewsForAi({
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+    silent: true,
+    baseConfidence:
+      weatherBundle?.confidenceHint ??
+      oddsBundle?.confidenceHint ??
+      86,
+  });
+
   const effectiveStage = Math.max(
     stageNow,
     Number(drawBundle?.confirmedStage) || 0,
@@ -327,16 +346,26 @@ export async function initAnalysisPage() {
   bindWeatherStatusUi(weatherBundle);
   bindWeatherAiPanel(weatherBundle, effectiveStage);
   bindWeatherDevUi(weatherBundle);
+  bindNewsStatusUi(newsBundle);
+  bindNewsDevUi(newsBundle);
 
-  // Completeness / Confidence（Weather > Odds > Draw > Entry）
+  // Completeness / Confidence（News は補助。Weather>Odds>Draw>Entry を基本）
   const confHint =
-    weatherBundle?.ok && weatherBundle.confidenceHint != null
-      ? weatherBundle.confidenceHint
-      : oddsBundle?.ok && oddsBundle.confidenceHint != null
-        ? oddsBundle.confidenceHint
-        : drawBundle?.ok && drawBundle.confidenceHint != null
-          ? drawBundle.confidenceHint
-          : entryBundle?.confidenceHint;
+    newsBundle?.ok && newsBundle.confidenceHint != null
+      ? Math.round(
+          ((weatherBundle?.confidenceHint ??
+            oddsBundle?.confidenceHint ??
+            86) +
+            newsBundle.confidenceHint) /
+            2
+        )
+      : weatherBundle?.ok && weatherBundle.confidenceHint != null
+        ? weatherBundle.confidenceHint
+        : oddsBundle?.ok && oddsBundle.confidenceHint != null
+          ? oddsBundle.confidenceHint
+          : drawBundle?.ok && drawBundle.confidenceHint != null
+            ? drawBundle.confidenceHint
+            : entryBundle?.confidenceHint;
   if (confHint != null) {
     const confEl = document.getElementById("stage-confidence");
     if (confEl) confEl.textContent = `${confHint}%`;
@@ -351,6 +380,10 @@ export async function initAnalysisPage() {
           : null;
   if (completenessPct != null) {
     setText("stage-completeness", `${completenessPct}%`);
+  }
+  // Weather Completeness のニュース欄を更新
+  if (newsBundle?.ok && newsBundle.newsCompleteness?.news != null) {
+    setText("wc-news", `${newsBundle.newsCompleteness.news}%`);
   }
   if (effectiveStage !== stageNow) {
     setText("stage-current", `Stage${effectiveStage}`);
@@ -378,6 +411,7 @@ export async function initAnalysisPage() {
     oddsBundle,
     effectiveStage
   );
+  const newsMerged = mergeHorsesWithNews(oddsMerged, newsBundle);
 
   const raceWithWeather = mergeRaceWithWeather(
     {
@@ -386,6 +420,7 @@ export async function initAnalysisPage() {
       venue: params.get("venue") || race.venue,
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
+      news: newsBundle?.unified || [],
     },
     weatherBundle,
     effectiveStage
@@ -393,7 +428,7 @@ export async function initAnalysisPage() {
 
   const prepared = prepareAiInput(
     raceWithWeather,
-    oddsMerged,
+    newsMerged,
     effectiveStage
   );
   const stagedRace = prepared.race;
@@ -405,6 +440,28 @@ export async function initAnalysisPage() {
     horses: stagedHorses,
     forceRefresh: false,
   });
+
+  // Ver8.0: 構造化ニュースのみ Intelligence / Market へ渡す（本文なし）
+  if (newsBundle?.ok && Array.isArray(newsBundle.aiNews)) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.news = newsBundle.aiNews;
+      }
+      if (intelPacket.fusedInput && typeof intelPacket.fusedInput === "object") {
+        intelPacket.fusedInput.newsMeta = {
+          count: newsBundle.count,
+          important: newsBundle.stats?.important,
+          reflect: newsBundle.aiReflect,
+        };
+      }
+    } catch {
+      /* news inject must not break analysis */
+    }
+  }
 
   // レース情報を Intelligence 側で補完（距離・馬場など）
   const intelRace =
@@ -549,6 +606,10 @@ export async function initAnalysisPage() {
     ranked,
     raceForEngine,
     effectiveStage
+  );
+  ranked = applyNewsScoreAdjustments(
+    ranked,
+    newsBundle?.items || []
   ).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
@@ -1272,6 +1333,80 @@ function bindWeatherDevUi(weatherBundle) {
     "dev-weather-updated",
     weatherBundle?.fetchedAt
       ? formatUpdateTime(weatherBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindNewsStatusUi(newsBundle) {
+  const stats = newsBundle?.stats || {};
+  const reflect = newsBundle?.aiReflect || {};
+  setText("news-count", String(stats.total ?? newsBundle?.count ?? "—"));
+  setText("news-important", String(stats.important ?? "—"));
+  setText(
+    "news-updated",
+    newsBundle?.fetchedAt ? formatUpdateTime(newsBundle.fetchedAt) : "—"
+  );
+  setText(
+    "news-ai-reflect",
+    reflect.label || (newsBundle?.ok ? "構造化データ反映中" : "—")
+  );
+  setText("news-stage-note", newsBundle?.stageNote || "");
+  // タイトル一覧のみ（本文なし）
+  const listEl = document.getElementById("news-meta-list");
+  if (listEl) {
+    clearElement(listEl);
+    const items = (newsBundle?.items || []).slice(0, 6);
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      listEl.appendChild(li);
+    } else {
+      items.forEach((n) => {
+        const li = document.createElement("li");
+        li.textContent = `[${n.categoryLabel || n.category}] ${n.title}`;
+        listEl.appendChild(li);
+      });
+    }
+  }
+}
+
+function bindNewsDevUi(newsBundle) {
+  const dash = getNewsDashboard();
+  const stats = newsBundle?.stats || dash.stats || {};
+  const by = stats.byCategory || {};
+  setText(
+    "dev-news-status",
+    newsBundle?.ok
+      ? `${stats.total ?? 0}件 / 重要${stats.important ?? 0}`
+      : "—"
+  );
+  setText("dev-news-count", String(newsBundle?.count ?? stats.total ?? 0));
+  setText(
+    "dev-news-categories",
+    [
+      `出${by.entry ?? 0}`,
+      `調${by.training ?? 0}`,
+      `コ${by.comment ?? 0}`,
+      `取${by.scratch ?? 0}`,
+      `騎${by.jockey ?? 0}`,
+      `馬${by.track ?? 0}`,
+      `開${by.meeting ?? 0}`,
+      `他${by.other ?? 0}`,
+    ].join(" / ")
+  );
+  setText(
+    "dev-news-validation",
+    newsBundle?.validation?.ok
+      ? `OK (warn ${newsBundle.validation.warnings?.length || 0})`
+      : `NG ${newsBundle?.validation?.errors?.length || 0}`
+  );
+  setText("dev-news-sync", newsBundle?.sync?.status || dash.syncStatus || "—");
+  setText(
+    "dev-news-updated",
+    newsBundle?.fetchedAt
+      ? formatUpdateTime(newsBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"

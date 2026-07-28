@@ -411,6 +411,25 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver8.0 - News Intelligence（実装済）
+
+テーマ：ニュース情報をAI分析へ取り込む（本文非転載）
+
+### 実装内容
+
+- NewsManager / Repository / Synchronizer / Validator / Normalizer / ScoringEngine
+- カテゴリ正規化・News Score（Freshness / Importance / Reliability / Coverage）
+- 構造化メタデータのみ AI 反映（本文・画像・SNS禁止）
+- Smart Update（新着・更新・取消・重要ニュース）
+- Unified Model `News` 統合
+- Analysis / Dev Panel 表示（タイトルのみ）
+
+### 目標
+
+公開情報を安全に構造化し、転載リスクなく AI 補助情報として利用する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

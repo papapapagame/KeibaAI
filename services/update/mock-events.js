@@ -66,8 +66,8 @@ export const MOCK_EVENTS = [
   {
     type: "news_added",
     label: "ニュース追加",
-    detail: "レース関連ニュース要約追加",
-    payload: {},
+    detail: "構造化メタデータ追加",
+    payload: { newsOnly: true },
   },
   {
     type: "stage_changed",

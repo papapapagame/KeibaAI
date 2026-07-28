@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "7.3.0";
+export const UNIFIED_VERSION = "8.0.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -124,6 +124,37 @@ export function createKnowledgeRef(raw = {}) {
   return {
     knowledgeId: raw.knowledgeId || raw.id || null,
     horseId: raw.horseId || null,
+  };
+}
+
+/** Ver8.0 News — メタデータのみ（本文・画像・SNSなし） */
+export function createNews(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "News",
+    newsId: raw.id || raw.newsId || null,
+    publishedAt: raw.publishedAt || null,
+    title: raw.title || "",
+    category: raw.category || "other",
+    categoryLabel: raw.categoryLabel || raw.category || "",
+    raceNumber: raw.raceNumber != null ? Number(raw.raceNumber) : null,
+    venueId: raw.venueId || null,
+    horses: Array.isArray(raw.horses) ? raw.horses : [],
+    jockeys: Array.isArray(raw.jockeys) ? raw.jockeys : [],
+    trainers: Array.isArray(raw.trainers) ? raw.trainers : [],
+    source: raw.source || "",
+    updatedAt: raw.updatedAt || null,
+    updateCount: Number(raw.updateCount) || 1,
+    freshnessScore: raw.freshnessScore != null ? Number(raw.freshnessScore) : null,
+    importanceScore:
+      raw.importanceScore != null ? Number(raw.importanceScore) : null,
+    reliabilityScore:
+      raw.reliabilityScore != null ? Number(raw.reliabilityScore) : null,
+    coverageScore: raw.coverageScore != null ? Number(raw.coverageScore) : null,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
+    // 本文は Unified にも載せない
   };
 }
 
@@ -264,6 +295,7 @@ export function createRace(raw = {}, horses = []) {
     learning: raw.learning ? createLearningDataRef(raw.learning) : null,
     knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
     review: raw.review ? createReviewRef(raw.review) : null,
+    news: Array.isArray(raw.news) ? raw.news.map((n) => createNews(n)) : [],
     // AIエンジン互換
     name: raw.raceName || raw.name || "",
     time: raw.startTime || raw.time || "",

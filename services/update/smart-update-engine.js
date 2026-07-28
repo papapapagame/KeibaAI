@@ -26,6 +26,7 @@ import { refreshEntriesOnly } from "../entry/horse-entry-manager.js";
 import { refreshDrawOnly } from "../draw/draw-manager.js";
 import { refreshOddsOnly } from "../odds/odds-manager.js";
 import { refreshWeatherOnly } from "../weather/weather-manager.js";
+import { refreshNewsOnly } from "../news/news-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -385,6 +386,58 @@ async function handleIncomingEventInner(event) {
       };
     } catch {
       /* Weather 失敗時は従来トリガへ */
+    }
+  }
+
+  // Ver8.0: News 変更時のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.newsOnly ||
+    event?.source === "news-engine" ||
+    [
+      "news_added",
+      "news_updated",
+      "news_scratch",
+      "news_important",
+    ].includes(event?.type)
+  ) {
+    try {
+      const newsRefresh = await refreshNewsOnly({
+        emitUpdate: false,
+        silent: true,
+        stage: snapshot.stage,
+      });
+      if (!newsRefresh.ok || !newsRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: newsRefresh.ok
+            ? "News情報に変更が無いため再分析をスキップしました。"
+            : `News 再取得失敗: ${newsRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "News: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "News変更なし（スキップ）",
+        });
+        return { skipped: true, newsOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        newsFingerprint: newsRefresh.fingerprint,
+        newsCount: newsRefresh.count,
+      };
+    } catch {
+      /* News 失敗時は従来トリガへ */
     }
   }
 

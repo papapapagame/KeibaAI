@@ -5932,3 +5932,18 @@ body.has-home-fab .scroll-top {
 .v79-weather-status {
   margin-bottom: 0.45rem;
 }
+
+/* ==========================================================================
+   Ver8.0.0 News Intelligence
+   ========================================================================== */
+
+.v80-news-status {
+  margin-bottom: 0.35rem;
+}
+
+.v80-news-meta-list {
+  margin: 0.35rem 0 0.45rem;
+  padding-left: 1.1rem;
+  font-size: 0.84rem;
+  color: var(--text-primary, #f2f2f2);
+}
