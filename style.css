@@ -4836,6 +4836,139 @@ body.has-home-fab .scroll-top {
 }
 
 /* ==========================================================================
+   Ver6.0.0 Betting Intelligence AI
+   ========================================================================== */
+
+.page--v60 {
+  gap: 1.1rem;
+}
+
+.v60-type-compare {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.v60-chip {
+  display: inline-block;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  color: var(--gold-bright);
+  font-size: 0.75rem;
+}
+
+.v60-roles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.v60-role-card {
+  padding: 0.75rem 0.85rem;
+}
+
+.v60-role-card__label {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.v60-role-card__value {
+  margin: 0.35rem 0 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.v60-budget-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.v60-vr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.v60-vr-card {
+  padding: 0.85rem 0.95rem;
+}
+
+.v60-vr-card__title {
+  margin: 0 0 0.45rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.v60-ticket-card {
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.v60-ticket-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.v60-ticket-card__head h3 {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1rem;
+}
+
+.v60-ticket-card__conf {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.v60-ticket-card__sel {
+  margin: 0.45rem 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.v60-ticket-card__meta {
+  margin: 0 0 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.v60-ticket-card__why {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 767px) {
+  .v60-roles,
+  .v60-vr-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .v60-ticket-card__head {
+    flex-direction: column;
+  }
+}
+
+/* ==========================================================================
    Ver5.0.0 — 思考ログ / 履歴 / ニュース / 対決強化 / 完了演出
    ========================================================================== */
 

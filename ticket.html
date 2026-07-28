@@ -2,8 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PAPAPA IQ KEIBAの買い目生成。AI推奨券種・買い目・資金配分を提案します。">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="PAPAPA IQ KEIBA Betting Intelligence。期待値重視のAI馬券戦略。">
+  <meta name="theme-color" content="#070707">
   <title>買い目生成 | PAPAPA IQ KEIBA</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading">
+<body class="is-loading page-ticket page-v60">
   <div class="loading-screen" id="loading-screen" aria-hidden="true">
     <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
     <p class="loading-screen__text">AI Analyzing...</p>
@@ -19,96 +20,150 @@
 
   <div class="bg-layer" aria-hidden="true"></div>
   <div class="bg-glow" aria-hidden="true"></div>
+  <div class="gold-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
 
   <header class="site-header">
     <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--list page--ticket">
-    <header class="hero hero--compact">
+  <main class="page page--list page--ticket page--v60">
+    <header class="hero hero--compact reveal">
+      <p class="eyebrow">BETTING INTELLIGENCE AI</p>
       <h1 class="title title--page">買い目生成</h1>
-      <p class="subtitle subtitle--small">BUY TICKET</p>
+      <p class="subtitle subtitle--small">どう買えば期待値が高いか</p>
       <div class="gold-line" aria-hidden="true"></div>
     </header>
 
-    <section class="ticket-section" aria-label="AI推奨券種">
-      <h2 class="section-title">AI推奨券種</h2>
+    <section class="ticket-section reveal" aria-label="Betting Dashboard">
+      <h2 class="section-title">Betting Dashboard</h2>
+      <div class="v55-stat-grid" id="betting-dashboard">
+        <article class="glass-card v55-stat"><p class="v55-stat__label">期待回収率</p><p class="v55-stat__value" id="bd-recovery">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">平均リスク</p><p class="v55-stat__value" id="bd-risk">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">期待値</p><p class="v55-stat__value" id="bd-ev">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">推奨券種</p><p class="v55-stat__value" id="bd-type">—</p></article>
+      </div>
+      <div class="v60-type-compare" id="bd-type-compare"></div>
+    </section>
+
+    <section class="ticket-section reveal" aria-label="役割">
+      <h2 class="section-title">AI評価役割</h2>
+      <div class="v60-roles" id="betting-roles"></div>
+    </section>
+
+    <section class="ticket-section reveal" aria-label="買い目比較">
+      <h2 class="section-title">買い目比較</h2>
+      <div class="ticket-type-list" id="strategy-list" role="group" aria-label="戦略">
+        <button type="button" class="ticket-type-btn is-active" data-strategy="AI案">AI案</button>
+        <button type="button" class="ticket-type-btn" data-strategy="安全型">安全型</button>
+        <button type="button" class="ticket-type-btn" data-strategy="期待値型">期待値型</button>
+        <button type="button" class="ticket-type-btn" data-strategy="穴狙い型">穴狙い型</button>
+        <button type="button" class="ticket-type-btn" data-strategy="バランス型">バランス型</button>
+      </div>
+    </section>
+
+    <section class="ticket-section reveal" aria-label="券種">
+      <h2 class="section-title">券種</h2>
       <div class="ticket-type-list" id="ticket-type-list" role="group" aria-label="券種選択">
-        <button type="button" class="ticket-type-btn" data-type="三連単">三連単</button>
-        <button type="button" class="ticket-type-btn is-active" data-type="三連複">三連複</button>
-        <button type="button" class="ticket-type-btn" data-type="馬連">馬連</button>
-        <button type="button" class="ticket-type-btn" data-type="ワイド">ワイド</button>
         <button type="button" class="ticket-type-btn" data-type="単勝">単勝</button>
+        <button type="button" class="ticket-type-btn" data-type="複勝">複勝</button>
+        <button type="button" class="ticket-type-btn" data-type="馬連">馬連</button>
+        <button type="button" class="ticket-type-btn" data-type="馬単">馬単</button>
+        <button type="button" class="ticket-type-btn" data-type="ワイド">ワイド</button>
+        <button type="button" class="ticket-type-btn is-active" data-type="三連複">三連複</button>
+        <button type="button" class="ticket-type-btn" data-type="三連単">三連単</button>
+        <button type="button" class="ticket-type-btn" data-type="ALL">すべて</button>
       </div>
     </section>
 
-    <section class="ticket-section" aria-label="AI推奨買い目">
+    <section class="ticket-section reveal" aria-label="AI推奨買い目">
       <h2 class="section-title">AI推奨買い目</h2>
-      <div class="ticket-bet-list" id="ticket-bet-list">
-        <!-- script.js -->
-      </div>
+      <div class="ticket-bet-list" id="ticket-bet-list"></div>
     </section>
 
-    <section class="ticket-section fund-panel" aria-label="資金入力">
-      <h2 class="section-title">資金入力</h2>
-
+    <section class="ticket-section fund-panel reveal" aria-label="資金配分AI">
+      <h2 class="section-title">資金配分AI</h2>
+      <div class="v60-budget-presets" id="budget-presets">
+        <button type="button" class="btn-secondary" data-budget="1000">1000円</button>
+        <button type="button" class="btn-secondary" data-budget="3000">3000円</button>
+        <button type="button" class="btn-secondary" data-budget="5000">5000円</button>
+        <button type="button" class="btn-secondary" data-budget="10000">10000円</button>
+      </div>
       <div class="field">
         <label for="purchase-amount">購入金額</label>
         <div class="amount-input-row">
-          <input type="number" id="purchase-amount" name="purchase-amount" value="1000" min="100" step="100">
+          <input type="number" id="purchase-amount" name="purchase-amount" value="3000" min="100" step="100">
           <span class="amount-unit">円</span>
         </div>
       </div>
-
       <div class="fund-recommend">
         <p class="fund-recommend__label">おすすめ配分</p>
-        <p class="fund-recommend__value" id="fund-allocation">各100円</p>
+        <p class="fund-recommend__value" id="fund-allocation">—</p>
       </div>
-
       <div class="fund-summary">
         <div class="fund-summary__item">
           <span class="fund-summary__label">合計金額</span>
-          <span class="fund-summary__value" id="fund-total">1,000円</span>
+          <span class="fund-summary__value" id="fund-total">—</span>
         </div>
         <div class="fund-summary__item">
           <span class="fund-summary__label">期待払戻</span>
-          <span class="fund-summary__value" id="fund-payout">8,500円</span>
+          <span class="fund-summary__value" id="fund-payout">—</span>
         </div>
         <div class="fund-summary__item">
           <span class="fund-summary__label">期待利益</span>
-          <span class="fund-summary__value fund-summary__value--profit" id="fund-profit">+7,500円</span>
+          <span class="fund-summary__value fund-summary__value--profit" id="fund-profit">—</span>
         </div>
         <div class="fund-summary__item">
           <span class="fund-summary__label">期待回収率</span>
-          <span class="fund-summary__value" id="fund-roi">850%</span>
+          <span class="fund-summary__value" id="fund-roi">—</span>
         </div>
       </div>
     </section>
 
-    <section class="ai-comment-card" aria-label="AIコメント">
-      <h2 class="section-title">AIコメント</h2>
-      <p class="ai-comment-card__text" id="ticket-ai-comment">
-        三連複が最も期待値が高い構成です。<br><br>
-        本命馬を軸に<br>
-        穴馬候補を組み合わせています。
-      </p>
+    <section class="ticket-section reveal" aria-label="Value / Risk">
+      <h2 class="section-title">Value / Risk</h2>
+      <div class="v60-vr-grid">
+        <article class="glass-card v60-vr-card">
+          <h3 class="v60-vr-card__title">Value Analyzer</h3>
+          <ul class="v55-list" id="value-summary"></ul>
+        </article>
+        <article class="glass-card v60-vr-card">
+          <h3 class="v60-vr-card__title">Risk Analyzer</h3>
+          <p id="risk-summary">—</p>
+        </article>
+      </div>
     </section>
 
-    <div class="page-actions page-actions--stack">
-      <button type="button" class="btn-primary" id="save-ticket">保存する</button>
+    <section class="ai-comment-card reveal" aria-label="AIコメント">
+      <h2 class="section-title">AIコメント</h2>
+      <p class="ai-comment-card__text" id="ticket-ai-comment">—</p>
+    </section>
+
+    <aside class="v51-dev-panel glass-card reveal" id="betting-dev-panel" hidden>
+      <p class="v51-dev-panel__title">Developer Panel — Betting</p>
+      <ul class="v51-dev-list" id="betting-dev-list"></ul>
+    </aside>
+
+    <div class="page-actions page-actions--stack reveal">
+      <button type="button" class="btn-primary" id="save-ticket">履歴に保存</button>
+      <button type="button" class="btn-secondary" id="fav-ticket">お気に入り</button>
+      <button type="button" class="btn-secondary" id="copy-ticket">コピー</button>
+      <button type="button" class="btn-secondary" id="export-csv">CSV出力</button>
+      <button type="button" class="btn-secondary" id="export-json">JSON出力</button>
       <button type="button" class="btn-secondary" id="go-ledger">収支管理へ</button>
+      <a href="performance.html" class="btn-secondary">AI Performance</a>
       <a href="analysis.html" class="btn-secondary" id="back-to-analysis">AI分析へ戻る</a>
     </div>
   </main>
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 0.9.0</p>
+    <p>Version 6.0.0</p>
   </footer>
 
-  <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>
-
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

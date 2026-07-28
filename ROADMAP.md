@@ -123,7 +123,26 @@
 
 ---
 
-## Ver5.6 - Live Data Update
+## Ver6.0 - Betting Intelligence AI（実装済）
+
+テーマ：AI馬券戦略システム
+
+### 実装内容
+
+- services/betting（BettingEngine / TicketGenerator / ValueAnalyzer / RiskAnalyzer / BankrollManager / CombinationOptimizer）
+- 全券種（単勝・複勝・馬連・馬単・ワイド・三連複・三連単）＋フォーメーション
+- 買い目比較（AI案 / 安全 / 期待値 / 穴 / バランス）
+- 資金配分AI・Explain Betting・Confidence
+- Betting Dashboard / 保存・お気に入り・CSV・JSON
+- ※ 既存 ai-engine / thinking-engine は未変更
+
+### 目標
+
+「どう買えば期待値が高いか」を独自指標の統合判断で提案する。
+
+---
+
+## Ver6.1 - Live Data Update
 
 テーマ：リアルタイム競馬データ
 
@@ -143,30 +162,23 @@
 
 ---
 
-## Ver5.7 - AI Engine Upgrade
+## Ver6.2 - Safe Weight Apply
 
-テーマ：既存評価エンジン強化（thinking / index）
+テーマ：Learning AI 重みの安全反映
 
 ### 実装予定
 
-- 展開予想
-- ペース予想
-- 脚質分析
-- 枠順補正
-- 馬場補正
-- 騎手補正
-- 厩舎補正
-- 期待値計算
-- 危険馬判定
-- AIコメント自動生成
+- Ver5.5 WeightOptimizer 提案の段階的適用
+- ロールバック
+- A/B 検証
 
 ### 目標
 
-実データを基に根拠あるAI分析を実現する。
+学習結果を予想ロジックへ安全に接続する。
 
 ---
 
-## Ver5.8 - Betting AI
+## Ver6.3 - Betting AI Advanced
 
 テーマ：AI馬券アシスタント
 

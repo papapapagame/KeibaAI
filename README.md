@@ -1,49 +1,48 @@
 # PAPAPA IQ KEIBA
 
-**Ver5.5.0** — Learning AI Engine（自己学習基盤）
+**Ver6.0.0** — Betting Intelligence AI（AI馬券戦略システム）
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-このバージョンでは AI が予想ロジックを自動書き換えません。結果の蓄積・分析・重み管理・改善提案までを実装しています。
+「どの馬が強いか」だけでなく、「どう買えば期待値が高いか」を提案します。
 
-## Learning AI Engine
+## Betting Intelligence AI
 
 ```
-services/learning/
-  learning-engine.js      … オーケストレータ
-  result-analyzer.js      … 結果と予想の差分
-  accuracy-tracker.js     … Analyzer精度
-  performance-analyzer.js … 成績集計
-  weight-optimizer.js     … 重み管理（手動 / 提案のみ）
-  learning-history.js     … 履歴
-  learning-db.js          … localStorage DB
-  explain-learning.js     … 学習理由の説明
+services/betting/
+  betting-engine.js
+  ticket-generator.js
+  value-analyzer.js
+  risk-analyzer.js
+  bankroll-manager.js
+  combination-optimizer.js
+  explain-betting.js
+  betting-storage.js
 ```
 
-### Learning Flow
+### システム構成
 
-1. 分析画面で予想スナップショットを Learning DB へ保存  
-2. 結果登録時に ResultAnalyzer が差分を算出  
-3. Accuracy / Performance を更新  
-4. WeightOptimizer が提案を生成（**自動適用しない**）  
-5. Explain Learning が「なぜ学習したか」を表示  
-6. Ver6.0 で安全に重み反映できる構造を維持  
+IQ / Value / Support / Risk / Market / 期待値 / オッズ / 展開 / 馬場 / 脚質 / 市場心理 / Learning AI を統合し、券種横断の買い目を生成します。人気順だけの機械生成はしません。
 
-### Analyzer評価
+### 買い目生成フロー
 
-Horse / Race / Odds / History / Trend / Market ごとに命中率・順位誤差・EV・回収・信頼度。
+1. 本命・対抗・穴・危険馬を役割抽出  
+2. TicketGenerator が単勝〜三連単＋フォーメーションを生成  
+3. Value / Risk でスコアリング  
+4. CombinationOptimizer が戦略別（安全 / 期待値 / 穴 / バランス）に最適化  
+5. BankrollManager が予算配分  
+6. Explain Betting で理由を付与  
 
-### Weight構造
+### 期待値計算
 
-Analyzer別重みを localStorage で管理。LearningEngine 重みは Ver5.5 では 0 固定。
+馬ごとの能力・オッズ・Market Value Opportunity から EV / ROI予測 / 妙味 / 過剰人気 / 過小評価を算出。
 
-### Learning DB
+### 資金配分
 
-localStorage（`papapa_iq_learning_ai_v55`）。将来 SQLite / クラウドへ移行しやすい JSON スキーマ。  
-AI Engine Version / Learning Version / Timestamp を保存。
+1000 / 3000 / 5000 / 10000 円プリセット。本線・押さえ・穴へ配分。
 
-## AI Performance 画面
+### 画面
 
-`performance.html` — 総レース・的中率・回収率・ROI・Analyzerランキング・Dashboard・Explain Learning・Weight Optimizer。
+`ticket.html` — Betting Dashboard / 券種 / 比較 / Explain / Confidence / 保存・CSV・JSON。
 
 ## 確認方法
 
@@ -51,6 +50,6 @@ AI Engine Version / Learning Version / Timestamp を保存。
 python -m http.server 5500
 ```
 
-1. `performance.html` でデモ学習データを確認  
-2. AI分析実行後、Learning DB に予想が追加されること  
-3. 既存の新聞・Market・Intelligence 機能が従来どおり動くこと
+1. 買い目生成画面で Dashboard・Explain Betting を確認  
+2. 戦略切替（安全/期待値/穴/バランス）  
+3. CSV / JSON / コピー / お気に入り  
