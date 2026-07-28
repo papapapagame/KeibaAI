@@ -23,6 +23,7 @@ export const RACE_DATA_VERSION = "7.3.0";
 
 /**
  * AI用レース統合バンドル
+ * フロー: Provider Framework → RaceRepository → Mapper → Unified → AI
  */
 export async function loadRaceForAi(options = {}) {
   const repo = await fetchRaceBundle(options);
@@ -41,6 +42,10 @@ export async function loadRaceForAi(options = {}) {
       completeness: null,
       validation: { ok: false, errors: [{ code: "FETCH", message: repo.message }], warnings: [] },
       mapping: { providerId: repo.providerId, status: "failed" },
+      provenance: repo.provenance || null,
+      framework: repo.framework || null,
+      failover: repo.failover || null,
+      merge: repo.merge || null,
     };
   }
 
@@ -76,6 +81,10 @@ export async function loadRaceForAi(options = {}) {
       completeness: computeDataCompleteness(race, null),
       validation: raceValidation,
       mapping: { providerId, status: "mapped_invalid" },
+      provenance: repo.provenance || null,
+      framework: repo.framework || null,
+      failover: repo.failover || null,
+      merge: repo.merge || null,
     };
   }
 
@@ -112,6 +121,10 @@ export async function loadRaceForAi(options = {}) {
       status: "ok",
       mappedAt: new Date().toISOString(),
     },
+    provenance: repo.provenance || null,
+    framework: repo.framework || null,
+    failover: repo.failover || null,
+    merge: repo.merge || null,
     summary: formatRaceSummary(race),
     meta: formatRaceMeta(race),
     count: {
@@ -121,13 +134,18 @@ export async function loadRaceForAi(options = {}) {
     // 既存 analysis 互換
     status: {
       providerId,
-      sourceLabel: `RaceDataManager / ${providerId}`,
-      sourceMode: providerId === "mock" ? "mock" : providerId,
+      sourceLabel:
+        repo.sourceLabel ||
+        `ProviderFramework / RaceDataManager / ${providerId}`,
+      sourceMode:
+        repo.framework?.mode ||
+        (providerId === "mock" ? "mock" : providerId),
       fromCache: Boolean(repo.platform?.fromCache),
       updatedLabel: new Date().toLocaleString("ja-JP"),
       count: { races: 1, horses: legacyHorses.length },
       error: null,
       platformVersion: RACE_DATA_VERSION,
+      frameworkVersion: repo.framework?.version || null,
     },
     confidenceHint: confidenceFromCompleteness(
       options.baseConfidence ?? 72,

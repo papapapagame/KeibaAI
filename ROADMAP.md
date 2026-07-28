@@ -299,6 +299,25 @@ Provider を切り替えても AI 側修正が不要なデータ基盤を完成�
 
 ---
 
+## Ver7.4 - Provider Integration Framework（実装済）
+
+テーマ：複数のデータ取得元を安全に統合する
+
+### 実装内容
+
+- ProviderManager / Registry / Factory / Loader
+- ProviderHealthChecker / ProviderLogger
+- 共通 Provider Interface（Race〜Market）
+- Priority / Failover / Data Merge / Provenance
+- Mock 完全対応、他 Provider は接続口のみ
+- AI・画面は Framework 経由のみ（直アクセス禁止）
+
+### 目標
+
+Provider 追加・削除しても AI・画面・モデル側の修正が不要な拡張基盤を完成させる。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

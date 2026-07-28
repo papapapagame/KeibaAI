@@ -1,47 +1,49 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.3.0** — Race & Horse Data Integration
+**Ver7.4.0** — Provider Integration Framework
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-Race / Horse / Jockey / Trainer の共通モデルを完成し、AI は Provider を直接参照しません。
+AI・画面は Provider へ直接アクセスせず、必ず Provider Framework を経由します。
 
-## Race Engine / Horse Engine
+## Provider Framework
 
 ```
-services/race/     RaceDataManager, Repository, Mapper, Validator, Formatter, State
-services/horse/    HorseManager, Repository, Mapper, History, Condition, Validator
-services/models/unified.js
+services/provider/
+  ProviderManager / Registry / Factory / Loader
+  ProviderHealthChecker / ProviderLogger
+  Priority / Failover / DataMerge / Provenance
 ```
 
-### Unified Model
+### Provider Interface
 
-Race / Horse / Jockey / Trainer / Venue / Distance / Surface / Frame / Weight / Odds / Popularity / Result / AnalysisStage / LearningData / Knowledge / Review
+全 Provider が同一口で取得可能：
 
-### Data Mapping
+Race / Horse / Jockey / Trainer / Odds / Weather / TrackCondition / News / Review / Market
 
-JRA / netkeiba / JBIS / Mock それぞれの生データを同一 RaceModel / HorseModel へ変換。
+### Registry
 
-### Validation
+登録: Mock / JRA / JBIS / netkeiba / KeibaLab / Market / News / Social  
+**現時点は Mock のみ有効**。他は接続口のみ。
 
-必須・重複・型・欠損・異常値を検証。異常データは AI へ渡しません。
+### Priority / Failover
 
-### Data Completeness
+例（Race）: JRA → JBIS → Mock  
+障害時は自動切替（Failover）。
 
-Race / Horse / Odds / Market / Overall を算出し、Confidence 表示へ利用（評価ロジック非改変）。
+### Data Merge / Provenance
+
+複数ソースは重複排除・優先順位・タイムスタンプ・品質で統合。  
+各データに取得元・取得日時・Provider Version・取得状態を保持。
 
 ### AI連携フロー
 
 ```
-Provider → RaceRepository
-  → Mapper → Validator
+Provider Framework
+  → RaceRepository
   → RaceDataManager
   → Unified Model
   → AI
 ```
-
-### 画面
-
-`analysis.html` — Data Status（〇△×） / Completeness / Dev Panel（Mapping・Validation）
 
 ## 確認方法
 
@@ -49,10 +51,11 @@ Provider → RaceRepository
 python -m http.server 5500
 ```
 
-1. 分析画面で取得済みマークと Completeness を確認  
-2. Dev Panel の Mapping / Validation  
-3. Mock / Real 切替（Real は Provider未接続）  
+1. 分析画面 Dev Panel「Provider Framework（Ver7.4）」
+2. Provider 一覧・状態（ONLINE / OFFLINE 等）
+3. Failover / Merge / Provenance  
+4. Mock のみ動作、Real は Provider未接続
 
 ## 維持機能
 
-Ver7.2 Smart Update までの全機能を維持しています。
+Ver7.3 Race & Horse Integration までの全機能を維持しています。

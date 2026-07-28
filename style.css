@@ -5785,3 +5785,33 @@ body.has-home-fab .scroll-top {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Ver7.4.0 Provider Integration Framework
+   ========================================================================== */
+
+.v74-provider-table .is-active-provider td {
+  color: var(--gold-bright);
+}
+
+.v74-health.status-online {
+  color: #c8e6a0;
+  font-weight: 700;
+}
+
+.v74-health.status-offline {
+  color: rgba(255, 200, 160, 0.75);
+}
+
+.v74-health.status-error {
+  color: #f0a090;
+  font-weight: 700;
+}
+
+.v74-health.status-waiting {
+  color: #e8d48b;
+}
+
+.v74-health.status-unknown {
+  color: rgba(232, 212, 139, 0.55);
+}

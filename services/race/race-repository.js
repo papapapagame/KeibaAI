@@ -1,51 +1,57 @@
 /* ========================================
-   RaceRepository — Ver7.3
-   Provider 経由取得（AIは直接触らない）
+   RaceRepository — Ver7.3 / Ver7.4
+   Provider Framework 経由取得（AIは直接触らない）
    ======================================== */
 
-import { getRaceBundleForAi, getSourceMode } from "../data/index.js";
+import { getSourceMode } from "../data/index.js";
+import { acquireBundle } from "../provider/index.js";
 import { API_BASE_URL } from "../../js/config.js";
 
 export async function fetchRaceBundle(options = {}) {
   const mode = options.mode || getSourceMode();
-  if (mode === "real") {
+
+  // Ver7.4: 必ず Provider Framework 経由
+  const acquired = await acquireBundle({
+    ...options,
+    mode,
+  });
+
+  if (!acquired.ok || !acquired.raw) {
     return {
       ok: false,
-      blocked: true,
-      providerId: "real",
-      message: "Provider未接続",
+      blocked: Boolean(acquired.blocked),
+      providerId: acquired.providerId || (mode === "real" ? "real" : null),
+      message: acquired.message || "Provider未接続",
       raw: null,
+      framework: acquired.framework,
+      provenance: acquired.provenance,
+      failover: acquired.failover,
+      merge: acquired.merge,
     };
   }
 
-  // Mock: Data Platform API（内部で MockProvider）
-  const bundle = await getRaceBundleForAi(options);
-  if (!bundle.ok) {
-    return {
-      ok: false,
-      blocked: Boolean(bundle.blocked),
-      providerId: bundle.providerId || "mock",
-      message: bundle.message || "取得失敗",
-      raw: null,
-      platform: bundle,
-    };
-  }
-
-  // 追加の enriched mock（年齢・性別など）をマージ
+  const raw = acquired.raw;
   const enriched = await fetchEnrichedHorsesOptional();
 
   return {
     ok: true,
     blocked: false,
-    providerId: "mock",
-    message: "Mock Race Repository",
+    providerId: acquired.providerId || "mock",
+    message: acquired.message || "Provider Framework",
     raw: {
-      race: bundle.race,
-      horses: mergeHorseEnrichment(bundle.horses || [], enriched),
-      settings: bundle.settings || {},
+      race: raw.race || {},
+      horses: mergeHorseEnrichment(raw.horses || [], enriched),
+      settings: raw.settings || {},
+      venues: raw.venues || [],
+      races: raw.races || [],
     },
-    platform: bundle,
-    count: bundle.count,
+    count: acquired.count,
+    fetchedAt: acquired.fetchedAt,
+    provenance: acquired.provenance,
+    failover: acquired.failover,
+    merge: acquired.merge,
+    framework: acquired.framework,
+    sourceLabel: acquired.sourceLabel,
   };
 }
 

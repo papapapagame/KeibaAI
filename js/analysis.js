@@ -21,6 +21,10 @@ import {
 import { loadRaceForAi } from "../services/race/index.js";
 import { confidenceFromCompleteness } from "../services/race/data-completeness.js";
 import {
+  getFrameworkDashboard,
+  refreshProviderHealth,
+} from "../services/provider/index.js";
+import {
   getCalendarDashboard,
   getRaceAnalysisContext,
   prepareAiInput,
@@ -416,6 +420,8 @@ function bindIntegrationDataUi(bundle) {
     `races ${bundle?.count?.races || 0} / horses ${bundle?.count?.horses || 0}`
   );
 
+  bindProviderFrameworkUi(bundle);
+
   // Confidence 表示へ Completeness を反映（評価ロジック非改変）
   if (comp?.overall != null) {
     const blended = confidenceFromCompleteness(
@@ -437,6 +443,96 @@ function setMark(id, cell) {
   el.classList.toggle("is-ok", cell?.mark === "〇");
   el.classList.toggle("is-partial", cell?.mark === "△");
   el.classList.toggle("is-ng", cell?.mark === "×");
+}
+
+function bindProviderFrameworkUi(bundle) {
+  const fw = bundle?.framework || getFrameworkDashboard()?.last || null;
+  const failover = bundle?.failover || fw?.failover || {};
+  const merge = bundle?.merge || fw?.merge || {};
+  const provenance = bundle?.provenance || null;
+
+  setText(
+    "dev-failover-v74",
+    failover.active
+      ? `ON ${failover.failoverFrom || "?"} → ${failover.finalProviderId || "?"}`
+      : failover.path?.length
+        ? `path: ${failover.path.join(" → ")}`
+        : "—"
+  );
+  setText(
+    "dev-merge-v74",
+    merge.strategy
+      ? `${merge.strategy}${merge.note ? ` (${merge.note})` : ""}`
+      : "—"
+  );
+  setText(
+    "dev-provenance-v74",
+    provenance
+      ? `${provenance.providerId} @ ${formatUpdateTime(provenance.fetchedAt)} v${
+          provenance.providerVersion || "—"
+        }`
+      : "—"
+  );
+  setText(
+    "dev-count-v74",
+    `races ${bundle?.count?.races || fw?.count?.races || 0} / horses ${
+      bundle?.count?.horses || fw?.count?.horses || 0
+    }`
+  );
+
+  renderProviderFrameworkTable(bundle).catch(() => {});
+}
+
+async function renderProviderFrameworkTable(bundle) {
+  const body = document.getElementById("dev-provider-framework");
+  if (!body) return;
+  try {
+    await refreshProviderHealth();
+  } catch {
+    /* ignore */
+  }
+  const dash = getFrameworkDashboard();
+  clearElement(body);
+  const rows = dash.providers || [];
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5;
+    td.textContent = "Provider なし";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+
+  const activeId = bundle?.providerId || dash.last?.providerId;
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    if (row.id === activeId) tr.classList.add("is-active-provider");
+    const countText =
+      row.id === activeId
+        ? String(bundle?.count?.horses ?? dash.last?.count?.horses ?? "—")
+        : row.implemented
+          ? "—"
+          : "0";
+    const cells = [
+      row.label || row.id,
+      row.health || "UNKNOWN",
+      row.enabled ? "ON" : "OFF",
+      row.implemented ? "YES" : "口のみ",
+      countText,
+    ];
+    cells.forEach((text, idx) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      if (idx === 1) {
+        td.className = `v74-health status-${String(row.health || "UNKNOWN")
+          .toLowerCase()
+          .replace(/\s+/g, "-")}`;
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  }
 }
 
 function bindDataErrorUi(bundle, raceNumber) {
@@ -798,6 +894,7 @@ function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
   renderIntelLogs(intelPacket);
   renderProviderMonitor(intelPacket);
   renderMarketMonitor(marketResult);
+  bindProviderFrameworkUi(bundle);
   setText(
     "dev-market-cache",
     marketResult?.cache?.status
