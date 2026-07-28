@@ -53,7 +53,11 @@ export async function loadSocialForAi(options = {}) {
       ok: false,
       blocked: false,
       message: "Social Validation failed",
+      userMessage: "SNS情報を取得できませんでした",
       providerId: fetched.providerId,
+      providerName: fetched.providerName || null,
+      providerKind: fetched.mode === "real" ? "Real" : "Mock",
+      mode: fetched.mode || "mock",
       version: SOCIAL_ENGINE_VERSION,
       items: [],
       trends: null,
@@ -63,6 +67,8 @@ export async function loadSocialForAi(options = {}) {
       sync: { status: "error" },
       aiSocial: toAiSocialPayload(null),
       stats: emptyStats(),
+      count: 0,
+      updateCount: 0,
       aiReflect: { status: "idle", label: "未反映", payloadCount: 0 },
     };
   }
@@ -114,6 +120,9 @@ export async function loadSocialForAi(options = {}) {
     blocked: false,
     message: contentChanged ? "Social loaded" : "Social unchanged",
     providerId: fetched.providerId,
+    providerName: fetched.providerName || null,
+    providerKind: fetched.mode === "real" ? "Real" : "Mock",
+    mode: fetched.mode || "mock",
     version: SOCIAL_ENGINE_VERSION,
     changed: contentChanged,
     fingerprint: fp,
@@ -123,6 +132,12 @@ export async function loadSocialForAi(options = {}) {
     aiSocial,
     validation,
     stats,
+    scores: {
+      trendScore: trends?.scores?.trend ?? null,
+      attentionScore: trends?.scores?.attention ?? null,
+      momentumScore: trends?.scores?.momentum ?? null,
+      confidenceScore: trends?.scores?.confidence ?? null,
+    },
     socialCompleteness,
     stagePanel: formatSocialStagePanel(stats, socialCompleteness),
     sync: {
@@ -130,6 +145,7 @@ export async function loadSocialForAi(options = {}) {
       changes: sync.changes?.length || 0,
       reasons: sync.reasons || [],
     },
+    updateCount: fetched.meta?.updateCount ?? 0,
     count: items.length,
     fetchedAt: fetched.meta?.updatedAt || new Date().toISOString(),
     stageNote: "SNSは構造化メタデータのみAI反映（投稿本文非表示）",
@@ -143,6 +159,7 @@ export async function loadSocialForAi(options = {}) {
       label: "構造化データ反映中",
       payloadCount: aiSocial.topics?.length || aiSocial.itemCount || 0,
     },
+    userMessage: null,
   };
 }
 
@@ -209,24 +226,35 @@ function emptyStats() {
 }
 
 function emptyBundle(options, fetched) {
+  const userMessage =
+    fetched?.userMessage ||
+    (fetched?.mode === "real"
+      ? "SNS情報を取得できませんでした"
+      : fetched?.message || "SNS情報を取得できませんでした");
   return {
     ok: false,
     blocked: Boolean(fetched?.blocked),
-    message: fetched?.message || "Social 取得失敗",
+    message: fetched?.message || userMessage,
+    userMessage,
     providerId: fetched?.providerId,
+    providerName: fetched?.providerName || null,
+    providerKind: fetched?.mode === "real" ? "Real" : "Mock",
+    mode: fetched?.mode || "mock",
     version: SOCIAL_ENGINE_VERSION,
     items: [],
     trends: null,
     aiSocial: toAiSocialPayload(null),
-    validation: {
+    validation: fetched?.validation || {
       ok: false,
-      errors: [{ code: "FETCH", message: fetched?.message }],
+      errors: [{ code: "FETCH", message: fetched?.message || userMessage }],
       warnings: [],
     },
     socialCompleteness: computeSocialCompleteness(null),
     stagePanel: formatSocialStagePanel({}, null),
     sync: { status: "error" },
     stats: emptyStats(),
+    count: 0,
+    updateCount: 0,
     aiReflect: { status: "idle", label: "未反映", payloadCount: 0 },
   };
 }

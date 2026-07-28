@@ -7,6 +7,8 @@ import { RealRaceProvider } from "./race/real-race-provider.js";
 import { RealHorseProvider } from "./horse/real-horse-provider.js";
 import { RealOddsProvider } from "./odds/real-odds-provider.js";
 import { RealWeatherProvider } from "./weather/real-weather-provider.js";
+import { RealNewsProvider } from "./news/real-news-provider.js";
+import { RealSocialProvider } from "./social/real-social-provider.js";
 import {
   JraProvider,
   JbisProvider,
@@ -23,6 +25,8 @@ const FACTORIES = {
   "real-horse": () => new RealHorseProvider(),
   "real-odds": () => new RealOddsProvider(),
   "real-weather": () => new RealWeatherProvider(),
+  "real-news": () => new RealNewsProvider(),
+  "real-social": () => new RealSocialProvider(),
   jra: () => new JraProvider(),
   jbis: () => new JbisProvider(),
   netkeiba: () => new NetkeibaProvider(),

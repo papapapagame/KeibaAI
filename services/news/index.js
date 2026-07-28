@@ -41,3 +41,11 @@ export {
   confidenceFromNewsCompleteness,
   formatNewsStagePanel,
 } from "./news-merge.js";
+
+export {
+  getNewsMode,
+  setNewsMode,
+  NEWS_MODE_KEY,
+  NEWS_MODES,
+  NewsMode,
+} from "./news-mode.js";

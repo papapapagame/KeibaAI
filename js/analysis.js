@@ -64,12 +64,16 @@ import {
   mergeHorsesWithNews,
   getNewsDashboard,
   applyNewsScoreAdjustments,
+  getNewsMode,
+  setNewsMode,
 } from "../services/news/index.js";
 import {
   loadSocialForAi,
   mergeHorsesWithSocial,
   getSocialDashboard,
   applySocialScoreAdjustments,
+  getSocialMode,
+  setSocialMode,
 } from "../services/social/index.js";
 import {
   loadDiscussionForAi,
@@ -420,7 +424,12 @@ export async function initAnalysisPage() {
           oddsBundle?.confidenceHint ??
           86,
       }),
-    { ok: false, items: [], message: "News 取得失敗" }
+    {
+      ok: false,
+      items: [],
+      message: "ニュース情報を取得できませんでした",
+      userMessage: "ニュース情報を取得できませんでした",
+    }
   );
 
   // Ver8.1 Social Intelligence — 構造化メタデータのみ（投稿本文なし）
@@ -438,7 +447,13 @@ export async function initAnalysisPage() {
           weatherBundle?.confidenceHint ??
           86,
       }),
-    { ok: false, items: [], trends: null, message: "Social 取得失敗" }
+    {
+      ok: false,
+      items: [],
+      trends: null,
+      message: "SNS情報を取得できませんでした",
+      userMessage: "SNS情報を取得できませんでした",
+    }
   );
 
   const effectiveStage = Math.max(
@@ -2051,6 +2066,8 @@ function bindWeatherModeControls() {
 function bindNewsStatusUi(newsBundle) {
   const stats = newsBundle?.stats || {};
   const reflect = newsBundle?.aiReflect || {};
+  const scores = newsBundle?.scores || {};
+  const mode = getNewsMode();
   setText("news-count", String(stats.total ?? newsBundle?.count ?? "—"));
   setText("news-important", String(stats.important ?? "—"));
   setText(
@@ -2058,10 +2075,35 @@ function bindNewsStatusUi(newsBundle) {
     newsBundle?.fetchedAt ? formatUpdateTime(newsBundle.fetchedAt) : "—"
   );
   setText(
+    "news-provider-kind",
+    newsBundle?.providerKind || (mode === "real" ? "Real" : "Mock")
+  );
+  setText(
+    "news-score",
+    scores.newsScore != null
+      ? String(scores.newsScore)
+      : newsBundle?.aggregate?.coverage != null
+        ? String(
+            Math.round(
+              (Number(newsBundle.aggregate.freshness || 0) +
+                Number(newsBundle.aggregate.importance || 0) +
+                Number(newsBundle.aggregate.reliability || 0) +
+                Number(newsBundle.aggregate.coverage || 0)) /
+                4
+            )
+          )
+        : "—"
+  );
+  setText(
     "news-ai-reflect",
     reflect.label || (newsBundle?.ok ? "構造化データ反映中" : "—")
   );
-  setText("news-stage-note", newsBundle?.stageNote || "");
+  setText(
+    "news-stage-note",
+    newsBundle?.ok === false
+      ? newsBundle?.userMessage || "ニュース情報を取得できませんでした"
+      : newsBundle?.stageNote || ""
+  );
   // タイトル一覧のみ（本文なし）
   const listEl = document.getElementById("news-meta-list");
   if (listEl) {
@@ -2069,7 +2111,7 @@ function bindNewsStatusUi(newsBundle) {
     const items = (newsBundle?.items || []).slice(0, 6);
     if (!items.length) {
       const li = document.createElement("li");
-      li.textContent = "—";
+      li.textContent = newsBundle?.ok === false ? "—" : "—";
       listEl.appendChild(li);
     } else {
       items.forEach((n) => {
@@ -2085,11 +2127,14 @@ function bindNewsDevUi(newsBundle) {
   const dash = getNewsDashboard();
   const stats = newsBundle?.stats || dash.stats || {};
   const by = stats.byCategory || {};
+  const mode = getNewsMode();
   setText(
     "dev-news-status",
-    newsBundle?.ok
-      ? `${stats.total ?? 0}件 / 重要${stats.important ?? 0}`
-      : "—"
+    newsBundle?.ok === false
+      ? "ERROR"
+      : newsBundle?.ok
+        ? `${stats.total ?? 0}件 / 重要${stats.important ?? 0}`
+        : "—"
   );
   setText("dev-news-count", String(newsBundle?.count ?? stats.total ?? 0));
   setText(
@@ -2120,19 +2165,71 @@ function bindNewsDevUi(newsBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+  setText(
+    "dev-real-news-status",
+    newsBundle?.ok === false
+      ? "ERROR"
+      : newsBundle?.mode === "real"
+        ? "ONLINE"
+        : "MOCK"
+  );
+  setText(
+    "dev-real-news-provider",
+    newsBundle?.providerId || (mode === "real" ? "real-news" : "mock")
+  );
+  setText(
+    "dev-real-news-count",
+    String(newsBundle?.count ?? stats.total ?? 0)
+  );
+  setText(
+    "dev-real-news-validation",
+    newsBundle?.validation?.ok
+      ? `OK (warn ${newsBundle.validation.warnings?.length || 0})`
+      : `NG ${newsBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-news-sync",
+    newsBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-real-news-updated",
+    newsBundle?.fetchedAt ? formatUpdateTime(newsBundle.fetchedAt) : "—"
+  );
+
+  bindNewsModeControls();
+}
+
+function bindNewsModeControls() {
+  const mode = getNewsMode();
+  const note = document.getElementById("news-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real News（失敗時は Mock へ自動切替しません）"
+        : "Mock News を使用中";
+  }
+  document.querySelectorAll("[data-news-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-news-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setNewsMode(btn.getAttribute("data-news-mode"));
+      location.reload();
+    });
+  });
 }
 
 function bindSocialStatusUi(socialBundle) {
   const stats = socialBundle?.stats || {};
   const reflect = socialBundle?.aiReflect || {};
-  const scores = socialBundle?.trends?.scores || {};
+  const scores = socialBundle?.trends?.scores || socialBundle?.scores || {};
+  const mode = getSocialMode();
+  const trendScore =
+    scores.trend ?? scores.trendScore ?? stats.trendScore ?? null;
   setText("social-count", String(stats.total ?? socialBundle?.count ?? "—"));
-  setText(
-    "social-trend",
-    scores.trend != null
-      ? `T${scores.trend} / A${scores.attention ?? "—"} / M${scores.momentum ?? "—"} / C${scores.confidence ?? "—"}`
-      : "—"
-  );
   setText(
     "social-top-categories",
     (stats.topCategories || []).length
@@ -2140,10 +2237,33 @@ function bindSocialStatusUi(socialBundle) {
       : "—"
   );
   setText(
+    "social-updated",
+    socialBundle?.fetchedAt ? formatUpdateTime(socialBundle.fetchedAt) : "—"
+  );
+  setText(
+    "social-provider-kind",
+    socialBundle?.providerKind || (mode === "real" ? "Real" : "Mock")
+  );
+  setText(
+    "social-trend-score",
+    trendScore != null ? String(trendScore) : "—"
+  );
+  setText(
+    "social-trend",
+    scores.trend != null || scores.trendScore != null
+      ? `T${scores.trend ?? scores.trendScore} / A${scores.attention ?? scores.attentionScore ?? "—"} / M${scores.momentum ?? scores.momentumScore ?? "—"} / C${scores.confidence ?? scores.confidenceScore ?? "—"}`
+      : "—"
+  );
+  setText(
     "social-ai-reflect",
     reflect.label || (socialBundle?.ok ? "構造化データ反映中" : "—")
   );
-  setText("social-stage-note", socialBundle?.stageNote || "");
+  setText(
+    "social-stage-note",
+    socialBundle?.ok === false
+      ? socialBundle?.userMessage || "SNS情報を取得できませんでした"
+      : socialBundle?.stageNote || ""
+  );
 
   const listEl = document.getElementById("social-meta-list");
   if (listEl) {
@@ -2172,17 +2292,24 @@ function bindSocialDevUi(socialBundle) {
   const stats = socialBundle?.stats || dash.stats || {};
   const by = stats.byCategory || {};
   const scores = socialBundle?.trends?.scores || dash.trends?.scores || {};
+  const mode = getSocialMode();
   setText(
     "dev-social-status",
-    socialBundle?.ok
-      ? `${stats.total ?? 0}話題 / Trend ${scores.trend ?? "—"}`
-      : "—"
+    socialBundle?.ok === false
+      ? "ERROR"
+      : socialBundle?.ok
+        ? `${stats.total ?? 0}話題 / Trend ${scores.trend ?? "—"}`
+        : "—"
   );
   setText(
     "dev-trend-status",
     scores.trend != null
       ? `Trend ${scores.trend} / Att ${scores.attention} / Mom ${scores.momentum} / Conf ${scores.confidence}`
       : "—"
+  );
+  setText(
+    "dev-social-count",
+    String(socialBundle?.count ?? stats.total ?? 0)
   );
   setText(
     "dev-social-categories",
@@ -2215,6 +2342,61 @@ function bindSocialDevUi(socialBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+  setText(
+    "dev-real-social-status",
+    socialBundle?.ok === false
+      ? "ERROR"
+      : socialBundle?.mode === "real"
+        ? "ONLINE"
+        : "MOCK"
+  );
+  setText(
+    "dev-real-social-provider",
+    socialBundle?.providerId || (mode === "real" ? "real-social" : "mock")
+  );
+  setText(
+    "dev-real-social-count",
+    String(socialBundle?.count ?? stats.total ?? 0)
+  );
+  setText(
+    "dev-real-social-validation",
+    socialBundle?.validation?.ok
+      ? `OK (warn ${socialBundle.validation.warnings?.length || 0})`
+      : `NG ${socialBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-social-sync",
+    socialBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-real-social-updated",
+    socialBundle?.fetchedAt ? formatUpdateTime(socialBundle.fetchedAt) : "—"
+  );
+
+  bindSocialModeControls();
+}
+
+function bindSocialModeControls() {
+  const mode = getSocialMode();
+  const note = document.getElementById("social-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real Social（失敗時は Mock へ自動切替しません）"
+        : "Mock Social を使用中";
+  }
+  document.querySelectorAll("[data-social-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-social-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setSocialMode(btn.getAttribute("data-social-mode"));
+      location.reload();
+    });
+  });
 }
 
 function bindDiscussionStatusUi(discussionBundle) {

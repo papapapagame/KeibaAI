@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.3.0 Real Weather
+   Ver10.5.0 Real Social
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.3.0";
-export const RELEASE_CHANNEL = "Real Weather";
+export const VERSION = "10.5.0";
+export const RELEASE_CHANNEL = "Real Social";
 export const BUILD_DATE = "2026-07-28";
-export const BUILD_NUMBER = "20260728.103";
+export const BUILD_NUMBER = "20260728.105";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -47,6 +47,24 @@ export const REAL_WEATHER_URL = "data/weather/real-weather.json";
 export const REAL_WEATHER_FETCH_TIMEOUT_MS = 12000;
 export const REAL_WEATHER_PROVIDER_VERSION = "10.3.0";
 export const WEATHER_MODE_KEY = "papapa_iq_weather_mode_v103";
+
+/**
+ * Real News 取得先（GitHub Pages 対応）
+ * メタデータのみ（本文・画像なし）
+ */
+export const REAL_NEWS_URL = "data/news/real-news.json";
+export const REAL_NEWS_FETCH_TIMEOUT_MS = 12000;
+export const REAL_NEWS_PROVIDER_VERSION = "10.4.0";
+export const NEWS_MODE_KEY = "papapa_iq_news_mode_v104";
+
+/**
+ * Real Social 取得先（GitHub Pages 対応）
+ * メタデータのみ（投稿本文・画像・動画なし）
+ */
+export const REAL_SOCIAL_URL = "data/social/real-social.json";
+export const REAL_SOCIAL_FETCH_TIMEOUT_MS = 12000;
+export const REAL_SOCIAL_PROVIDER_VERSION = "10.5.0";
+export const SOCIAL_MODE_KEY = "papapa_iq_social_mode_v105";
 
 /**
  * データ取得 Provider 切替（レガシー Ver5.1）
@@ -133,6 +151,12 @@ export const REAL_ODDS_VERSION = "10.2.0";
 
 /** Real Weather（services/provider/weather） */
 export const REAL_WEATHER_VERSION = "10.3.0";
+
+/** Real News（services/provider/news） */
+export const REAL_NEWS_VERSION = "10.4.0";
+
+/** Real Social（services/provider/social） */
+export const REAL_SOCIAL_VERSION = "10.5.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

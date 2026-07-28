@@ -1,41 +1,59 @@
 /* ========================================
-   Social Repository — Ver8.1
+   Social Repository — Ver8.1 / Ver10.5
    Metadata only (no body/images/videos)
    ======================================== */
 
-import { acquireBundle } from "../provider/index.js";
-import { getSourceMode } from "../data/source-mode.js";
 import { API_BASE_URL } from "../../js/config.js";
+import { getSocialMode } from "./social-mode.js";
+import { loadRealSocial } from "../provider/social/index.js";
 
 export async function fetchSocialRaw(options = {}) {
-  const mode = options.mode || getSourceMode();
+  const socialMode = options.socialMode || getSocialMode();
 
-  if (mode === "real") {
-    const acquired = await acquireBundle({ ...options, mode: "real" });
-    if (!acquired.ok) {
+  // Ver10.5 Real Social（自動 Mock フォールバックなし）
+  if (socialMode === "real") {
+    const real = await loadRealSocial({
+      ...options,
+      stage: options.stage,
+      force: options.forceRefresh || options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+    });
+    if (!real.ok) {
       return {
         ok: false,
-        blocked: true,
-        message: acquired.message || "Provider未接続",
-        providerId: acquired.providerId || "real",
-        mode,
+        blocked: false,
+        message: real.userMessage || "SNS情報を取得できませんでした",
+        userMessage: "SNS情報を取得できませんでした",
+        providerId: real.providerId || "real-social",
+        mode: "real",
         items: [],
+        validation: real.validation,
+        error: real.error || null,
       };
     }
-    const rawItems =
-      acquired.raw?.social ||
-      acquired.data?.social ||
-      acquired.raw?.items ||
-      [];
     return {
       ok: true,
       blocked: false,
-      message: "Real Social via Framework",
-      providerId: acquired.providerId,
-      mode,
-      items: stripBodies(rawItems),
-      provenance: acquired.provenance,
-      framework: acquired.framework,
+      message: real.message || "Real Social",
+      providerId: real.providerId || "real-social",
+      providerName: real.providerName || "Real Social",
+      mode: "real",
+      items: stripBodies(real.items || real.social || []),
+      meta: {
+        ...(real.meta || {}),
+        updatedAt: real.updatedAt || real.fetchedAt,
+        skipped: real.skipped,
+        changed: real.changed,
+        fingerprint: real.fingerprint,
+        updateCount: real.updateCount,
+      },
+      realBundle: real,
+      validation: real.validation,
+      scores: real.scores,
+      trends: real.trends,
+      socialModel: real.socialModel,
+      provenance: { providerId: real.providerId, source: "real-social" },
     };
   }
 
@@ -46,7 +64,8 @@ export async function fetchSocialRaw(options = {}) {
       blocked: false,
       message: "Mock Social Repository",
       providerId: "mock",
-      mode,
+      providerName: "Mock Social",
+      mode: "mock",
       items: stripBodies(socialJson?.items || []),
       meta: {
         raceDate: options.date || socialJson?.raceDate || null,
@@ -60,8 +79,9 @@ export async function fetchSocialRaw(options = {}) {
       ok: false,
       blocked: false,
       message: err?.message || "Social fetch failed",
+      userMessage: "SNS情報を取得できませんでした",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items: [],
     };
   }
@@ -84,6 +104,7 @@ function stripBodies(items = []) {
       video: _v,
       videos: _vs,
       media: _m,
+      caption: _cap,
       ...rest
     } = raw || {};
     return {
@@ -102,7 +123,10 @@ function stripBodies(items = []) {
       postCount: Number(rest.postCount) || 0,
       prevPostCount:
         rest.prevPostCount != null ? Number(rest.prevPostCount) : null,
+      trendChangeRate:
+        rest.trendChangeRate != null ? Number(rest.trendChangeRate) : null,
       importanceHint: rest.importanceHint || null,
+      providerName: rest.providerName || null,
     };
   });
 }

@@ -1,38 +1,59 @@
 /* ========================================
-   News Repository — Ver8.0
+   News Repository — Ver8.0 / Ver10.4
    Metadata only (no body/images/SNS)
    ======================================== */
 
-import { acquireBundle } from "../provider/index.js";
-import { getSourceMode } from "../data/source-mode.js";
 import { API_BASE_URL } from "../../js/config.js";
+import { getNewsMode } from "./news-mode.js";
+import { loadRealNews } from "../provider/news/index.js";
 
 export async function fetchNewsRaw(options = {}) {
-  const mode = options.mode || getSourceMode();
+  const newsMode = options.newsMode || getNewsMode();
 
-  if (mode === "real") {
-    const acquired = await acquireBundle({ ...options, mode: "real" });
-    if (!acquired.ok) {
+  // Ver10.4 Real News（自動 Mock フォールバックなし）
+  if (newsMode === "real") {
+    const real = await loadRealNews({
+      ...options,
+      stage: options.stage,
+      force: options.forceRefresh || options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+    });
+    if (!real.ok) {
       return {
         ok: false,
-        blocked: true,
-        message: acquired.message || "Provider未接続",
-        providerId: acquired.providerId || "real",
-        mode,
+        blocked: false,
+        message: real.userMessage || "ニュース情報を取得できませんでした",
+        userMessage: "ニュース情報を取得できませんでした",
+        providerId: real.providerId || "real-news",
+        mode: "real",
         items: [],
+        validation: real.validation,
+        error: real.error || null,
       };
     }
-    const rawItems =
-      acquired.raw?.news || acquired.data?.news || acquired.raw?.items || [];
     return {
       ok: true,
       blocked: false,
-      message: "Real News via Framework",
-      providerId: acquired.providerId,
-      mode,
-      items: stripBodies(rawItems),
-      provenance: acquired.provenance,
-      framework: acquired.framework,
+      message: real.message || "Real News",
+      providerId: real.providerId || "real-news",
+      providerName: real.providerName || "Real News",
+      mode: "real",
+      items: stripBodies(real.items || real.news || []),
+      meta: {
+        ...(real.meta || {}),
+        updatedAt: real.updatedAt || real.fetchedAt,
+        skipped: real.skipped,
+        changed: real.changed,
+        fingerprint: real.fingerprint,
+        updateCount: real.updateCount,
+      },
+      realBundle: real,
+      validation: real.validation,
+      scores: real.scores,
+      aggregate: real.aggregate,
+      newsModels: real.newsModels,
+      provenance: { providerId: real.providerId, source: "real-news" },
     };
   }
 
@@ -44,7 +65,8 @@ export async function fetchNewsRaw(options = {}) {
       blocked: false,
       message: "Mock News Repository",
       providerId: "mock",
-      mode,
+      providerName: "Mock News",
+      mode: "mock",
       items,
       meta: {
         raceDate: options.date || newsJson?.raceDate || null,
@@ -58,8 +80,9 @@ export async function fetchNewsRaw(options = {}) {
       ok: false,
       blocked: false,
       message: err?.message || "News fetch failed",
+      userMessage: "ニュース情報を取得できませんでした",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items: [],
     };
   }
@@ -79,6 +102,8 @@ function stripBodies(items = []) {
       sns: _sns,
       post: _p,
       posts: _ps,
+      article: _a,
+      fullText: _ft,
       ...rest
     } = raw || {};
     return {
@@ -95,6 +120,11 @@ function stripBodies(items = []) {
       updatedAt: rest.updatedAt || rest.publishedAt || null,
       updateCount: Number(rest.updateCount) || 1,
       importanceHint: rest.importanceHint || null,
+      providerName: rest.providerName || null,
+      freshnessScore: rest.freshnessScore ?? null,
+      importanceScore: rest.importanceScore ?? null,
+      reliabilityScore: rest.reliabilityScore ?? null,
+      coverageScore: rest.coverageScore ?? null,
     };
   });
 }

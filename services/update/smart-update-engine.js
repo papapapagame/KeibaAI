@@ -400,10 +400,11 @@ async function handleIncomingEventInner(event) {
     }
   }
 
-  // Ver8.0: News 変更時のみ再取得。変更無ければ再分析しない
+  // Ver8.0 / Ver10.4: News 変更時のみ再取得。変更無ければ再分析しない
   if (
     event?.payload?.newsOnly ||
     event?.source === "news-engine" ||
+    event?.source === "real-news" ||
     [
       "news_added",
       "news_updated",
@@ -452,10 +453,11 @@ async function handleIncomingEventInner(event) {
     }
   }
 
-  // Ver8.1: Social 変更時のみ再取得。変更無ければ再分析しない
+  // Ver8.1 / Ver10.5: Social 変更時のみ再取得。変更無ければ再分析しない
   if (
     event?.payload?.socialOnly ||
     event?.source === "social-engine" ||
+    event?.source === "real-social" ||
     [
       "social_topic_added",
       "social_spike",

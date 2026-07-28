@@ -47,3 +47,11 @@ export {
   confidenceFromSocialCompleteness,
   formatSocialStagePanel,
 } from "./social-merge.js";
+
+export {
+  getSocialMode,
+  setSocialMode,
+  SOCIAL_MODE_KEY,
+  SOCIAL_MODES,
+  SocialMode,
+} from "./social-mode.js";

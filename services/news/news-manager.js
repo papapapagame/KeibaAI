@@ -51,7 +51,11 @@ export async function loadNewsForAi(options = {}) {
       ok: false,
       blocked: false,
       message: "News Validation failed",
+      userMessage: "ニュース情報を取得できませんでした",
       providerId: fetched.providerId,
+      providerName: fetched.providerName || null,
+      providerKind: fetched.mode === "real" ? "Real" : "Mock",
+      mode: fetched.mode || "mock",
       version: NEWS_ENGINE_VERSION,
       items: [],
       validation,
@@ -60,6 +64,8 @@ export async function loadNewsForAi(options = {}) {
       sync: { status: "error" },
       aiNews: [],
       stats: emptyStats(),
+      count: 0,
+      updateCount: 0,
     };
   }
 
@@ -93,6 +99,9 @@ export async function loadNewsForAi(options = {}) {
     blocked: false,
     message: contentChanged ? "News loaded" : "News unchanged",
     providerId: fetched.providerId,
+    providerName: fetched.providerName || null,
+    providerKind: fetched.mode === "real" ? "Real" : "Mock",
+    mode: fetched.mode || "mock",
     version: NEWS_ENGINE_VERSION,
     changed: contentChanged,
     fingerprint: fp,
@@ -102,12 +111,26 @@ export async function loadNewsForAi(options = {}) {
     validation,
     stats,
     aggregate,
+    scores: fetched.scores || {
+      freshnessScore: aggregate.freshness,
+      importanceScore: aggregate.importance,
+      reliabilityScore: aggregate.reliability,
+      coverageScore: aggregate.coverage,
+      newsScore: Math.round(
+        (Number(aggregate.freshness || 0) +
+          Number(aggregate.importance || 0) +
+          Number(aggregate.reliability || 0) +
+          Number(aggregate.coverage || 0)) /
+          4
+      ),
+    },
     newsCompleteness,
     stagePanel: formatNewsStagePanel(stats, newsCompleteness),
     sync: {
       status: contentChanged ? "synced" : "skipped",
       changes: sync.changes?.length || 0,
     },
+    updateCount: fetched.meta?.updateCount ?? 0,
     count: items.length,
     fetchedAt: fetched.meta?.updatedAt || new Date().toISOString(),
     stageNote: "ニュースは構造化メタデータのみAI反映（本文非表示）",
@@ -121,6 +144,7 @@ export async function loadNewsForAi(options = {}) {
       label: "構造化データ反映中",
       payloadCount: aiNews.length,
     },
+    userMessage: null,
   };
 }
 
@@ -180,23 +204,34 @@ function emptyStats() {
 }
 
 function emptyBundle(options, fetched) {
+  const userMessage =
+    fetched?.userMessage ||
+    (fetched?.mode === "real"
+      ? "ニュース情報を取得できませんでした"
+      : fetched?.message || "ニュース情報を取得できませんでした");
   return {
     ok: false,
     blocked: Boolean(fetched?.blocked),
-    message: fetched?.message || "News 取得失敗",
+    message: fetched?.message || userMessage,
+    userMessage,
     providerId: fetched?.providerId,
+    providerName: fetched?.providerName || null,
+    providerKind: fetched?.mode === "real" ? "Real" : "Mock",
+    mode: fetched?.mode || "mock",
     version: NEWS_ENGINE_VERSION,
     items: [],
     aiNews: [],
-    validation: {
+    validation: fetched?.validation || {
       ok: false,
-      errors: [{ code: "FETCH", message: fetched?.message }],
+      errors: [{ code: "FETCH", message: fetched?.message || userMessage }],
       warnings: [],
     },
     newsCompleteness: computeNewsCompleteness([]),
     stagePanel: formatNewsStagePanel({}, null),
     sync: { status: "error" },
     stats: emptyStats(),
+    count: 0,
+    updateCount: 0,
     aiReflect: { status: "idle", label: "未反映", payloadCount: 0 },
   };
 }

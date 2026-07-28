@@ -58,7 +58,7 @@
 
   <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52 page--v53 page--v54">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.3</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.5</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
@@ -251,21 +251,26 @@
           <li>更新時刻 <span id="weather-updated">—</span></li>
         </ul>
         <p class="v73-data-block__note" id="weather-stage-note"></p>
-        <p class="v73-data-block__title">News Intelligence（Ver8.0）</p>
+        <p class="v73-data-block__title">News Intelligence（Ver8.0 / Ver10.4）</p>
         <ul class="v73-status-list v80-news-status">
-          <li>ニュース取得数 <span id="news-count">—</span></li>
-          <li>重要ニュース数 <span id="news-important">—</span></li>
-          <li>最新更新 <span id="news-updated">—</span></li>
+          <li>ニュース件数 <span id="news-count">—</span></li>
+          <li>重要ニュース件数 <span id="news-important">—</span></li>
+          <li>最終更新 <span id="news-updated">—</span></li>
+          <li>Provider <span id="news-provider-kind">—</span></li>
+          <li>News Score <span id="news-score">—</span></li>
           <li>AI反映状況 <span id="news-ai-reflect">—</span></li>
         </ul>
         <p class="v73-data-block__note">※記事本文・画像は表示しません（タイトル／カテゴリのみ）</p>
         <ul class="v73-status-list v80-news-meta-list" id="news-meta-list"></ul>
         <p class="v73-data-block__note" id="news-stage-note"></p>
-        <p class="v73-data-block__title">Social Intelligence（Ver8.1）</p>
+        <p class="v73-data-block__title">Social Intelligence（Ver8.1 / Ver10.5）</p>
         <ul class="v73-status-list v81-social-status">
-          <li>SNS解析件数 <span id="social-count">—</span></li>
-          <li>現在のトレンド <span id="social-trend">—</span></li>
+          <li>トレンド件数 <span id="social-count">—</span></li>
           <li>注目カテゴリ <span id="social-top-categories">—</span></li>
+          <li>最終更新 <span id="social-updated">—</span></li>
+          <li>Provider <span id="social-provider-kind">—</span></li>
+          <li>Trend Score <span id="social-trend-score">—</span></li>
+          <li>現在のトレンド <span id="social-trend">—</span></li>
           <li>AI反映状況 <span id="social-ai-reflect">—</span></li>
         </ul>
         <p class="v73-data-block__note">※投稿本文・画像・動画・コメントは表示しません（構造化メタのみ）</p>
@@ -491,7 +496,12 @@
           <li>更新時刻: <span id="dev-real-weather-updated">—</span></li>
         </ul>
 
-        <p class="v51-dev-panel__subtitle">News Intelligence（Ver8.0）</p>
+        <p class="v51-dev-panel__subtitle">News Intelligence（Ver8.0 / Ver10.4）</p>
+        <div class="v70-source-switch" id="news-mode-controls" role="group" aria-label="News Source">
+          <button type="button" class="v70-source-btn" data-news-mode="mock">Mock News</button>
+          <button type="button" class="v70-source-btn" data-news-mode="real">Real News</button>
+        </div>
+        <p class="v51-dev-panel__note" id="news-mode-note">Mock News を使用中</p>
         <ul class="v51-dev-list">
           <li>News Status: <span id="dev-news-status">—</span></li>
           <li>取得件数: <span id="dev-news-count">—</span></li>
@@ -500,15 +510,39 @@
           <li>同期状態: <span id="dev-news-sync">—</span></li>
           <li>最終更新: <span id="dev-news-updated">—</span></li>
         </ul>
+        <p class="v51-dev-panel__subtitle">Real News Provider（Ver10.4）</p>
+        <ul class="v51-dev-list">
+          <li>News Provider Status: <span id="dev-real-news-status">—</span></li>
+          <li>Current Provider: <span id="dev-real-news-provider">—</span></li>
+          <li>取得件数: <span id="dev-real-news-count">—</span></li>
+          <li>Validation: <span id="dev-real-news-validation">—</span></li>
+          <li>同期状態: <span id="dev-real-news-sync">—</span></li>
+          <li>更新時刻: <span id="dev-real-news-updated">—</span></li>
+        </ul>
 
-        <p class="v51-dev-panel__subtitle">Social Intelligence（Ver8.1）</p>
+        <p class="v51-dev-panel__subtitle">Social Intelligence（Ver8.1 / Ver10.5）</p>
+        <div class="v70-source-switch" id="social-mode-controls" role="group" aria-label="Social Source">
+          <button type="button" class="v70-source-btn" data-social-mode="mock">Mock Social</button>
+          <button type="button" class="v70-source-btn" data-social-mode="real">Real Social</button>
+        </div>
+        <p class="v51-dev-panel__note" id="social-mode-note">Mock Social を使用中</p>
         <ul class="v51-dev-list">
           <li>Social Status: <span id="dev-social-status">—</span></li>
           <li>Trend Status: <span id="dev-trend-status">—</span></li>
+          <li>取得件数: <span id="dev-social-count">—</span></li>
           <li>カテゴリ件数: <span id="dev-social-categories">—</span></li>
           <li>Validation状態: <span id="dev-social-validation">—</span></li>
           <li>同期状態: <span id="dev-social-sync">—</span></li>
           <li>最終更新: <span id="dev-social-updated">—</span></li>
+        </ul>
+        <p class="v51-dev-panel__subtitle">Real Social Provider（Ver10.5）</p>
+        <ul class="v51-dev-list">
+          <li>Social Provider Status: <span id="dev-real-social-status">—</span></li>
+          <li>Current Provider: <span id="dev-real-social-provider">—</span></li>
+          <li>取得件数: <span id="dev-real-social-count">—</span></li>
+          <li>Validation: <span id="dev-real-social-validation">—</span></li>
+          <li>同期状態: <span id="dev-real-social-sync">—</span></li>
+          <li>更新時刻: <span id="dev-real-social-updated">—</span></li>
         </ul>
 
         <p class="v51-dev-panel__subtitle">AI Discussion（Ver8.2）</p>
@@ -1062,7 +1096,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 10.3.0 · Real Weather</p>
+    <p>Version 10.5.0 · Real Social</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

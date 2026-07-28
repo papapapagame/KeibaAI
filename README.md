@@ -1,9 +1,9 @@
 # PAPAPA IQ KEIBA
 
-**Version 10.3.0 — Real Weather**  
-Build Date: 2026-07-28 · Build Number: 20260728.103
+**Version 10.5.0 — Real Social**  
+Build Date: 2026-07-28 · Build Number: 20260728.105
 
-実開催カレンダー・出馬表・オッズに続き、天候／馬場を Real Data へ移行した段階です。  
+実開催カレンダー・出馬表・オッズ・天候・ニュースに続き、SNSトレンドメタデータを Real Data へ移行した段階です。  
 既存評価ロジック（`js/ai-engine.js` / `js/thinking-engine.js`）は変更していません。
 
 ---
@@ -16,6 +16,7 @@ Build Date: 2026-07-28 · Build Number: 20260728.103
 - **Mock / Real Provider を設定だけで切替**（Mock は削除しない）
 - Real 取得失敗時は **自動で Mock へ切り替えない**（ユーザーへ明示）
 - Unified Model のみを AI 参照の正規データとする設計
+- **ニュース本文・SNS投稿本文・画像・動画・コメントは保存・表示・転載しない**
 
 ---
 
@@ -29,6 +30,8 @@ UI (HTML/CSS/js/*)
        ├─ provider/horse    ← Ver10.1 RealHorseProvider
        ├─ provider/odds     ← Ver10.2 RealOddsProvider
        ├─ provider/weather  ← Ver10.3 RealWeatherProvider
+       ├─ provider/news     ← Ver10.4 RealNewsProvider
+       ├─ provider/social   ← Ver10.5 RealSocialProvider
        ├─ update / entry / draw / odds / weather
        ├─ news / social / discussion / explain / knowledge
        ├─ learning / review / market / intelligence / provider
@@ -37,6 +40,78 @@ Runtime (services/runtime) — エラーガード / Prefetch 重複防止
 ```
 
 **Prediction Engine** = 既存 `ai-engine.js` + `thinking-engine.js`（非改変）
+
+---
+
+## Real Social Provider（Ver10.5）
+
+配置: `services/provider/social/`
+
+| モジュール | 責務 |
+|------------|------|
+| `RealSocialProvider` | Provider 共通 I/F |
+| `SocialFetcher` | SNSトレンド生データ取得 |
+| `SocialParser` | パース（本文破棄） |
+| `TrendMetadataExtractor` | 構造化トレンドメタ抽出 |
+| `SocialNormalizer` | Unified Social + Score |
+| `SocialValidator` | 重複・カテゴリ・投稿日時検証 |
+| `SocialSynchronizer` | 変更時のみ同期 / Smart Update |
+
+### Trend Metadata
+
+既定 URL: `data/social/real-social.json`（`REAL_SOCIAL_URL` で差し替え可）  
+
+取得: 投稿日時 / 対象レース・馬・騎手・調教師 / カテゴリ / 投稿数 / トレンド変化率 / 注目度 / 情報ソース / Provider 名  
+
+**非取得:** 投稿本文・画像・動画・コメント
+
+### Provider 切替
+
+Analysis Developer Panel: **Mock Social / Real Social**  
+失敗時は自動 Mock 切替なし（「SNS情報を取得できませんでした」）
+
+### Validation / Synchronization
+
+重複・カテゴリ不正・投稿日時異常・必須欠損は不採用。  
+急上昇トレンド・カテゴリ変化・投稿数急増・重要トレンド変更時のみ再同期・再分析。
+
+Trend / Attention / Momentum / Confidence Score は実メタデータから算出し、AI は Unified Model のみ参照。
+
+---
+
+## Real News Provider（Ver10.4）
+
+配置: `services/provider/news/`
+
+| モジュール | 責務 |
+|------------|------|
+| `RealNewsProvider` | Provider 共通 I/F |
+| `NewsFetcher` | ニュース生データ取得 |
+| `NewsParser` | パース（本文破棄） |
+| `NewsMetadataExtractor` | 構造化メタデータ抽出 |
+| `NewsNormalizer` | Unified News + Score |
+| `NewsValidator` | 重複・カテゴリ・公開日時検証 |
+| `NewsSynchronizer` | 変更時のみ同期 / Smart Update |
+
+### News Metadata
+
+既定 URL: `data/news/real-news.json`（`REAL_NEWS_URL` で差し替え可）  
+
+取得: タイトル / 公開・更新日時 / 対象レース・馬・騎手・調教師 / カテゴリ / 重要度 / 情報ソース / Provider 名  
+
+**非取得:** 記事本文・画像・記事全文
+
+### Provider 切替
+
+Analysis Developer Panel: **Mock News / Real News**  
+失敗時は自動 Mock 切替なし（「ニュース情報を取得できませんでした」）
+
+### Validation / Synchronization
+
+重複・カテゴリ不正・公開日時異常・必須欠損は不採用。  
+新着記事・記事更新・取消関連・重要ニュース変更時のみ再同期・再分析。
+
+Freshness / Importance / Reliability / Coverage Score は実メタデータから算出し、AI は Unified Model のみ参照。
 
 ---
 
@@ -213,11 +288,15 @@ KeibaAI/
       horse/                # Ver10.1 Real Horse Entry
       odds/                 # Ver10.2 Real Odds
       weather/              # Ver10.3 Real Weather
+      news/                 # Ver10.4 Real News
+      social/               # Ver10.5 Real Social
       providers/mock-provider.js
     calendar/
     entry/
     odds/
     weather/
+    news/
+    social/
     models/unified.js
     ...
   data/
@@ -232,6 +311,12 @@ KeibaAI/
     weather/
       mock-weather.json
       real-weather.json
+    news/
+      mock-news.json
+      real-news.json
+    social/
+      mock-social.json
+      real-social.json
 ```
 
 ---
@@ -244,6 +329,8 @@ KeibaAI/
 | Real Horse Entry | 10.1 | 実出馬表取得 |
 | Real Odds | 10.2 | 実オッズ／人気取得 |
 | Real Weather | 10.3 | 実天候／馬場取得 |
+| Real News | 10.4 | 実ニュースメタデータ取得 |
+| Real Social | 10.5 | 実SNSトレンドメタデータ取得 |
 | Calendar | 7.1+ | 開催日・Stage（Mock/Real） |
 | Smart Update | 7.2 | 変更時のみ再分析 |
 | Entry〜Knowledge | 7.6–8.4 | 既存機能維持 |

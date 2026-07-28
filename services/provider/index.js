@@ -80,3 +80,5 @@ export * from "./race/index.js";
 export * from "./horse/index.js";
 export * from "./odds/index.js";
 export * from "./weather/index.js";
+export * from "./news/index.js";
+export * from "./social/index.js";

@@ -506,6 +506,42 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver10.5 - Real Social Intelligence（実装済）
+
+テーマ：SNSトレンド情報を Real Data 化する（投稿本文・画像・動画は取得しない）
+
+### 実装内容
+
+- RealSocialProvider（Fetch / Parse / TrendMetadataExtractor / Normalize / Validate / Synchronize）
+- Social Intelligence（Ver8.1）連携・Trend/Attention/Momentum/Confidence を実データ算出
+- Smart Update: 急上昇・カテゴリ変化・投稿数急増・重要トレンド変更時のみ再取得
+- 失敗時は Mock 自動切替なし（「SNS情報を取得できませんでした」）
+
+### データ
+
+- Mock: `data/social/mock-social.json`（維持）
+- Real: `data/social/real-social.json`
+
+---
+
+## Ver10.4 - Real News（実装済）
+
+テーマ：ニュース情報を Real Data 化する（本文・画像は取得しない）
+
+### 実装内容
+
+- RealNewsProvider（Fetch / Parse / MetadataExtractor / Normalize / Validate / Synchronize）
+- News Intelligence（Ver8.0）連携・Freshness/Importance/Reliability/Coverage を実データ算出
+- Smart Update: 新着・更新・取消・重要ニュース変更時のみ再取得
+- 失敗時は Mock 自動切替なし（「ニュース情報を取得できませんでした」）
+
+### データ
+
+- Mock: `data/news/mock-news.json`（維持）
+- Real: `data/news/real-news.json`
+
+---
+
 ## Ver10.3 - Real Weather（実装済）
 
 テーマ：実際の天候・馬場状態を取得してAIへ反映する
@@ -668,5 +704,7 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver10.1 Real Horse Entry で出馬表の Real 化を完了する。
 - Ver10.2 Real Odds でオッズ／人気の Real 化を完了する。
 - Ver10.3 Real Weather で天候／馬場の Real 化を完了する。
+- Ver10.4 Real News でニュースメタデータの Real 化を完了する。
+- Ver10.5 Real Social で SNS トレンドメタデータの Real 化を完了する。
 - Ver9.1+ / 以降で高度なAI分析機能を追加する。
 - 正式リリース版へ向けて Real Provider を拡張する。
