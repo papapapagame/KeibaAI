@@ -1,5 +1,6 @@
 /* ========================================
-   SmartUpdateEngine — Ver7.2
+   SmartUpdateEngine — Ver7.2 / Ver10.6
+   変更検知のみ再取得・再解析（重複禁止）
    ======================================== */
 
 import { computeNextUpdateAt, isScheduleDue, resolveSchedulePhase, phaseLabel } from "./update-scheduler.js";

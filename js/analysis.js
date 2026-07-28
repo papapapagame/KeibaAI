@@ -132,7 +132,9 @@ import {
   guardAsync,
   guardSync,
   getErrorStats,
-} from "../services/runtime/service-guard.js";
+  getProductionHealth,
+  getProviderIntegrationReport,
+} from "../services/runtime/index.js";
 import {
   appendLines,
   applyCardStagger,
@@ -1007,6 +1009,7 @@ export async function initAnalysisPage() {
         perfStarted
     ),
     knowledgeSkipped: Boolean(knowledgeBundle?.syncSkipped),
+    completeness: document.getElementById("dc-overall")?.textContent || null,
   });
 
   // Ver5.5: 予想スナップショットを Learning DB へ蓄積（ロジック書換なし）
@@ -2740,7 +2743,103 @@ function bindReleaseRcUi(meta = {}) {
     "dev-rc-note",
     meta.knowledgeSkipped
       ? "Knowledge sync skipped (unchanged)"
-      : "RC quality guards active"
+      : "Production quality guards active"
+  );
+  bindProductionIntegrationUi(meta).catch(() => {});
+}
+
+async function bindProductionIntegrationUi(meta = {}) {
+  let health = null;
+  try {
+    health = await getProductionHealth({ refreshProviders: true });
+  } catch {
+    health = null;
+  }
+  const integration =
+    health?.integration || getProviderIntegrationReport();
+  const modes = health?.currentProviders;
+  const completeness =
+    meta.completeness != null
+      ? meta.completeness
+      : document.getElementById("dc-overall")?.textContent || "—";
+
+  setText(
+    "prod-current-provider",
+    modes?.label || health?.currentProviders?.label || "—"
+  );
+  setText(
+    "prod-provider-mix",
+    modes?.mix || health?.currentProviders?.mix || "—"
+  );
+  setText(
+    "prod-success-rate",
+    health?.successRate?.label || "—"
+  );
+  setText(
+    "prod-data-completeness",
+    typeof completeness === "number" ? `${completeness}%` : String(completeness)
+  );
+  setText(
+    "prod-provider-health",
+    health?.providerHealth?.label
+      ? `${health.providerHealth.label} (${health.providerHealth.detail})`
+      : "—"
+  );
+  setText(
+    "prod-system-health",
+    health?.systemHealth
+      ? `${health.systemHealth.label} / ${health.systemHealth.score}`
+      : "—"
+  );
+  setText(
+    "prod-integration-note",
+    health?.integration?.note || integration?.note || ""
+  );
+
+  // Developer Panel
+  setText(
+    "dev-system-health",
+    health?.systemHealth
+      ? `${health.systemHealth.label} (${health.systemHealth.score})`
+      : "—"
+  );
+  setText(
+    "dev-provider-health",
+    health?.providerHealth?.detail || "—"
+  );
+  setText(
+    "dev-cache-status",
+    health?.cache
+      ? `${health.cache.statusLabel} mem:${health.cache.memoryCount} local:${health.cache.localCount}`
+      : "—"
+  );
+  setText(
+    "dev-memory-status",
+    health?.memory
+      ? `${health.memory.statusLabel} keys:${health.memory.size}`
+      : "—"
+  );
+  setText(
+    "dev-update-queue",
+    health?.updateQueue
+      ? `${health.updateQueue.length} / ${health.updateQueue.statusLabel}`
+      : "—"
+  );
+  setText(
+    "dev-error-count",
+    health?.errors
+      ? `E${health.errors.errorCount} W${health.errors.warningCount} R${health.errors.recoveries}`
+      : "—"
+  );
+  setText(
+    "dev-prod-integration",
+    integration?.ok
+      ? `OK ${integration.enabledCount}/${integration.expectedCount}`
+      : `NG ${integration?.enabledCount ?? 0}/${integration?.expectedCount ?? 6}`
+  );
+  setText(
+    "dev-prod-success-rate",
+    health?.successRate?.label || "—"
   );
 }
 
@@ -3076,6 +3175,7 @@ function bindUpdateStatusUi() {
   setText("dev-auto-update", status.autoUpdate ? "ON" : "OFF");
   setText("dev-scheduler-phase", status.schedule?.phaseLabel || "—");
   setText("dev-watch-count", String((status.watchTargets || []).length));
+  setText("dev-update-queue", String(status.queueLength ?? 0));
   if (status.lastReason && status.lastReason !== "—") {
     setText("ai-update-reason", status.lastReason);
   }

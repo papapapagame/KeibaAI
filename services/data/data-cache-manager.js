@@ -86,6 +86,34 @@ export function getCacheStats() {
   };
 }
 
+/** TTL 切れキャッシュを破棄（Ver10.6） */
+export function purgeExpiredCache(now = Date.now()) {
+  let removed = 0;
+  const meta = listCacheMeta();
+  for (const [key, info] of Object.entries(meta)) {
+    const ttl = Number(info?.ttlMs) || DATA_CACHE_TTL_MS;
+    if (isExpired(info?.fetchedAt, ttl) || isExpiredByNow(info?.fetchedAt, ttl, now)) {
+      clearCache(key);
+      removed += 1;
+    }
+  }
+  for (const [key, entry] of [...memory.entries()]) {
+    const ttl = Number(entry?.ttlMs) || DATA_CACHE_TTL_MS;
+    if (isExpired(entry?.fetchedAt, ttl)) {
+      memory.delete(key);
+      removed += 1;
+    }
+  }
+  return { removed, at: new Date().toISOString() };
+}
+
+function isExpiredByNow(fetchedAt, ttlMs, now) {
+  if (!fetchedAt) return true;
+  const t = Date.parse(fetchedAt);
+  if (!Number.isFinite(t)) return true;
+  return now - t > ttlMs;
+}
+
 function isExpired(fetchedAt, ttlMs) {
   if (!fetchedAt) return true;
   const t = Date.parse(fetchedAt);
@@ -153,6 +181,7 @@ export const DataCacheManager = {
   read: readCache,
   write: writeCache,
   clear: clearCache,
+  purgeExpired: purgeExpiredCache,
   stats: getCacheStats,
   listMeta: listCacheMeta,
 };

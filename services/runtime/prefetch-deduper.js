@@ -26,7 +26,16 @@ export function clearPrefetchMemory() {
   memory.clear();
 }
 
+export function getPrefetchMemoryStats() {
+  return {
+    size: memory.size,
+    keys: [...memory.keys()].slice(0, 20),
+    maxKeys: 80,
+  };
+}
+
 export const PrefetchDeduper = {
   should: shouldPrefetch,
   clear: clearPrefetchMemory,
+  stats: getPrefetchMemoryStats,
 };

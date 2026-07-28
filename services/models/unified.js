@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "10.5.0";
+export const UNIFIED_VERSION = "10.6.0";
 
 /** Ver10.3 Weather — 天候 Unified Model */
 export function createWeather(raw = {}) {

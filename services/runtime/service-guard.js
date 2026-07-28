@@ -111,17 +111,23 @@ export function guardSync(scope, fn, fallbackValue = null, userMessage = "") {
 
 function defaultUserMessage(scope, err) {
   const msg = String(err?.message || "");
-  if (/timeout/i.test(msg)) {
+  if (/timeout|タイムアウト/i.test(msg)) {
     return "通信がタイムアウトしました。しばらくしてから再試行してください。";
   }
   if (/network|fetch|Failed to fetch/i.test(msg)) {
-    return "データ取得に失敗しました。接続を確認するか Mock モードで再試行してください。";
+    return "データ取得に失敗しました。接続を確認するか、設定から Mock / Real を切り替えてください。";
   }
   if (/valid/i.test(msg)) {
     return "データの検証に失敗しました。不正なデータは分析から除外されています。";
   }
   if (/provider/i.test(msg) || /未接続/.test(msg)) {
-    return "Provider に接続できません。現在は Mock データで継続します。";
+    return "Provider からデータを取得できませんでした。設定から Mock / Real を確認してください。";
+  }
+  if (/parse|parser|JSON/i.test(msg)) {
+    return "データの解析に失敗しました。不正な応答は採用していません。";
+  }
+  if (/normaliz/i.test(msg)) {
+    return "データの正規化に失敗しました。対象データは分析から除外されています。";
   }
   return `処理中に問題が発生しました（${scope}）。表示可能な範囲で継続します。`;
 }

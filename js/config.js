@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.5.0 Real Social
+   Ver10.6.0 Production Integration
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.5.0";
-export const RELEASE_CHANNEL = "Real Social";
+export const VERSION = "10.6.0";
+export const RELEASE_CHANNEL = "Production Integration";
 export const BUILD_DATE = "2026-07-28";
-export const BUILD_NUMBER = "20260728.105";
+export const BUILD_NUMBER = "20260728.106";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -157,6 +157,9 @@ export const REAL_NEWS_VERSION = "10.4.0";
 
 /** Real Social（services/provider/social） */
 export const REAL_SOCIAL_VERSION = "10.5.0";
+
+/** Production Integration（services/runtime） */
+export const PRODUCTION_INTEGRATION_VERSION = "10.6.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;
