@@ -14,6 +14,9 @@ import {
   getSessionInfo,
   validateDateSelection,
   validateVenueSelection,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
+  jstTodayIso,
 } from "../services/calendar/index.js";
 import { connectRaceData } from "../services/race-connect/index.js";
 import { listRealRacesFor } from "../services/provider/race/index.js";
@@ -26,6 +29,7 @@ import { loadSocialForAi } from "../services/social/index.js";
 import {
   findPastRaceRecord,
   isPastRaceDate,
+  isAccessiblePastRaceDate,
 } from "../services/review/past-race-report.js";
 import { shouldPrefetch } from "../services/runtime/prefetch-deduper.js";
 import {
@@ -79,6 +83,9 @@ export async function initTopPage(goRaceListButton) {
   }
 
   const meetingSet = cal.meetingDateSet || new Set();
+  const accessibleSet = cal.accessibleDateSet || new Set(
+    [...meetingSet].filter((d) => isWithinRetentionWindow(d))
+  );
 
   function prefetchIntel(date, venueId) {
     const key = `intel:${date || ""}:${venueId || ""}`;
@@ -103,7 +110,9 @@ export async function initTopPage(goRaceListButton) {
     const grid = document.getElementById("cal-grid");
     if (!grid) return;
     clearElement(grid);
-    const cells = buildMonthCells(viewYear, viewMonth, meetingSet);
+    const cells = buildMonthCells(viewYear, viewMonth, meetingSet, {
+      accessibleDateSet: accessibleSet,
+    });
     const selected = raceDateInput.value;
     for (const cell of cells) {
       if (cell.type === "pad") {
@@ -119,10 +128,15 @@ export async function initTopPage(goRaceListButton) {
       if (!cell.selectable) {
         btn.classList.add("is-disabled");
         btn.disabled = true;
-        btn.title = "非開催日";
+        if (cell.expired) {
+          btn.classList.add("is-expired");
+          btn.title = retentionBlockedMessage();
+        } else {
+          btn.title = "非開催日";
+        }
       } else {
         btn.classList.add("is-meeting");
-        btn.title = "開催日";
+        btn.title = isPastRaceDate(cell.date) ? "過去開催（振り返り可）" : "開催日";
       }
       if (cell.date === selected) btn.classList.add("is-selected");
       btn.addEventListener("click", () => {
@@ -205,17 +219,12 @@ export async function initTopPage(goRaceListButton) {
     }
   });
 
-  // 初期: 今日以降の直近開催日（なければ最新開催日）
-  const todayIso = (() => {
-    const n = new Date();
-    const jst = new Date(n.getTime() + 9 * 60 * 60 * 1000);
-    return jst.toISOString().slice(0, 10);
-  })();
-  const sortedMeetings = [...meetingSet].sort();
+  // 初期: 今日以降の直近開催日（なければ保持期間内の最新開催日）
+  const todayIso = jstTodayIso();
+  const sortedAccessible = [...accessibleSet].sort();
   const defaultDate =
-    sortedMeetings.find((d) => d >= todayIso) ||
-    sortedMeetings[sortedMeetings.length - 1] ||
-    sortedMeetings[0] ||
+    sortedAccessible.find((d) => d >= todayIso) ||
+    sortedAccessible[sortedAccessible.length - 1] ||
     "";
   if (defaultDate && cal.ok) {
     raceDateInput.value = defaultDate;
@@ -460,6 +469,25 @@ export async function initRaceListPage() {
   document.getElementById("display-date").textContent = raceDate || "未選択";
   document.getElementById("display-venue").textContent = venueLabel || "未選択";
 
+  if (raceDate && !isWithinRetentionWindow(raceDate)) {
+    const listError = document.getElementById("list-error");
+    if (listError) {
+      listError.hidden = false;
+      listError.textContent = retentionBlockedMessage();
+    }
+    const listEl = document.getElementById("race-list");
+    if (listEl) {
+      clearElement(listEl);
+      listEl.appendChild(
+        createElement("p", {
+          className: "paper-section__lead",
+          text: retentionBlockedMessage(),
+        })
+      );
+    }
+    return;
+  }
+
   if (mode !== "real") {
     await connectRaceData({ emitUpdate: false, silent: true });
   }
@@ -598,8 +626,32 @@ export async function initRaceDetailPage() {
   const raceId = params.get("raceId") || "";
   const stage = Number(params.get("stage") || 5) || 5;
 
-  // 過去レースかつ結果あり → 振り返りページへ
-  if (isPastRaceDate(raceDate)) {
+  // 保持期間外の過去開催は一覧・詳細とも閲覧不可
+  if (raceDate && !isWithinRetentionWindow(raceDate)) {
+    document.getElementById("detail-date").textContent = raceDate || "未選択";
+    document.getElementById("detail-venue").textContent = venueLabel || "未選択";
+    document.getElementById("detail-race-number").textContent = raceNumber
+      ? `${raceNumber}R`
+      : "-";
+    document.getElementById("detail-race-name").textContent = raceName || "-";
+    document.getElementById("detail-race-time").textContent = raceTime || "-";
+    const tbody = document.getElementById("entry-table-body");
+    clearElement(tbody);
+    const tr = document.createElement("tr");
+    const td = createElement("td", {
+      className: "entry-empty",
+      text: retentionBlockedMessage(),
+      attrs: { colspan: "7" },
+    });
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    const pastBtn = document.getElementById("go-past-race");
+    if (pastBtn) pastBtn.hidden = true;
+    return;
+  }
+
+  // 過去レースかつ結果あり（保持期間内）→ 振り返りページへ
+  if (isAccessiblePastRaceDate(raceDate)) {
     const past = await findPastRaceRecord({
       date: raceDate,
       venueId: raceVenue,
@@ -688,7 +740,7 @@ export async function initRaceDetailPage() {
 
   const pastBtn = document.getElementById("go-past-race");
   if (pastBtn) {
-    if (isPastRaceDate(raceDate)) {
+    if (isAccessiblePastRaceDate(raceDate)) {
       pastBtn.hidden = false;
       pastBtn.addEventListener("click", () => {
         const pastParams = new URLSearchParams({

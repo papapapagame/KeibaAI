@@ -1,5 +1,5 @@
 /* ========================================
-   Past Race Report — Ver10.9.2
+   Past Race Report — Ver10.9.3
    過去レース: 結果 / レース前AI評価 / 勝因 / 推奨外れ考察
    （ai-engine.js 非改変）
    ======================================== */
@@ -10,8 +10,14 @@ import { analyzeLosers } from "./loser-analyzer.js";
 import { analyzeRaceFlow } from "./race-flow-analyzer.js";
 import { integrateSources } from "./review-sources.js";
 import { toNum } from "./utils.js";
+import {
+  jstTodayIso,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
+  PAST_MEETING_RETENTION_WEEKS,
+} from "../calendar/retention-window.js";
 
-export const PAST_RACE_REPORT_VERSION = "10.9.2";
+export const PAST_RACE_REPORT_VERSION = "10.9.3";
 
 /** 複勝圏外 = 馬券外（4着以下） */
 const OUT_OF_MONEY_FINISH = 4;
@@ -25,11 +31,12 @@ export function isPastRaceDate(dateIso = "") {
   return d < today;
 }
 
-export function jstTodayIso() {
-  const n = new Date();
-  const jst = new Date(n.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().slice(0, 10);
+/** 過去かつ保持期間内（カレンダー選択・振り返り閲覧可） */
+export function isAccessiblePastRaceDate(dateIso = "") {
+  return isPastRaceDate(dateIso) && isWithinRetentionWindow(dateIso);
 }
+
+export { jstTodayIso, isWithinRetentionWindow, retentionBlockedMessage, PAST_MEETING_RETENTION_WEEKS };
 
 export async function loadPastRaceCatalog(force = false) {
   if (cachedCatalog && !force) return cachedCatalog;
@@ -53,26 +60,46 @@ export async function findPastRaceRecord(options = {}) {
   const venueId = String(options.venueId || options.venue || "").toLowerCase();
   const raceNumber = Number(options.raceNumber || options.race || 0);
   const raceId = String(options.raceId || "").trim();
+  const allowExpired = Boolean(options.allowExpired);
 
+  let hit = null;
   if (raceId) {
-    const byId = races.find((r) => String(r.raceId) === raceId);
-    if (byId) return byId;
+    hit = races.find((r) => String(r.raceId) === raceId) || null;
   }
+  if (!hit) {
+    hit =
+      races.find(
+        (r) =>
+          (!date || r.date === date) &&
+          (!venueId || String(r.venueId).toLowerCase() === venueId) &&
+          (!raceNumber || Number(r.raceNumber) === raceNumber)
+      ) || null;
+  }
+  if (!hit) return null;
 
-  return (
-    races.find(
-      (r) =>
-        (!date || r.date === date) &&
-        (!venueId || String(r.venueId).toLowerCase() === venueId) &&
-        (!raceNumber || Number(r.raceNumber) === raceNumber)
-    ) || null
-  );
+  const hitDate = String(hit.date || date || "").slice(0, 10);
+  if (!allowExpired && hitDate && !isWithinRetentionWindow(hitDate)) {
+    return null;
+  }
+  return hit;
 }
 
 /**
  * 過去レース振り返りレポートを構築
  */
 export async function buildPastRaceReport(options = {}) {
+  const dateHint = String(options.date || options.raceDate || "").slice(0, 10);
+  if (dateHint && !isWithinRetentionWindow(dateHint)) {
+    return {
+      ok: false,
+      available: false,
+      expired: true,
+      version: PAST_RACE_REPORT_VERSION,
+      message: retentionBlockedMessage(),
+      userMessage: retentionBlockedMessage(),
+    };
+  }
+
   const record = options.record || (await findPastRaceRecord(options));
   if (!record || !Array.isArray(record.results) || !record.results.length) {
     return {
@@ -81,6 +108,17 @@ export async function buildPastRaceReport(options = {}) {
       version: PAST_RACE_REPORT_VERSION,
       message: "このレースの結果データはまだありません",
       userMessage: "このレースの結果データはまだありません",
+    };
+  }
+
+  if (!isWithinRetentionWindow(record.date)) {
+    return {
+      ok: false,
+      available: false,
+      expired: true,
+      version: PAST_RACE_REPORT_VERSION,
+      message: retentionBlockedMessage(),
+      userMessage: retentionBlockedMessage(),
     };
   }
 
@@ -356,5 +394,9 @@ export const PastRaceReport = {
   find: findPastRaceRecord,
   loadCatalog: loadPastRaceCatalog,
   isPast: isPastRaceDate,
+  isAccessible: isAccessiblePastRaceDate,
+  isWithinRetention: isWithinRetentionWindow,
+  retentionMessage: retentionBlockedMessage,
+  retentionWeeks: PAST_MEETING_RETENTION_WEEKS,
   version: PAST_RACE_REPORT_VERSION,
 };

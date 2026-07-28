@@ -123,6 +123,14 @@ export function toEntryRecord(raw = {}, options = {}) {
     raw._rawJockey ??
     (typeof raw.jockey === "object" ? raw.jockey?.name : raw.jockey);
   const rawWeight = raw._rawWeight ?? raw.weight ?? raw.carriedWeight;
+  const rawOdds = raw._rawOdds ?? raw.odds;
+  const rawPopularity = raw._rawPopularity ?? raw.popularity;
+  const marketOk =
+    keep &&
+    stage >= 2 &&
+    rawOdds != null &&
+    Number.isFinite(Number(rawOdds)) &&
+    Number(rawOdds) > 1;
 
   return {
     horseId: raw.horseId || `H${String(raw.number).padStart(2, "0")}`,
@@ -153,22 +161,29 @@ export function toEntryRecord(raw = {}, options = {}) {
     stars: Number(raw.stars) || 0,
     entryStatus: status,
     entryStatusLabel: ENTRY_STATUS_LABEL[status],
-    frame: frameOk ? rawFrame : null,
-    jockey: jockeyOk ? rawJockey || null : null,
+    frame: frameOk ? rawFrame : keep && stage >= 2 ? rawFrame : null,
+    jockey: jockeyOk
+      ? rawJockey || null
+      : keep && stage >= 2
+        ? rawJockey || null
+        : null,
     jockeyId: raw.jockeyId || raw._rawJockeyId || null,
-    weight: weightOk ? rawWeight : null,
+    weight: weightOk ? rawWeight : keep && stage >= 2 ? rawWeight : null,
     carriedWeight: raw.carriedWeight ?? rawWeight ?? null,
-    odds: null,
-    popularity: null,
+    odds: marketOk ? Number(rawOdds) : null,
+    popularity:
+      marketOk && rawPopularity != null ? Number(rawPopularity) : null,
     _frameUnconfirmed: !frameOk,
     _jockeyUnconfirmed: !jockeyOk,
     _weightUnconfirmed: !weightOk,
-    _oddsUnconfirmed: true,
+    _oddsUnconfirmed: !marketOk || stage < 6,
     _rawFrame: rawFrame,
     _rawJockey: rawJockey,
     _rawJockeyId: raw.jockeyId || raw._rawJockeyId || null,
     _rawWeight: rawWeight,
     _rawCarriedWeight: raw.carriedWeight ?? rawWeight,
+    _rawOdds: rawOdds,
+    _rawPopularity: rawPopularity,
     _removed: Boolean(raw._removed),
     _providerMode: keep ? "real" : "mock",
   };

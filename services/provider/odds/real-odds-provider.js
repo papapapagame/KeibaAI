@@ -15,6 +15,7 @@ import { getOddsUpdateCount } from "./odds-history-manager.js";
 import {
   hasRaceScope,
   raceScopeMatches,
+  selectRaceCard,
 } from "../live/race-scope.js";
 
 export const REAL_ODDS_PROVIDER_ID = "real-odds";
@@ -39,7 +40,34 @@ export class RealOddsProvider extends ProviderInterface {
     this.setHealth(PROVIDER_HEALTH.WAITING);
     try {
       const fetched = await fetchOddsRawData(options);
-      const parsed = parseOddsRaw(fetched.raw, this.id);
+      const card = selectRaceCard(fetched.raw, options);
+      if (hasRaceScope(options) && !card) {
+        this.setHealth(PROVIDER_HEALTH.ERROR);
+        return {
+          ok: false,
+          blocked: false,
+          providerId: this.id,
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
+          validation: {
+            ok: false,
+            errors: [
+              {
+                code: "RACE_SCOPE",
+                message: "対象レースのオッズがありません",
+              },
+            ],
+            warnings: [],
+          },
+          odds: [],
+          items: [],
+          fetchedAt: fetched.fetchedAt,
+          latencyMs: Math.round(performance.now() - started),
+          source: "real-odds",
+          mode: "real",
+        };
+      }
+      const parsed = parseOddsRaw(card || fetched.raw, this.id);
       if (hasRaceScope(options) && !raceScopeMatches(parsed.meta || {}, options)) {
         this.setHealth(PROVIDER_HEALTH.ERROR);
         return {

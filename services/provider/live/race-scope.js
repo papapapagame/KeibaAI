@@ -46,3 +46,37 @@ export function hasRaceScope(options = {}) {
       (options.number != null && options.number !== "")
   );
 }
+
+/**
+ * 単一レース or races[] カタログから対象カードを選ぶ。
+ * カタログで不一致なら null。
+ */
+export function selectRaceCard(raw = {}, options = {}) {
+  if (!raw || typeof raw !== "object") return null;
+  const races = Array.isArray(raw.races) ? raw.races : null;
+  if (races && races.length) {
+    if (!hasRaceScope(options)) return races[0] || null;
+    return (
+      races.find((r) =>
+        raceScopeMatches(
+          {
+            raceDate: r.raceDate || r.date || null,
+            venueId: r.venueId || r.venue || null,
+            raceNumber: r.raceNumber ?? r.number ?? null,
+            raceId: r.raceId || r.id || null,
+          },
+          options
+        )
+      ) || null
+    );
+  }
+
+  if (!hasRaceScope(options)) return raw;
+  const meta = {
+    raceDate: raw.raceDate || raw.date || null,
+    venueId: raw.venueId || raw.venue || null,
+    raceNumber: raw.raceNumber ?? raw.number ?? null,
+    raceId: raw.raceId || raw.id || null,
+  };
+  return raceScopeMatches(meta, options) ? raw : null;
+}

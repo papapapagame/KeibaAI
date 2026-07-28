@@ -15,6 +15,7 @@ import { normalizeHorseEntries } from "./horse-entry-normalizer.js";
 import {
   hasRaceScope,
   raceScopeMatches,
+  selectRaceCard,
 } from "../live/race-scope.js";
 
 export const REAL_HORSE_PROVIDER_ID = "real-horse";
@@ -43,7 +44,33 @@ export class RealHorseProvider extends ProviderInterface {
     this.setHealth(PROVIDER_HEALTH.WAITING);
     try {
       const fetched = await fetchHorseEntryRaw(options);
-      const parsed = parseHorseEntryRaw(fetched.raw, this.id);
+      const card = selectRaceCard(fetched.raw, options);
+      if (hasRaceScope(options) && !card) {
+        this.setHealth(PROVIDER_HEALTH.ERROR);
+        return {
+          ok: false,
+          blocked: false,
+          providerId: this.id,
+          message: "現在データを取得できません",
+          userMessage: "現在データを取得できません",
+          validation: {
+            ok: false,
+            errors: [
+              {
+                code: "RACE_SCOPE",
+                message: "対象レースの出馬表がありません",
+              },
+            ],
+            warnings: [],
+          },
+          entries: [],
+          fetchedAt: fetched.fetchedAt,
+          latencyMs: Math.round(performance.now() - started),
+          source: "real-horse",
+          mode: "real",
+        };
+      }
+      const parsed = parseHorseEntryRaw(card || fetched.raw, this.id);
       if (hasRaceScope(options) && !raceScopeMatches(parsed.meta || {}, options)) {
         this.setHealth(PROVIDER_HEALTH.ERROR);
         return {

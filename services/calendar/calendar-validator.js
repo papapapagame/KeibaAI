@@ -2,6 +2,11 @@
    CalendarValidator — Ver7.1
    ======================================== */
 
+import {
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
+} from "./retention-window.js";
+
 export function validateCalendarPayload(payload) {
   const errors = [];
   const warnings = [];
@@ -55,6 +60,9 @@ export function validateDateSelection(meetings, date) {
   if (!date) return { ok: false, message: "開催日を選択してください" };
   const hit = (meetings || []).some((m) => m.date === date);
   if (!hit) return { ok: false, message: "非開催日は選択できません" };
+  if (!isWithinRetentionWindow(date)) {
+    return { ok: false, message: retentionBlockedMessage() };
+  }
   return { ok: true, message: "" };
 }
 

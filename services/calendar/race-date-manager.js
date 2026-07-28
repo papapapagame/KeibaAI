@@ -32,25 +32,30 @@ export function getDateRange(meetings = []) {
   return { min: dates[0], max: dates[dates.length - 1] };
 }
 
-export function buildMonthCells(year, month, meetingDateSet) {
+export function buildMonthCells(year, month, meetingDateSet, options = {}) {
   // month: 1-12
   const first = new Date(year, month - 1, 1);
   const startPad = first.getDay(); // 0 Sun
   const daysInMonth = new Date(year, month, 0).getDate();
   const cells = [];
+  const accessibleSet =
+    options.accessibleDateSet instanceof Set ? options.accessibleDateSet : null;
 
   for (let i = 0; i < startPad; i += 1) {
     cells.push({ type: "pad", date: null, selectable: false });
   }
   for (let d = 1; d <= daysInMonth; d += 1) {
     const date = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const selectable = meetingDateSet.has(date);
+    const isMeetingDay = meetingDateSet.has(date);
+    const withinRetention = accessibleSet ? accessibleSet.has(date) : isMeetingDay;
+    const selectable = isMeetingDay && withinRetention;
     cells.push({
       type: "day",
       day: d,
       date,
       selectable,
-      isMeetingDay: selectable,
+      isMeetingDay,
+      expired: isMeetingDay && !selectable,
     });
   }
   return cells;

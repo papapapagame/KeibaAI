@@ -5531,6 +5531,12 @@ body.has-home-fab .scroll-top {
   cursor: not-allowed;
 }
 
+.v71-cal__day.is-expired {
+  opacity: 0.28;
+  text-decoration: line-through;
+  color: rgba(255, 248, 230, 0.28);
+}
+
 .v71-cal__day.is-meeting {
   color: var(--gold-bright);
   border-color: rgba(201, 162, 39, 0.35);

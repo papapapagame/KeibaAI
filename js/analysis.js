@@ -96,6 +96,8 @@ import {
   getRaceAnalysisContext,
   prepareAiInput,
   getCalendarMode,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
 } from "../services/calendar/index.js";
 import {
   startSmartUpdateEngine,
@@ -216,6 +218,18 @@ export async function initAnalysisPage() {
 
   const raceNumber = Number(params.get("race") || 0);
   const forceError = params.get("forceError") === "1";
+  const analysisDate = params.get("date") || "";
+
+  if (analysisDate && !isWithinRetentionWindow(analysisDate)) {
+    const banner = document.getElementById("data-error-banner");
+    const detail = document.getElementById("data-error-detail");
+    if (banner) {
+      banner.classList.add("is-visible");
+      banner.hidden = false;
+    }
+    if (detail) detail.textContent = retentionBlockedMessage();
+    return;
+  }
 
   // Ver7.5 Race Data Connect（Horse/Odds 対象外）→ Calendar 同期
   const raceConnect = await connectRaceData({

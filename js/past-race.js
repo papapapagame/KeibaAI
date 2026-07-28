@@ -5,6 +5,8 @@
 import {
   buildPastRaceReport,
   isPastRaceDate,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
   PAST_RACE_REPORT_VERSION,
 } from "../services/review/past-race-report.js";
 import {
@@ -47,6 +49,16 @@ export async function initPastRacePage() {
     race ? `${race}R ${name || ""}`.trim() : name || "—"
   );
 
+  if (date && !isWithinRetentionWindow(date)) {
+    const err = document.getElementById("past-error");
+    if (err) {
+      err.hidden = false;
+      err.textContent = retentionBlockedMessage();
+    }
+    setText("past-summary", retentionBlockedMessage());
+    return;
+  }
+
   const report = await buildPastRaceReport({
     date,
     venueId: venue,
@@ -63,9 +75,11 @@ export async function initPastRacePage() {
     }
     setText(
       "past-summary",
-      isPastRaceDate(date)
-        ? "この開催日は過去ですが、結果データが未登録です。"
-        : "過去レースの結果データが見つかりません。"
+      report.expired
+        ? retentionBlockedMessage()
+        : isPastRaceDate(date)
+          ? "この開催日は過去ですが、結果データが未登録です。"
+          : "過去レースの結果データが見つかりません。"
     );
     return;
   }

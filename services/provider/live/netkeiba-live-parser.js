@@ -186,6 +186,7 @@ export function mergeRaceListPayloads(payloads = []) {
 
 /**
  * shutuba markdown → entries raw JSON
+ * 枠順確定前（枠・馬番が空）の出馬表にも対応
  */
 export function parseShutubaMarkdown(text = "", options = {}) {
   const raceMeta = extractRaceHeader(text, options.raceId);
@@ -193,7 +194,7 @@ export function parseShutubaMarkdown(text = "", options = {}) {
   const lines = String(text || "").split(/\r?\n/);
 
   for (const line of lines) {
-    if (!/^\|\s*\d+\s*\|\s*\d+\s*\|/.test(line)) continue;
+    if (!/^\|/.test(line)) continue;
     if (!line.includes("db.netkeiba.com/horse/")) continue;
 
     const cols = line
@@ -201,41 +202,69 @@ export function parseShutubaMarkdown(text = "", options = {}) {
       .map((c) => c.trim())
       .filter((c, i, arr) => !(i === 0 && c === "") && !(i === arr.length - 1 && c === ""));
 
-    if (cols.length < 8) continue;
-    const frame = Number(cols[0]);
-    const number = Number(cols[1]);
-    if (!Number.isFinite(frame) || !Number.isFinite(number)) continue;
+    if (cols.length < 6) continue;
 
-    const horseCell = cols[3] || "";
+    let frame = Number(cols[0]);
+    let number = Number(cols[1]);
+    let horseCell = "";
+    let sexAge = "";
+    let weight = NaN;
+    let jockeyCell = "";
+    let trainerCell = "";
+    let bodyWeightCell = "";
+    let odds = NaN;
+    let popularity = NaN;
+    let provisionalDraw = false;
+
+    if (Number.isFinite(frame) && Number.isFinite(number) && cols.length >= 8) {
+      horseCell = cols[3] || "";
+      sexAge = String(cols[4] || "");
+      weight = Number(cols[5]);
+      jockeyCell = cols[6] || "";
+      trainerCell = cols[7] || "";
+      bodyWeightCell = cols[8] || "";
+      odds = Number(cols[9]);
+      popularity = Number(cols[10]);
+    } else {
+      const horseIdx = cols.findIndex((c) =>
+        String(c).includes("db.netkeiba.com/horse/")
+      );
+      if (horseIdx < 0) continue;
+      provisionalDraw = true;
+      frame = NaN;
+      number = NaN;
+      horseCell = cols[horseIdx] || "";
+      sexAge = String(cols[horseIdx + 1] || "");
+      weight = Number(cols[horseIdx + 2]);
+      jockeyCell = cols[horseIdx + 3] || "";
+      trainerCell = cols[horseIdx + 4] || "";
+      bodyWeightCell = cols[horseIdx + 5] || "";
+      odds = Number(cols[horseIdx + 6]);
+      popularity = Number(cols[horseIdx + 7]);
+    }
+
     const horseName =
       (horseCell.match(/"([^"]+)"/) || [])[1] ||
       (horseCell.match(/\[([^\]!]+)/) || [])[1] ||
       "";
     const horseIdMatch = horseCell.match(/horse\/(\d+)/);
-    const sexAge = String(cols[4] || "");
     const sexMatch = sexAge.match(/([牡牝セ])\s*(\d+)/);
-    const weight = Number(cols[5]);
-    const jockeyCell = cols[6] || "";
     const jockey =
       (jockeyCell.match(/\[([^\]]+)\]/) || [])[1] ||
       jockeyCell.replace(/!\[.*?\]\(.*?\)/g, "").trim();
-    const trainerCell = cols[7] || "";
     const affiliation = (trainerCell.match(/^(美浦|栗東)/) || [])[1] || "";
     const trainer =
       (trainerCell.match(/\[([^\]]+)\]/) || [])[1] ||
       trainerCell.replace(/美浦|栗東/g, "").replace(/[\[\]]/g, "").trim();
-    const bodyWeightCell = cols[8] || "";
     const bodyWeight = Number(String(bodyWeightCell).replace(/\(.*$/, ""));
-    const odds = Number(cols[9]);
-    const popularity = Number(cols[10]);
 
-    if (!horseName || !number) continue;
+    if (!horseName) continue;
 
     entries.push({
-      horseId: horseIdMatch?.[1] || `H${String(number).padStart(4, "0")}`,
+      horseId: horseIdMatch?.[1] || `H${String(entries.length + 1).padStart(4, "0")}`,
       horseName: horseName.trim(),
-      number,
-      frame,
+      number: Number.isFinite(number) ? number : null,
+      frame: Number.isFinite(frame) ? frame : null,
       sex: sexMatch?.[1] || "",
       age: sexMatch ? Number(sexMatch[2]) : null,
       weight: Number.isFinite(weight) ? weight : null,
@@ -243,7 +272,7 @@ export function parseShutubaMarkdown(text = "", options = {}) {
       jockey: jockey || "",
       trainer: trainer || "",
       affiliation,
-      entryStatus: "confirmed",
+      entryStatus: provisionalDraw ? "entry_expected" : "confirmed",
       runningStyle: "",
       lastRace: "",
       last3: [],
@@ -256,6 +285,21 @@ export function parseShutubaMarkdown(text = "", options = {}) {
       popularity: Number.isFinite(popularity) ? popularity : null,
       odds: Number.isFinite(odds) ? odds : null,
       bodyWeight: Number.isFinite(bodyWeight) ? bodyWeight : null,
+      provisionalDraw,
+    });
+  }
+
+  // 枠順未定: 出馬表の並びで仮馬番を付与（人気・オッズは別フィールド）
+  const needNumbers = entries.some((e) => !e.number);
+  if (needNumbers) {
+    entries.forEach((e, i) => {
+      if (!e.number) e.number = i + 1;
+      if (e.frame == null) {
+        e.frame = Math.min(
+          8,
+          Math.ceil(((i + 1) * 8) / Math.max(1, entries.length))
+        );
+      }
     });
   }
 
@@ -268,11 +312,12 @@ export function parseShutubaMarkdown(text = "", options = {}) {
     raceNumber: options.raceNumber || raceMeta.number || null,
     raceId: options.raceId || raceMeta.raceId || null,
     raceName: raceMeta.raceName || null,
-    defaultStage: 5,
+    defaultStage: needNumbers ? 2 : 5,
     updatedAt: new Date().toISOString(),
     entries,
     entryCount: entries.length,
     meta: raceMeta,
+    drawPending: needNumbers,
   };
 }
 

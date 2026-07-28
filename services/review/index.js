@@ -72,8 +72,12 @@ export {
   findPastRaceRecord,
   loadPastRaceCatalog,
   isPastRaceDate,
+  isAccessiblePastRaceDate,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
   PastRaceReport,
   PAST_RACE_REPORT_VERSION,
+  PAST_MEETING_RETENTION_WEEKS,
 } from "./past-race-report.js";
 
 export { buildHorseMemos } from "./horse-memo.js";

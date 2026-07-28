@@ -36,6 +36,10 @@ import {
   getRealRaceState,
   getRealRaceDashboard,
 } from "../provider/race/index.js";
+import {
+  getRetentionCutoffIso,
+  isWithinRetentionWindow,
+} from "./retention-window.js";
 
 const PLATFORM_VERSION = "10.0.0";
 let cachedPayload = null;
@@ -190,11 +194,17 @@ export async function getCalendarDashboard(options = {}) {
   const meetingDates = listMeetingDates(cal.meetings);
   const range = getDateRange(cal.meetings);
   const realDash = getRealRaceDashboard();
+  const meetingDateSet = new Set(meetingDates.map((d) => d.date));
+  const accessibleDateSet = new Set(
+    [...meetingDateSet].filter((d) => isWithinRetentionWindow(d))
+  );
   return {
     ...cal,
     meetingDates,
     range,
-    meetingDateSet: new Set(meetingDates.map((d) => d.date)),
+    meetingDateSet,
+    accessibleDateSet,
+    retentionCutoff: getRetentionCutoffIso(),
     realRaceDashboard: realDash,
     lastProviderKind,
   };

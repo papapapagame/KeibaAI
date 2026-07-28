@@ -161,7 +161,13 @@ export function computeOddsConfirmedStage(odds = [], phase = "final") {
 
 export function mergeHorsesWithOdds(horses, oddsBundle, stage) {
   const s = Number(stage ?? oddsBundle?.effectiveStage ?? 0) || 0;
-  if (s < 6 || !oddsBundle?.ok) return horses || [];
+  const phase = String(
+    oddsBundle?.phase || oddsBundle?.meta?.phase || ""
+  ).toLowerCase();
+  const allowPreview =
+    (phase === "preview" || phase === "yoso" || phase === "estimated") &&
+    s >= 2;
+  if ((!allowPreview && s < 6) || !oddsBundle?.ok) return horses || [];
   return mergeOddsOntoHorses(horses || [], oddsBundle.odds || [], s);
 }
 

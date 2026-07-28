@@ -135,15 +135,35 @@ export function filterEntriesForStage(entries = [], stage = 0) {
 }
 
 /**
- * 枠順・馬番・騎手・斤量・オッズは確定情報として渡さない
+ * 枠順・馬番・騎手・斤量は Stage に応じて確定扱い。
+ * Real 出馬表に付いた予想オッズ／人気は Stage2+ で AI 考察に利用する。
  */
 export function entryToHorseModel(entry, stage = 0) {
   const s = Number(stage) || 0;
   const isReal = entry._providerMode === "real";
   const frameOk = isReal && s >= 3 && entry._rawFrame != null;
-  const jockeyOk = isReal && s >= 4 && (entry._rawJockey || entry.jockey);
+  const jockeyOk =
+    isReal &&
+    s >= 2 &&
+    (entry._rawJockey || entry.jockey) &&
+    (s >= 4 || entry.entryStatus === ENTRY_STATUS.ENTRY_EXPECTED || entry.entryStatus === ENTRY_STATUS.CONFIRMED);
   const weightOk =
-    isReal && s >= 5 && (entry._rawWeight != null || entry.weight != null);
+    isReal && s >= 2 && (entry._rawWeight != null || entry.weight != null) &&
+    (s >= 5 || entry.entryStatus === ENTRY_STATUS.ENTRY_EXPECTED || entry.entryStatus === ENTRY_STATUS.CONFIRMED);
+
+  const rawOdds =
+    entry.odds != null
+      ? Number(entry.odds)
+      : entry._rawOdds != null
+        ? Number(entry._rawOdds)
+        : null;
+  const rawPop =
+    entry.popularity != null
+      ? Number(entry.popularity)
+      : entry._rawPopularity != null
+        ? Number(entry._rawPopularity)
+        : null;
+  const previewMarket = isReal && s >= 2 && Number.isFinite(rawOdds) && rawOdds > 1;
 
   return {
     horseId: entry.horseId,
@@ -173,7 +193,7 @@ export function entryToHorseModel(entry, stage = 0) {
     earnings: entry.earnings,
     scratched: entry.entryStatus === ENTRY_STATUS.SCRATCHED,
     excluded: entry.entryStatus === ENTRY_STATUS.EXCLUDED,
-    frame: frameOk ? Number(entry._rawFrame) : 0,
+    frame: frameOk ? Number(entry._rawFrame) : entry.frame != null && isReal && s >= 2 ? Number(entry.frame) : 0,
     jockey: jockeyOk
       ? entry._rawJockey ||
         (typeof entry.jockey === "object" ? entry.jockey.name : entry.jockey)
@@ -181,13 +201,14 @@ export function entryToHorseModel(entry, stage = 0) {
     jockeyId: entry.jockeyId || entry._rawJockeyId || null,
     weight: weightOk ? Number(entry._rawWeight ?? entry.weight) : 55,
     carriedWeight: entry.carriedWeight ?? entry._rawCarriedWeight ?? null,
-    odds: 99.9,
-    popularity: 99,
+    odds: previewMarket ? rawOdds : 99.9,
+    popularity: previewMarket && Number.isFinite(rawPop) ? rawPop : 99,
     _frameUnconfirmed: !frameOk,
     _numberUnconfirmed: !(isReal && s >= 3),
     _jockeyUnconfirmed: !jockeyOk,
     _weightUnconfirmed: !weightOk,
-    _oddsUnconfirmed: true,
+    _oddsPreview: previewMarket && s < 6,
+    _oddsUnconfirmed: !previewMarket || s < 6,
     _entryProvisional: s < 3,
     _entryAwaitingConfirm: s >= 3 && !isReal,
     _providerMode: isReal ? "real" : "mock",

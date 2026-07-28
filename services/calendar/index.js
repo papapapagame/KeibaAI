@@ -62,3 +62,12 @@ export {
 
 export { StageEvaluation } from "./stage-evaluation.js";
 export { CALENDAR_MODE_KEY, CALENDAR_MODES } from "./calendar-mode.js";
+export {
+  PAST_MEETING_RETENTION_WEEKS,
+  jstTodayIso,
+  addDaysIso,
+  getRetentionCutoffIso,
+  isWithinRetentionWindow,
+  retentionBlockedMessage,
+  RetentionWindow,
+} from "./retention-window.js";
