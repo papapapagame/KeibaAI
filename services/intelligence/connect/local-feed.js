@@ -4,7 +4,7 @@
    GitHub Pages 同一オリジン JSON 取得
    ======================================== */
 
-import { API_BASE_URL } from "../../js/config.js";
+import { API_BASE_URL } from "../../../js/config.js";
 
 /**
  * @param {string} relativePath e.g. "race.json" or "intelligence/news-feed.json"

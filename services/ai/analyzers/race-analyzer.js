@@ -3,7 +3,7 @@
    レースレベル / ペース予測 / 逃げ馬数 / 差し・先行有利 / 展開難易度
    ======================================== */
 
-import { clamp, toNum } from "./utils.js";
+import { clamp, toNum } from "../utils.js";
 
 export function analyzeRace(context = {}) {
   const race = context.race || {};

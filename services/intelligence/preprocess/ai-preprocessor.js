@@ -4,8 +4,8 @@
    全取得データ → 共通モデル（AI入力専用）
    ======================================== */
 
-import { mergeNormalized, normalizeProviderItems } from "./data-normalizer.js";
-import { validateIntelligenceItems } from "./validators/data-validator.js";
+import { mergeNormalized, normalizeProviderItems } from "../data-normalizer.js";
+import { validateIntelligenceItems } from "../validators/data-validator.js";
 
 /**
  * Provider 生データ配列を AI 入力前処理

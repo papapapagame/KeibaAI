@@ -22,7 +22,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log(`${APP_NAME} Ver${VERSION}`);
   }
 
-  exposeLearningApi();
+  try {
+    exposeLearningApi();
+  } catch (error) {
+    console.error("[exposeLearningApi]", error);
+  }
+
   initCommonUI();
 
   const reloadPageButton = document.getElementById("reload-page");
@@ -65,9 +70,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (error) {
     console.error(error);
+    // 失敗時もロード画面を閉じる
+    document.body.classList.remove("is-loading");
+    document.getElementById("loading-screen")?.classList.add("is-hidden");
     if (DEBUG) {
       alert(
-        "データの読み込みに失敗しました。\nローカル確認時は簡易サーバーを起動してください。\n例: python -m http.server 5500"
+        "データの読み込みに失敗しました。\nローカル確認時は簡易サーバーを起動してください。\n例: python -m http.server 5500\n\n" +
+          (error?.message || error)
       );
     }
   }

@@ -3,7 +3,7 @@
    本文は解析後に破棄。UIへは評価のみ返す。
    ======================================== */
 
-import { clamp, extractSignalFlags, hashSeed } from "./utils.js";
+import { clamp, extractSignalFlags, hashSeed } from "../utils.js";
 
 export function analyzeNews(context = {}) {
   const aiInput = context.aiInput || {};
