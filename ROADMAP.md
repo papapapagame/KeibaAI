@@ -318,6 +318,24 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver7.5 - Race Data Connect（実装済）
+
+テーマ：開催情報・レース情報の実データ接続（第一段階）
+
+### 実装内容
+
+- RaceDataConnector / Fetcher / Parser / Synchronizer / Monitor
+- Race 情報のみ（Horse / Odds 対象外）
+- Provider → Normalizer → Validator → Unified → AI
+- Calendar / Smart Update 連携
+- Mock / Real / Auto 切替維持
+
+### 目標
+
+開催・レース基本情報を安全に接続し、将来の実 Provider 追加に備える。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

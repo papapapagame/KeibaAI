@@ -1,49 +1,47 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.4.0** — Provider Integration Framework
+**Ver7.5.0** — Race Data Connect
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-AI・画面は Provider へ直接アクセスせず、必ず Provider Framework を経由します。
+開催日・開催場・レース一覧・レース基本情報の接続基盤です（Horse / Odds は対象外）。
 
-## Provider Framework
+## Race Data Connect
 
 ```
-services/provider/
-  ProviderManager / Registry / Factory / Loader
-  ProviderHealthChecker / ProviderLogger
-  Priority / Failover / DataMerge / Provenance
+services/race-connect/
+  RaceDataConnector / Fetcher / Parser
+  RaceDataSynchronizer / Monitor
 ```
 
-### Provider Interface
-
-全 Provider が同一口で取得可能：
-
-Race / Horse / Jockey / Trainer / Odds / Weather / TrackCondition / News / Review / Market
-
-### Registry
-
-登録: Mock / JRA / JBIS / netkeiba / KeibaLab / Market / News / Social  
-**現時点は Mock のみ有効**。他は接続口のみ。
-
-### Priority / Failover
-
-例（Race）: JRA → JBIS → Mock  
-障害時は自動切替（Failover）。
-
-### Data Merge / Provenance
-
-複数ソースは重複排除・優先順位・タイムスタンプ・品質で統合。  
-各データに取得元・取得日時・Provider Version・取得状態を保持。
-
-### AI連携フロー
+### 取得フロー
 
 ```
 Provider Framework
-  → RaceRepository
-  → RaceDataManager
+  → RaceDataFetcher
+  → Parser（Normalizer）
+  → Validator
   → Unified Model
-  → AI
+  → AI / Calendar
 ```
+
+AI・画面は Provider へ直接アクセスしません。
+
+### 取得項目
+
+開催日 / 開催場 / 開催回 / 開催日数 / レース番号 / レース名 / 発走時刻 / 距離 / 芝・ダート / 右左 / 内外 / 天候 / 馬場 / グレード / 条件戦区分 / 賞金
+
+### Provider連携
+
+Mock / Real / Auto 切替。Mock は既存 JSON、Real は Provider Framework 経由（未接続時はブロック）。
+
+### Validation
+
+必須・型・重複・異常値・欠損を検証。失敗時は AI へ渡しません。
+
+### Synchronization
+
+取得した開催日・開催場を Race Calendar へ反映。  
+Smart Update は開催更新時に Race のみ再取得し、変更が無ければ AI 再分析しません。
 
 ## 確認方法
 
@@ -51,11 +49,10 @@ Provider Framework
 python -m http.server 5500
 ```
 
-1. 分析画面 Dev Panel「Provider Framework（Ver7.4）」
-2. Provider 一覧・状態（ONLINE / OFFLINE 等）
-3. Failover / Merge / Provenance  
-4. Mock のみ動作、Real は Provider未接続
+1. 分析画面「Race Data Connect」ステータス  
+2. Dev Panel の成功/失敗/同期/最終更新  
+3. Mock / Real / Auto 切替  
 
 ## 維持機能
 
-Ver7.3 Race & Horse Integration までの全機能を維持しています。
+Ver7.4 Provider Framework までの全機能を維持しています。

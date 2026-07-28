@@ -5815,3 +5815,11 @@ body.has-home-fab .scroll-top {
 .v74-health.status-unknown {
   color: rgba(232, 212, 139, 0.55);
 }
+
+/* ==========================================================================
+   Ver7.5.0 Race Data Connect
+   ========================================================================== */
+
+.v75-race-connect-status {
+  margin-bottom: 0.85rem;
+}

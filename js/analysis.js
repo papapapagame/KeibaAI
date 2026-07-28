@@ -25,6 +25,11 @@ import {
   refreshProviderHealth,
 } from "../services/provider/index.js";
 import {
+  connectRaceData,
+  findConnectedRace,
+  getRaceConnectStatus,
+} from "../services/race-connect/index.js";
+import {
   getCalendarDashboard,
   getRaceAnalysisContext,
   prepareAiInput,
@@ -122,6 +127,13 @@ export async function initAnalysisPage() {
   const raceNumber = Number(params.get("race") || 0);
   const forceError = params.get("forceError") === "1";
 
+  // Ver7.5 Race Data Connect（Horse/Odds 対象外）→ Calendar 同期
+  const raceConnect = await connectRaceData({
+    forceError,
+    emitUpdate: false,
+  });
+  bindRaceConnectStatusUi(raceConnect);
+
   const bundle = await loadRaceForAi({
     raceNumber,
     forceError,
@@ -131,6 +143,13 @@ export async function initAnalysisPage() {
   bindDataStatusUi(bundle.status);
   bindIntegrationDataUi(bundle);
   bindDataErrorUi(bundle, raceNumber);
+  bindRaceConnectDevUi(raceConnect);
+
+  const connectedRace = findConnectedRace(raceConnect.races, {
+    date: params.get("date") || "",
+    venueId: params.get("venue") || "",
+    raceNumber,
+  });
 
   const race =
     bundle.legacy?.race ||
@@ -142,6 +161,28 @@ export async function initAnalysisPage() {
       name: params.get("name") || "",
       time: params.get("time") || "",
     };
+
+  // Race Connect の開催メタを Unified 側へ反映（評価ロジック非改変）
+  if (connectedRace) {
+    Object.assign(race, {
+      date: connectedRace.date || race.date,
+      venue: connectedRace.venueId || race.venue,
+      venueLabel: connectedRace.venueLabel || race.venueLabel,
+      kai: connectedRace.kai,
+      day: connectedRace.day,
+      name: connectedRace.raceName || race.name,
+      time: connectedRace.startTime || race.time,
+      distance: connectedRace.distanceMeters || race.distance,
+      track: connectedRace.surface || race.track,
+      courseDirection: connectedRace.courseDirection || race.courseDirection,
+      courseLoop: connectedRace.courseLoop || race.courseLoop,
+      weather: connectedRace.weather || race.weather,
+      trackCondition: connectedRace.trackCondition || race.trackCondition,
+      grade: connectedRace.grade || race.grade,
+      raceClass: connectedRace.raceClass || race.raceClass,
+      prize: connectedRace.prize || race.prize,
+    });
+  }
 
   const horses = bundle.legacy?.horses || [];
   const settingsData = bundle.legacy?.settings || {};
@@ -249,6 +290,7 @@ export async function initAnalysisPage() {
   bindMarketIntelligenceUi(marketResult);
   bindDeveloperPanel(bundle, intelPacket, marketResult);
   bindSmartUpdateDevControls();
+  bindRaceConnectDevUi(raceConnect);
 
   // Ver7.2 Smart Update Engine（AI本体は変更せず、必要時のみ再分析トリガ）
   const snapshotBase = AnalysisTrigger.buildSnapshot({
@@ -481,6 +523,49 @@ function bindProviderFrameworkUi(bundle) {
   );
 
   renderProviderFrameworkTable(bundle).catch(() => {});
+}
+
+function bindRaceConnectStatusUi(raceConnect) {
+  const ok = Boolean(raceConnect?.ok);
+  setText("rc-status", ok ? "〇 取得済" : raceConnect?.blocked ? "× 未接続" : "× 失敗");
+  setText(
+    "rc-count",
+    `meetings ${raceConnect?.count?.meetings || 0} / races ${
+      raceConnect?.count?.races || 0
+    }`
+  );
+  setText(
+    "rc-updated",
+    raceConnect?.fetchedAt ? formatUpdateTime(raceConnect.fetchedAt) : "—"
+  );
+  setText("rc-provider", raceConnect?.providerId || "—");
+  setText(
+    "rc-validation",
+    raceConnect?.validation?.ok
+      ? `OK (warn ${raceConnect.validation.warnings?.length || 0})`
+      : `NG ${raceConnect?.validation?.errors?.length || 0}`
+  );
+}
+
+function bindRaceConnectDevUi(raceConnect) {
+  const mon = raceConnect?.monitor || getRaceConnectStatus();
+  setText("dev-rc-status", mon.status || raceConnect?.message || "—");
+  setText("dev-rc-success", String(mon.successCount ?? 0));
+  setText("dev-rc-fail", String(mon.failCount ?? 0));
+  setText(
+    "dev-rc-sync",
+    raceConnect?.sync?.status || mon.syncStatus || "—"
+  );
+  setText(
+    "dev-rc-updated",
+    mon.lastUpdatedAt ? formatUpdateTime(mon.lastUpdatedAt) : "—"
+  );
+  setText(
+    "dev-rc-validation",
+    raceConnect?.validation?.ok
+      ? `OK / races ${raceConnect.count?.races || 0}`
+      : `NG ${raceConnect?.validation?.errors?.length || 0}`
+  );
 }
 
 async function renderProviderFrameworkTable(bundle) {

@@ -27,6 +27,10 @@ import {
   createRaceDate,
   CALENDAR_MODEL_VERSION,
 } from "./models.js";
+import {
+  mergeMeetingsWithOverlay,
+  getRaceConnectOverlay,
+} from "../race-connect/race-data-synchronizer.js";
 
 const PLATFORM_VERSION = "7.1.0";
 let cachedPayload = null;
@@ -34,14 +38,39 @@ let lastError = null;
 
 export async function loadCalendar(options = {}) {
   const mode = options.mode || getCalendarMode();
+  const overlay = getRaceConnectOverlay();
 
+  // Ver7.5 Real: Race Connect 経由の開催情報があれば利用
   if (mode === "real") {
+    if (overlay?.meetings?.length) {
+      lastError = null;
+      cachedPayload = {
+        meetings: overlay.meetings,
+        raceStages: overlay.raceStages || {},
+        source: "race-connect",
+        updatedAt: overlay.updatedAt,
+      };
+      return {
+        ok: true,
+        mode,
+        blocked: false,
+        message: "Race Connect Calendar",
+        meetings: overlay.meetings,
+        raceStages: overlay.raceStages || {},
+        validation: { ok: true, errors: [], warnings: [] },
+        source: "race-connect",
+        updatedAt: overlay.updatedAt || null,
+        version: PLATFORM_VERSION,
+        modelVersion: CALENDAR_MODEL_VERSION,
+        raceConnect: true,
+      };
+    }
     lastError = "Provider未接続";
     return {
       ok: false,
       mode,
       blocked: true,
-      message: "Provider未接続（Real Calendar は未実装。Mock に切り替えてください）",
+      message: "Provider未接続（Real Calendar / Race Connect 未取得）",
       meetings: [],
       raceStages: {},
       validation: { ok: false, errors: [{ code: "NOT_CONNECTED", message: "Provider未接続" }], warnings: [] },
@@ -65,20 +94,26 @@ export async function loadCalendar(options = {}) {
         version: PLATFORM_VERSION,
       };
     }
-    cachedPayload = payload;
+
+    const meetings = mergeMeetingsWithOverlay(payload.meetings || []);
+    cachedPayload = { ...payload, meetings };
     lastError = null;
     return {
       ok: true,
       mode,
       blocked: false,
-      message: "Mock Calendar",
-      meetings: payload.meetings || [],
-      raceStages: payload.raceStages || {},
+      message: overlay ? "Mock Calendar + Race Connect" : "Mock Calendar",
+      meetings,
+      raceStages: {
+        ...(payload.raceStages || {}),
+        ...(overlay?.raceStages || {}),
+      },
       validation,
-      source: payload.source || "mock",
-      updatedAt: payload.updatedAt || null,
+      source: overlay ? "mock+race-connect" : payload.source || "mock",
+      updatedAt: overlay?.updatedAt || payload.updatedAt || null,
       version: PLATFORM_VERSION,
       modelVersion: CALENDAR_MODEL_VERSION,
+      raceConnect: Boolean(overlay),
     };
   } catch (error) {
     lastError = error?.message || String(error);

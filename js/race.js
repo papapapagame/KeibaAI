@@ -15,6 +15,7 @@ import {
   validateDateSelection,
   validateVenueSelection,
 } from "../services/calendar/index.js";
+import { connectRaceData } from "../services/race-connect/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -37,6 +38,8 @@ export async function initTopPage(goRaceListButton) {
   const sessionBox = document.getElementById("session-info");
   const errorEl = document.getElementById("cal-error");
 
+  // Ver7.5: 開催情報を Race Connect → Calendar へ反映
+  await connectRaceData({ emitUpdate: false });
   let cal = await getCalendarDashboard();
   let viewYear = 2026;
   let viewMonth = 7;
@@ -349,6 +352,7 @@ export async function initRaceListPage() {
   document.getElementById("display-date").textContent = raceDate || "未選択";
   document.getElementById("display-venue").textContent = venueLabel || "未選択";
 
+  await connectRaceData({ emitUpdate: false });
   const cal = await getCalendarDashboard({ mode: getCalendarMode() });
   const session = getSessionInfo(cal.meetings || [], raceDate, raceVenue);
 

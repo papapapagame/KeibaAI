@@ -21,6 +21,7 @@ import {
 } from "./update-history-manager.js";
 import { UPDATE_PRIORITY } from "./priorities.js";
 import { nowIso, formatJa } from "./utils.js";
+import { refreshRaceDataOnly } from "../race-connect/race-data-connector.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -94,7 +95,61 @@ async function handleIncomingEvent(event) {
   }
 
   const ctx = safeContext();
-  const snapshot = ctx.snapshot || buildRaceSnapshot(ctx);
+  let snapshot = ctx.snapshot || buildRaceSnapshot(ctx);
+
+  // Ver7.5: 開催情報更新時は Race のみ再取得。変更無ければ AI 再分析しない
+  if (
+    event?.type === "meeting_update" ||
+    event?.payload?.raceOnly ||
+    event?.source === "race-connect"
+  ) {
+    try {
+      const raceRefresh = await refreshRaceDataOnly({
+        emitUpdate: false,
+      });
+      if (!raceRefresh.ok || !raceRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: raceRefresh.ok
+            ? "Race情報に変更が無いため再分析をスキップしました。"
+            : `Race Connect 再取得失敗: ${raceRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Race Connect: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Race変更なし（スキップ）",
+        });
+        return { skipped: true, raceOnly: true };
+      }
+      // Race メタをスナップショットへ反映（Horse/Odds は触らない）
+      const hit =
+        (raceRefresh.races || []).find(
+          (r) => Number(r.number) === Number(snapshot.raceId)
+        ) || raceRefresh.races?.[0];
+      if (hit) {
+        snapshot = {
+          ...snapshot,
+          trackCondition: hit.trackCondition || snapshot.trackCondition,
+          weather: hit.weather || snapshot.weather,
+          raceMeta: fingerprintLite(hit),
+        };
+      }
+    } catch {
+      /* Race Connect 失敗時は従来トリガへフォールバック */
+    }
+  }
+
   const trigger = evaluateTrigger(event, snapshot);
 
   if (trigger.deferToNextSchedule) {
@@ -312,6 +367,21 @@ function safeContext() {
   } catch {
     return {};
   }
+}
+
+function fingerprintLite(race = {}) {
+  return [
+    race.date,
+    race.venueId,
+    race.number,
+    race.raceName,
+    race.startTime,
+    race.distanceMeters,
+    race.surface,
+    race.weather,
+    race.trackCondition,
+    race.grade,
+  ].join("|");
 }
 
 export const SmartUpdateEngine = {
