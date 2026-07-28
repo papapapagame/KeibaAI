@@ -4,10 +4,10 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.8.1";
-export const RELEASE_CHANNEL = "Real Weekend Data Only";
+export const VERSION = "10.8.2";
+export const RELEASE_CHANNEL = "Race-Scoped Entries";
 export const BUILD_DATE = "2026-07-29";
-export const BUILD_NUMBER = "20260729.1081";
+export const BUILD_NUMBER = "20260729.1082";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;

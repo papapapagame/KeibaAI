@@ -414,6 +414,7 @@ export function renderRace(container, races, context) {
         name: race.name,
         time: race.time,
         grade: race.grade,
+        raceId: race.raceId || "",
       },
     });
 
@@ -437,6 +438,7 @@ export function renderRace(container, races, context) {
       time: button.dataset.time || "",
       grade: button.dataset.grade || "",
       stage: context.stage != null ? String(context.stage) : "",
+      raceId: button.dataset.raceId || "",
     });
 
     navigateWithFade(`race-detail.html?${detailParams.toString()}`);
@@ -589,6 +591,8 @@ export async function initRaceDetailPage() {
   const raceNumber = params.get("race") || "";
   const raceName = params.get("name") || "";
   const raceTime = params.get("time") || "";
+  const raceId = params.get("raceId") || "";
+  const stage = Number(params.get("stage") || 5) || 5;
 
   document.getElementById("detail-date").textContent = raceDate || "未選択";
   document.getElementById("detail-venue").textContent = venueLabel || "未選択";
@@ -598,11 +602,49 @@ export async function initRaceDetailPage() {
   document.getElementById("detail-race-name").textContent = raceName || "-";
   document.getElementById("detail-race-time").textContent = raceTime || "-";
 
-  const horsesData = await loadJson("horses");
-  renderHorseList(
-    document.getElementById("entry-table-body"),
-    horsesData.entries
+  const tbody = document.getElementById("entry-table-body");
+  const entryBundle = await loadEntriesForAi({
+    date: raceDate,
+    raceDate,
+    venueId: raceVenue,
+    venue: raceVenue,
+    raceNumber: Number(raceNumber) || 0,
+    raceId,
+    stage,
+    silent: true,
+    emitUpdate: false,
+  });
+
+  const entries = (entryBundle?.ok ? entryBundle.entries || [] : []).map(
+    (e) => ({
+      ...e,
+      horse: e.horse || e.horseName || "",
+      jockey: e.jockey || "",
+      frame: e.frame ?? "",
+      number: e.number,
+      grade: e.grade || "C",
+      winRate: Number(e.winRate) || 0,
+      stars: Number(e.stars) || 0,
+      expectedValue: e.expectedValue,
+    })
   );
+
+  if (!entries.length) {
+    clearElement(tbody);
+    const tr = document.createElement("tr");
+    const td = createElement("td", {
+      className: "entry-empty",
+      text:
+        entryBundle?.userMessage ||
+        entryBundle?.message ||
+        "現在データを取得できません",
+      attrs: { colspan: "7" },
+    });
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  } else {
+    renderHorseList(tbody, entries);
+  }
 
   const listParams = new URLSearchParams({
     date: raceDate,
@@ -623,6 +665,7 @@ export async function initRaceDetailPage() {
       time: raceTime,
       grade: params.get("grade") || "",
       stage: params.get("stage") || "",
+      raceId: raceId || "",
     });
 
     navigateWithFade(`analysis.html?${analysisParams.toString()}`);
