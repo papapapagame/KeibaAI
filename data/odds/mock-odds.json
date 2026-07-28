@@ -1,0 +1,26 @@
+{
+  "version": "7.8.0",
+  "source": "mock",
+  "updatedAt": "2026-07-28T17:00:00+09:00",
+  "raceDate": "2026-07-27",
+  "venueId": "tokyo",
+  "raceNumber": 7,
+  "phase": "final",
+  "note": "Odds and market only (news/SNS excluded)",
+  "odds": [
+    { "number": 1, "horse": "ゴールドパパス", "winOdds": 2.8, "placeOdds": 1.4, "popularity": 1, "marketIndex": 92, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-27T18:00:00+09:00", "winOdds": 3.2, "popularity": 1 }, { "at": "2026-07-28T12:00:00+09:00", "winOdds": 2.9, "popularity": 1 }, { "at": "2026-07-28T16:55:00+09:00", "winOdds": 2.8, "popularity": 1 }] },
+    { "number": 2, "horse": "ミッドナイトコール", "winOdds": 6.2, "placeOdds": 2.1, "popularity": 3, "marketIndex": 74, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-27T18:00:00+09:00", "winOdds": 5.8, "popularity": 2 }, { "at": "2026-07-28T16:55:00+09:00", "winOdds": 6.2, "popularity": 3 }] },
+    { "number": 3, "horse": "サファイアブレイク", "winOdds": 4.5, "placeOdds": 1.8, "popularity": 2, "marketIndex": 81, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-27T18:00:00+09:00", "winOdds": 5.0, "popularity": 3 }, { "at": "2026-07-28T16:55:00+09:00", "winOdds": 4.5, "popularity": 2 }] },
+    { "number": 4, "horse": "シルクタッチ", "winOdds": 8.4, "placeOdds": 2.6, "popularity": 4, "marketIndex": 66, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 8.4, "popularity": 4 }] },
+    { "number": 5, "horse": "ライトニングソウル", "winOdds": 12.5, "placeOdds": 3.4, "popularity": 5, "marketIndex": 58, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-27T18:00:00+09:00", "winOdds": 15.0, "popularity": 6 }, { "at": "2026-07-28T16:55:00+09:00", "winOdds": 12.5, "popularity": 5 }] },
+    { "number": 6, "horse": "シャドウウォーカー", "winOdds": 18.2, "placeOdds": 4.2, "popularity": 6, "marketIndex": 49, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 18.2, "popularity": 6 }] },
+    { "number": 7, "horse": "エンペラーロード", "winOdds": 22.0, "placeOdds": 5.1, "popularity": 7, "marketIndex": 44, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 22.0, "popularity": 7 }] },
+    { "number": 8, "horse": "クリスタルレイ", "winOdds": 28.5, "placeOdds": 6.0, "popularity": 8, "marketIndex": 38, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 28.5, "popularity": 8 }] },
+    { "number": 9, "horse": "ネオクラウン", "winOdds": 35.0, "placeOdds": 7.2, "popularity": 9, "marketIndex": 32, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 35.0, "popularity": 9 }] },
+    { "number": 10, "horse": "パッションフラッグ", "winOdds": 42.0, "placeOdds": 8.5, "popularity": 10, "marketIndex": 28, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 42.0, "popularity": 10 }] },
+    { "number": 11, "horse": "ヴィクトリーノート", "winOdds": 55.0, "placeOdds": 10.2, "popularity": 11, "marketIndex": 22, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 55.0, "popularity": 11 }] },
+    { "number": 12, "horse": "ダークストーム", "winOdds": 68.0, "placeOdds": 12.0, "popularity": 12, "marketIndex": 18, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 68.0, "popularity": 12 }] },
+    { "number": 13, "horse": "ロイヤルオーシャン", "winOdds": 85.0, "placeOdds": 14.5, "popularity": 13, "marketIndex": 14, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-28T16:55:00+09:00", "winOdds": 85.0, "popularity": 13 }] },
+    { "number": 16, "horse": "ブレイブハート", "winOdds": 120.0, "placeOdds": 18.0, "popularity": 14, "marketIndex": 10, "updatedAt": "2026-07-28T16:55:00+09:00", "history": [{ "at": "2026-07-27T18:00:00+09:00", "winOdds": 99.0, "popularity": 14 }, { "at": "2026-07-28T16:55:00+09:00", "winOdds": 120.0, "popularity": 14 }] }
+  ]
+}

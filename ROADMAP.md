@@ -373,6 +373,25 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver7.8 - Odds & Market Intelligence（実装済）
+
+テーマ：オッズ・人気・市場情報をAI分析へ反映する
+
+### 実装内容
+
+- OddsManager / Repository / Synchronizer / Validator / HistoryManager / MarketAnalyzer
+- Market / Support / Value Score（人気順への単純依存なし）
+- Stage6 前日オッズ / Stage7 最新オッズ
+- Smart Update（オッズ・人気・市場指数の変更時のみ）
+- Validation / Completeness（ニュース・SNSは 0%）
+- Draw / Entry 連携を維持
+
+### 目標
+
+市場情報を補助要素として扱い、単純な人気追従分析を避ける。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

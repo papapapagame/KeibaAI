@@ -41,6 +41,12 @@ import {
   getDrawDashboard,
   applyDrawScoreAdjustments,
 } from "../services/draw/index.js";
+import {
+  loadOddsForAi,
+  mergeHorsesWithOdds,
+  getOddsDashboard,
+  applyOddsMarketAdjustments,
+} from "../services/odds/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -268,28 +274,50 @@ export async function initAnalysisPage() {
     silent: true,
     baseConfidence: entryBundle?.confidenceHint ?? confidenceNow ?? 72,
   });
+
+  // Ver7.8 Odds & Market — オッズ・人気・市場（Stage6+）
+  const oddsBundle = await loadOddsForAi({
+    stage: Math.max(stageNow, Number(drawBundle?.confirmedStage) || 0),
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+    silent: true,
+    baseConfidence:
+      drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
+  });
+
   const effectiveStage = Math.max(
     stageNow,
-    Number(drawBundle?.confirmedStage) || 0
+    Number(drawBundle?.confirmedStage) || 0,
+    Number(oddsBundle?.confirmedStage) || 0
   );
   bindDrawStatusUi(drawBundle);
   bindDrawAiPanel(drawBundle, effectiveStage);
   bindDrawDevUi(drawBundle);
+  bindOddsStatusUi(oddsBundle);
+  bindOddsAiPanel(oddsBundle, effectiveStage);
+  bindOddsDevUi(oddsBundle);
 
-  // Completeness / Confidence 反映（Draw 優先、なければ Entry）
+  // Completeness / Confidence（Odds > Draw > Entry）
   const confHint =
-    drawBundle?.ok && drawBundle.confidenceHint != null
-      ? drawBundle.confidenceHint
-      : entryBundle?.confidenceHint;
+    oddsBundle?.ok && oddsBundle.confidenceHint != null
+      ? oddsBundle.confidenceHint
+      : drawBundle?.ok && drawBundle.confidenceHint != null
+        ? drawBundle.confidenceHint
+        : entryBundle?.confidenceHint;
   if (confHint != null) {
     const confEl = document.getElementById("stage-confidence");
     if (confEl) confEl.textContent = `${confHint}%`;
   }
-  if (drawBundle?.ok && drawBundle.drawCompleteness?.overall != null) {
-    setText(
-      "stage-completeness",
-      `${drawBundle.drawCompleteness.overall}%`
-    );
+  const completenessPct =
+    oddsBundle?.ok && oddsBundle.oddsCompleteness?.overall != null
+      ? oddsBundle.oddsCompleteness.overall
+      : drawBundle?.ok && drawBundle.drawCompleteness?.overall != null
+        ? drawBundle.drawCompleteness.overall
+        : null;
+  if (completenessPct != null) {
+    setText("stage-completeness", `${completenessPct}%`);
   }
   if (effectiveStage !== stageNow) {
     setText("stage-current", `Stage${effectiveStage}`);
@@ -312,6 +340,11 @@ export async function initAnalysisPage() {
     drawBundle,
     effectiveStage
   );
+  const oddsMerged = mergeHorsesWithOdds(
+    drawMerged,
+    oddsBundle,
+    effectiveStage
+  );
 
   const prepared = prepareAiInput(
     {
@@ -321,7 +354,7 @@ export async function initAnalysisPage() {
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
     },
-    drawMerged,
+    oddsMerged,
     effectiveStage
   );
   const stagedRace = prepared.race;
@@ -389,7 +422,9 @@ export async function initAnalysisPage() {
       stage: effectiveStage,
       confidence: confHint ?? confidenceNow,
       completeness:
-        drawBundle?.drawCompleteness?.overall ?? completenessNow,
+        oddsBundle?.oddsCompleteness?.overall ??
+        drawBundle?.drawCompleteness?.overall ??
+        completenessNow,
       snapshot: AnalysisTrigger.buildSnapshot({
         race: stagedRace,
         horses: stagedHorses,
@@ -402,7 +437,9 @@ export async function initAnalysisPage() {
       return {
         confidence: confHint ?? confidenceNow,
         completeness:
-          drawBundle?.drawCompleteness?.overall ?? completenessNow,
+          oddsBundle?.oddsCompleteness?.overall ??
+          drawBundle?.drawCompleteness?.overall ??
+          completenessNow,
         stage: effectiveStage,
       };
     },
@@ -454,7 +491,8 @@ export async function initAnalysisPage() {
     ...h,
     _drawAdjustments: adjMap.get(Number(h.number)) || h._drawAdjustments || [],
   }));
-  ranked = applyDrawScoreAdjustments(ranked, effectiveStage).sort(
+  ranked = applyDrawScoreAdjustments(ranked, effectiveStage);
+  ranked = applyOddsMarketAdjustments(ranked, effectiveStage).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
       b.indexes.total - a.indexes.total
@@ -827,7 +865,7 @@ function bindDrawAiPanel(drawBundle, stage) {
   const panel = drawBundle?.stagePanel;
   if (!panel) return;
   const s = Number(stage ?? panel.stage) || 0;
-  if (s < 3) return; // Stage3未満は Entry パネルを優先
+  if (s < 3 || s >= 6) return; // Stage6+ は Odds パネル優先
 
   setText("entry-ai-title", panel.title || "現在分析段階");
   setText("entry-ai-stage", panel.stageLabel || `Stage${s}`);
@@ -931,6 +969,125 @@ function bindDrawDevUi(drawBundle) {
     "dev-draw-updated",
     drawBundle?.fetchedAt
       ? formatUpdateTime(drawBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindOddsStatusUi(oddsBundle) {
+  const oc = oddsBundle?.oddsCompleteness || {};
+  const stats = oddsBundle?.stats || {};
+  setText("oc-odds", oc.odds != null ? `${oc.odds}%` : "—");
+  setText("oc-popularity", oc.popularity != null ? `${oc.popularity}%` : "—");
+  setText("oc-market", oc.market != null ? `${oc.market}%` : "—");
+  setText("oc-news", `${oc.news ?? 0}%`);
+  setText("oc-sns", `${oc.sns ?? 0}%`);
+  setText("oc-overall", oc.overall != null ? `${oc.overall}%` : "—");
+  setText("oc-note", oc.note || "");
+  setText("odds-count", String(stats.total ?? oddsBundle?.count ?? "—"));
+  setText(
+    "odds-updated",
+    oddsBundle?.fetchedAt ? formatUpdateTime(oddsBundle.fetchedAt) : "—"
+  );
+  setText("odds-stage-note", oddsBundle?.stageNote || "");
+
+  // Draw Completeness のオッズ欄を更新
+  if (oc.odds != null) setText("dc-draw-odds", `${oc.odds}%`);
+  if (oc.overall != null) {
+    // news stays 0 in draw grid
+  }
+}
+
+function bindOddsAiPanel(oddsBundle, stage) {
+  const panel = oddsBundle?.stagePanel;
+  if (!panel || !oddsBundle?.ok) return;
+  const s = Number(stage ?? panel.stage) || 0;
+  if (s < 6) return;
+
+  setText("entry-ai-title", panel.title || "現在分析段階");
+  setText("entry-ai-stage", panel.stageLabel || `Stage${s}`);
+  setText("entry-ai-mode", panel.mode || "—");
+  setText("entry-ai-using-label", "取得済み");
+  setText("entry-ai-pending-label", "未取得");
+  setText(
+    "entry-ai-provisional",
+    panel.provisionalText || "最新オッズを反映した分析です。"
+  );
+
+  const fillList = (id, items) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    clearElement(el);
+    const list = items || [];
+    if (!list.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      el.appendChild(li);
+      return;
+    }
+    list.forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      el.appendChild(li);
+    });
+  };
+  fillList("entry-ai-using", panel.acquired);
+  fillList("entry-ai-pending", panel.pending);
+
+  setText("stage-mode", panel.mode || "—");
+  setText("stage-provisional", panel.provisionalText || "");
+  setText(
+    "stage-note",
+    `取得済み: ${(panel.acquired || []).join("・") || "—"}`
+  );
+  const pendingEl = document.getElementById("stage-pending");
+  if (pendingEl) {
+    clearElement(pendingEl);
+    (panel.pending || []).forEach((label) => {
+      const li = document.createElement("li");
+      li.textContent = label;
+      pendingEl.appendChild(li);
+    });
+  }
+}
+
+function bindOddsDevUi(oddsBundle) {
+  const dash = getOddsDashboard();
+  const stats = oddsBundle?.stats || dash.stats || {};
+  const ms = oddsBundle?.marketStatus || {};
+  setText(
+    "dev-odds-status",
+    oddsBundle?.ok
+      ? `${stats.total ?? 0}頭 / ${oddsBundle.phase || dash.phase || "—"}`
+      : "—"
+  );
+  setText(
+    "dev-market-status",
+    `M${ms.avgMarketScore ?? 0} S${ms.avgSupportScore ?? 0} V${ms.avgValueScore ?? 0}`
+  );
+  setText("dev-odds-count", String(oddsBundle?.count ?? stats.total ?? 0));
+  setText(
+    "dev-odds-validation",
+    oddsBundle?.validation?.ok
+      ? `OK (warn ${oddsBundle.validation.warnings?.length || 0})`
+      : `NG ${oddsBundle?.validation?.errors?.length || 0}`
+  );
+  setText("dev-odds-sync", oddsBundle?.sync?.status || dash.syncStatus || "—");
+  const hist = oddsBundle?.history || dash.history || [];
+  setText(
+    "dev-odds-history",
+    hist.length
+      ? hist
+          .slice(0, 3)
+          .map((h) => h.type)
+          .join(", ")
+      : "—"
+  );
+  setText(
+    "dev-odds-updated",
+    oddsBundle?.fetchedAt
+      ? formatUpdateTime(oddsBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"

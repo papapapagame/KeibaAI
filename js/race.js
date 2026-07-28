@@ -18,6 +18,7 @@ import {
 import { connectRaceData } from "../services/race-connect/index.js";
 import { loadEntriesForAi } from "../services/entry/index.js";
 import { loadDrawForAi } from "../services/draw/index.js";
+import { loadOddsForAi } from "../services/odds/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -108,6 +109,12 @@ export async function initTopPage(goRaceListButton) {
           emitUpdate: false,
           silent: true,
         });
+        void loadOddsForAi({
+          date: cell.date,
+          venueId: raceVenueSelect.value || undefined,
+          emitUpdate: false,
+          silent: true,
+        });
       });
       grid.appendChild(btn);
     }
@@ -190,6 +197,12 @@ export async function initTopPage(goRaceListButton) {
         emitUpdate: false,
         silent: true,
       });
+      void loadOddsForAi({
+        date,
+        venueId,
+        emitUpdate: false,
+        silent: true,
+      });
     }
   });
 
@@ -210,6 +223,11 @@ export async function initTopPage(goRaceListButton) {
       silent: true,
     });
     void loadDrawForAi({
+      date: defaultDate,
+      emitUpdate: false,
+      silent: true,
+    });
+    void loadOddsForAi({
       date: defaultDate,
       emitUpdate: false,
       silent: true,

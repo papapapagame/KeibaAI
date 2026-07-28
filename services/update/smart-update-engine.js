@@ -24,6 +24,7 @@ import { nowIso, formatJa } from "./utils.js";
 import { refreshRaceDataOnly } from "../race-connect/race-data-connector.js";
 import { refreshEntriesOnly } from "../entry/horse-entry-manager.js";
 import { refreshDrawOnly } from "../draw/draw-manager.js";
+import { refreshOddsOnly } from "../odds/odds-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -270,6 +271,63 @@ async function handleIncomingEventInner(event) {
       };
     } catch {
       /* Draw 失敗時は従来トリガへ */
+    }
+  }
+
+  // Ver7.8: Odds 変更時のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.oddsOnly ||
+    event?.source === "odds-engine" ||
+    [
+      "odds_updated",
+      "odds_spike",
+      "popularity_changed",
+      "market_index_updated",
+      "odds_added",
+    ].includes(event?.type)
+  ) {
+    try {
+      const oddsRefresh = await refreshOddsOnly({
+        emitUpdate: false,
+        silent: true,
+        stage: snapshot.stage,
+      });
+      if (!oddsRefresh.ok || !oddsRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: oddsRefresh.ok
+            ? "Odds情報に変更が無いため再分析をスキップしました。"
+            : `Odds 再取得失敗: ${oddsRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Odds: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Odds変更なし（スキップ）",
+        });
+        return { skipped: true, oddsOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        oddsFingerprint: oddsRefresh.fingerprint,
+        oddsCount: oddsRefresh.count,
+        stage: Math.max(
+          Number(snapshot.stage) || 0,
+          Number(oddsRefresh.confirmedStage) || 0
+        ),
+      };
+    } catch {
+      /* Odds 失敗時は従来トリガへ */
     }
   }
 

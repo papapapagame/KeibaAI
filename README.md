@@ -1,61 +1,57 @@
 # PAPAPA IQ KEIBA
 
-**Ver7.7.0** — Draw & Jockey Intelligence
+**Ver7.8.0** — Odds & Market Intelligence
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-枠順・馬番・騎手・斤量などの**確定情報のみ**を管理し、Analysis Stage を Stage5 まで進めます。  
-未確定情報は推測で補完しません。
+オッズ・人気・市場動向を取得し、AI分析の**補助要素**として反映します。  
+ニュース・SNS・レース後レビューは本バージョンの対象外です。
 
-## Draw & Jockey Engine
-
-```
-services/draw/
-  DrawManager
-  JockeyManager
-  WeightManager
-  DrawSynchronizer
-  DrawValidator
-  DrawStateManager
-```
-
-### 取得対象（確定情報）
-
-枠番・馬番・騎手・斤量・乗り替わり・出走取消・競走除外・騎手/斤量変更履歴
-
-本バージョンで **未取得**: オッズ・当日馬場・最終天候・直前情報
-
-### Entry → Draw フロー
+## Odds Engine
 
 ```
-登録馬 → 出走予定馬 → 確定出走馬 → 枠順・騎手・斤量
-（Ver7.6 Entry）              （Ver7.7 Draw）
+services/odds/
+  OddsManager
+  OddsRepository
+  OddsSynchronizer
+  OddsValidator
+  OddsHistoryManager
+  MarketAnalyzer
 ```
+
+### 取得対象
+
+単勝オッズ・複勝オッズ・人気順位・更新時刻・オッズ変動履歴・市場指数
+
+### Market Intelligence
+
+| Score | 意味 |
+|-------|------|
+| Market Score | 市場注目度 |
+| Support Score | 複勝側の支持 |
+| Value Score | 期待値（人気順依存にしない） |
+
+過剰人気 / 過小評価 / 期待値あり をラベル化します。
 
 ### Analysis Stage
 
 | Stage | 内容 |
 |-------|------|
-| 3 | 枠順確定 |
-| 4 | 騎手確定 |
-| 5 | 斤量確定 |
+| 6 | 前日情報 → オッズ反映 |
+| 7 | 当日最終分析 → 最新オッズ反映 |
 
-情報が確定するごとに Stage を更新。確定した情報のみ AI へ渡し、枠順/騎手/斤量/乗り替わり/取消・除外の補正を反映します。
+### Validation / Synchronization
 
-### Synchronization / Smart Update
-
-枠順確定・騎手変更・斤量変更・取消・除外を検知し、**変更時のみ**再分析します。
-
-### Validation
-
-枠番・馬番重複、騎手重複、斤量異常、取消整合性を検証。異常は AI へ渡しません。
+オッズ異常・人気重複・欠損・型を検証。失敗データは AI へ渡しません。  
+オッズ更新・人気変動・市場指数更新時のみ Smart Update 再分析します。
 
 ### Data Completeness
 
-枠順 / 騎手 / 斤量 / 取消情報の取得率を表示。オッズ・ニュースは 0%。Overall を Confidence へ反映します。
+オッズ / 人気 / 市場情報の取得率を表示。ニュース・SNSは **0%**。Overall を Confidence へ反映します。
 
-## Horse Entry Engine（Ver7.6 維持）
+## Draw & Entry（維持）
 
-`services/entry/` — Registered〜Withdrawn の Entry Status 管理を継続。
+- Ver7.7 Draw & Jockey（枠・騎手・斤量）
+- Ver7.6 Horse Entry（登録〜出走予定）
 
 ## 確認方法
 
@@ -63,11 +59,10 @@ services/draw/
 python -m http.server 5500
 ```
 
-1. 分析画面 Stage3〜5 / 取得済み・未取得情報  
-2. Draw Completeness（枠・騎手・斤量）  
-3. Dev Panel「Draw & Jockey」  
-4. Mock Events で変更なしスキップを確認  
+1. 分析画面「取得済み: 人気・オッズ・市場情報」  
+2. Odds Completeness / Dev Panel「Odds & Market」  
+3. Mock Events のオッズ系で変更なしスキップを確認  
 
 ## 維持機能
 
-Ver7.6 Horse Entry Intelligence までの全機能を維持しています。
+Ver7.7 Draw & Jockey Intelligence までの全機能を維持しています。

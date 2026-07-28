@@ -108,7 +108,7 @@ export function sanitizeForStage(race, horses, stage) {
 
   // Stage7: 最終 — そのまま（確定扱い可）
 
-  // Ver7.6/7.7: 未確定フラグは確定扱いしない。frameConfirmed 等があれば優先
+  // Ver7.6/7.7/7.8: 未確定フラグは確定扱いしない。confirmed があれば優先
   horseOut = horseOut.map((h) => {
     const needStrip =
       h._frameUnconfirmed ||
@@ -128,7 +128,7 @@ export function sanitizeForStage(race, horses, stage) {
       weight:
         !h.weightConfirmed &&
         Boolean(h._weightUnconfirmed || h._entryProvisional),
-      odds: Boolean(h._oddsUnconfirmed),
+      odds: !h.oddsConfirmed && Boolean(h._oddsUnconfirmed),
     });
   });
 
