@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "8.0.0";
+export const UNIFIED_VERSION = "8.1.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -158,6 +158,42 @@ export function createNews(raw = {}) {
   };
 }
 
+/** Ver8.1 Social — 構造化メタデータのみ（投稿本文・画像・動画・コメントなし） */
+export function createSocial(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Social",
+    available: raw.available !== false,
+    itemCount: Number(raw.itemCount) || 0,
+    totalPosts: Number(raw.totalPosts) || 0,
+    trendChange: raw.trendChange != null ? Number(raw.trendChange) : null,
+    scores: raw.scores
+      ? {
+          trend: Number(raw.scores.trend) || 0,
+          attention: Number(raw.scores.attention) || 0,
+          momentum: Number(raw.scores.momentum) || 0,
+          confidence: Number(raw.scores.confidence) || 0,
+        }
+      : null,
+    categories: Array.isArray(raw.categories) ? raw.categories : [],
+    topCategories: Array.isArray(raw.topCategories) ? raw.topCategories : [],
+    horses: Array.isArray(raw.horses) ? raw.horses : [],
+    importantTopics: Array.isArray(raw.importantTopics)
+      ? raw.importantTopics
+      : [],
+    aiPayload: raw.aiPayload || null,
+    validation: raw.validation || null,
+    syncState: raw.syncState || "idle",
+    updatedAt: raw.updatedAt || null,
+    providerId: raw.providerId || null,
+    mode: raw.mode || null,
+    bodiesStored: false,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
+  };
+}
+
 export function createReviewRef(raw = {}) {
   return { reviewId: raw.reviewId || raw.id || null, summary: raw.summary || "" };
 }
@@ -296,6 +332,9 @@ export function createRace(raw = {}, horses = []) {
     knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
     review: raw.review ? createReviewRef(raw.review) : null,
     news: Array.isArray(raw.news) ? raw.news.map((n) => createNews(n)) : [],
+    social: raw.social
+      ? createSocial(raw.social)
+      : createSocial({ available: false }),
     // AIエンジン互換
     name: raw.raceName || raw.name || "",
     time: raw.startTime || raw.time || "",

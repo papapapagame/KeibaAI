@@ -27,6 +27,7 @@ import { refreshDrawOnly } from "../draw/draw-manager.js";
 import { refreshOddsOnly } from "../odds/odds-manager.js";
 import { refreshWeatherOnly } from "../weather/weather-manager.js";
 import { refreshNewsOnly } from "../news/news-manager.js";
+import { refreshSocialOnly } from "../social/social-manager.js";
 
 const ENGINE_VERSION = "7.2.0";
 let unsub = null;
@@ -438,6 +439,58 @@ async function handleIncomingEventInner(event) {
       };
     } catch {
       /* News 失敗時は従来トリガへ */
+    }
+  }
+
+  // Ver8.1: Social 変更時のみ再取得。変更無ければ再分析しない
+  if (
+    event?.payload?.socialOnly ||
+    event?.source === "social-engine" ||
+    [
+      "social_topic_added",
+      "social_spike",
+      "social_important",
+      "social_trend_change",
+    ].includes(event?.type)
+  ) {
+    try {
+      const socialRefresh = await refreshSocialOnly({
+        emitUpdate: false,
+        silent: true,
+        stage: snapshot.stage,
+      });
+      if (!socialRefresh.ok || !socialRefresh.changed) {
+        appendUpdateLog({
+          eventType: event.type,
+          priority: event.priority,
+          change: event.detail,
+          reason: socialRefresh.ok
+            ? "Social情報に変更が無いため再分析をスキップしました。"
+            : `Social 再取得失敗: ${socialRefresh.message || ""}`,
+          skipped: true,
+          analyzed: false,
+          analysisStage: snapshot.stage,
+          confidence: ctx.confidence,
+          dataCompleteness: ctx.completeness,
+        });
+        saveUpdateState({
+          ...state,
+          lastUpdateAt: nowIso(),
+          lastReason: "Social: 変更なしスキップ",
+          lastEventType: event.type,
+          lastPriority: event.priority,
+          status: "skipped",
+          statusLabel: "Social変更なし（スキップ）",
+        });
+        return { skipped: true, socialOnly: true };
+      }
+      snapshot = {
+        ...snapshot,
+        socialFingerprint: socialRefresh.fingerprint,
+        socialCount: socialRefresh.count,
+      };
+    } catch {
+      /* Social 失敗時は従来トリガへ */
     }
   }
 

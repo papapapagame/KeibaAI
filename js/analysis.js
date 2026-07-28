@@ -59,6 +59,12 @@ import {
   getNewsDashboard,
   applyNewsScoreAdjustments,
 } from "../services/news/index.js";
+import {
+  loadSocialForAi,
+  mergeHorsesWithSocial,
+  getSocialDashboard,
+  applySocialScoreAdjustments,
+} from "../services/social/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -331,6 +337,19 @@ export async function initAnalysisPage() {
       86,
   });
 
+  // Ver8.1 Social Intelligence — 構造化メタデータのみ（投稿本文なし）
+  const socialBundle = await loadSocialForAi({
+    date: params.get("date") || race.date || "",
+    venueId: params.get("venue") || race.venue || "",
+    raceNumber: raceNumber || race.number,
+    emitUpdate: false,
+    silent: true,
+    baseConfidence:
+      newsBundle?.confidenceHint ??
+      weatherBundle?.confidenceHint ??
+      86,
+  });
+
   const effectiveStage = Math.max(
     stageNow,
     Number(drawBundle?.confirmedStage) || 0,
@@ -348,24 +367,34 @@ export async function initAnalysisPage() {
   bindWeatherDevUi(weatherBundle);
   bindNewsStatusUi(newsBundle);
   bindNewsDevUi(newsBundle);
+  bindSocialStatusUi(socialBundle);
+  bindSocialDevUi(socialBundle);
 
-  // Completeness / Confidence（News は補助。Weather>Odds>Draw>Entry を基本）
+  // Completeness / Confidence（News/Social は補助。Weather>Odds>Draw>Entry を基本）
   const confHint =
-    newsBundle?.ok && newsBundle.confidenceHint != null
+    socialBundle?.ok && socialBundle.confidenceHint != null
       ? Math.round(
-          ((weatherBundle?.confidenceHint ??
-            oddsBundle?.confidenceHint ??
+          ((newsBundle?.confidenceHint ??
+            weatherBundle?.confidenceHint ??
             86) +
-            newsBundle.confidenceHint) /
+            socialBundle.confidenceHint) /
             2
         )
-      : weatherBundle?.ok && weatherBundle.confidenceHint != null
-        ? weatherBundle.confidenceHint
-        : oddsBundle?.ok && oddsBundle.confidenceHint != null
-          ? oddsBundle.confidenceHint
-          : drawBundle?.ok && drawBundle.confidenceHint != null
-            ? drawBundle.confidenceHint
-            : entryBundle?.confidenceHint;
+      : newsBundle?.ok && newsBundle.confidenceHint != null
+        ? Math.round(
+            ((weatherBundle?.confidenceHint ??
+              oddsBundle?.confidenceHint ??
+              86) +
+              newsBundle.confidenceHint) /
+              2
+          )
+        : weatherBundle?.ok && weatherBundle.confidenceHint != null
+          ? weatherBundle.confidenceHint
+          : oddsBundle?.ok && oddsBundle.confidenceHint != null
+            ? oddsBundle.confidenceHint
+            : drawBundle?.ok && drawBundle.confidenceHint != null
+              ? drawBundle.confidenceHint
+              : entryBundle?.confidenceHint;
   if (confHint != null) {
     const confEl = document.getElementById("stage-confidence");
     if (confEl) confEl.textContent = `${confHint}%`;
@@ -381,9 +410,13 @@ export async function initAnalysisPage() {
   if (completenessPct != null) {
     setText("stage-completeness", `${completenessPct}%`);
   }
-  // Weather Completeness のニュース欄を更新
+  // Weather Completeness のニュース／SNS欄を更新
   if (newsBundle?.ok && newsBundle.newsCompleteness?.news != null) {
     setText("wc-news", `${newsBundle.newsCompleteness.news}%`);
+  }
+  if (socialBundle?.ok && socialBundle.socialCompleteness?.sns != null) {
+    setText("wc-sns", `${socialBundle.socialCompleteness.sns}%`);
+    setText("oc-sns", `${socialBundle.socialCompleteness.sns}%`);
   }
   if (effectiveStage !== stageNow) {
     setText("stage-current", `Stage${effectiveStage}`);
@@ -412,6 +445,7 @@ export async function initAnalysisPage() {
     effectiveStage
   );
   const newsMerged = mergeHorsesWithNews(oddsMerged, newsBundle);
+  const socialMerged = mergeHorsesWithSocial(newsMerged, socialBundle);
 
   const raceWithWeather = mergeRaceWithWeather(
     {
@@ -421,6 +455,7 @@ export async function initAnalysisPage() {
       venueLabel: params.get("venueLabel") || race.venueLabel,
       number: raceNumber || race.number,
       news: newsBundle?.unified || [],
+      social: socialBundle?.unified || null,
     },
     weatherBundle,
     effectiveStage
@@ -428,7 +463,7 @@ export async function initAnalysisPage() {
 
   const prepared = prepareAiInput(
     raceWithWeather,
-    newsMerged,
+    socialMerged,
     effectiveStage
   );
   const stagedRace = prepared.race;
@@ -460,6 +495,29 @@ export async function initAnalysisPage() {
       }
     } catch {
       /* news inject must not break analysis */
+    }
+  }
+
+  // Ver8.1: 構造化 SNS メタのみ Intelligence / Market へ渡す（投稿本文なし）
+  if (socialBundle?.ok && socialBundle.aiSocial) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.social = socialBundle.aiSocial;
+      }
+      if (intelPacket.fusedInput && typeof intelPacket.fusedInput === "object") {
+        intelPacket.fusedInput.socialMeta = {
+          count: socialBundle.count,
+          trend: socialBundle.stats?.trendScore,
+          topCategories: socialBundle.stats?.topCategories,
+          reflect: socialBundle.aiReflect,
+        };
+      }
+    } catch {
+      /* social inject must not break analysis */
     }
   }
 
@@ -610,6 +668,10 @@ export async function initAnalysisPage() {
   ranked = applyNewsScoreAdjustments(
     ranked,
     newsBundle?.items || []
+  );
+  ranked = applySocialScoreAdjustments(
+    ranked,
+    socialBundle?.trends || null
   ).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
@@ -1407,6 +1469,101 @@ function bindNewsDevUi(newsBundle) {
     "dev-news-updated",
     newsBundle?.fetchedAt
       ? formatUpdateTime(newsBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindSocialStatusUi(socialBundle) {
+  const stats = socialBundle?.stats || {};
+  const reflect = socialBundle?.aiReflect || {};
+  const scores = socialBundle?.trends?.scores || {};
+  setText("social-count", String(stats.total ?? socialBundle?.count ?? "—"));
+  setText(
+    "social-trend",
+    scores.trend != null
+      ? `T${scores.trend} / A${scores.attention ?? "—"} / M${scores.momentum ?? "—"} / C${scores.confidence ?? "—"}`
+      : "—"
+  );
+  setText(
+    "social-top-categories",
+    (stats.topCategories || []).length
+      ? (stats.topCategories || []).join(" / ")
+      : "—"
+  );
+  setText(
+    "social-ai-reflect",
+    reflect.label || (socialBundle?.ok ? "構造化データ反映中" : "—")
+  );
+  setText("social-stage-note", socialBundle?.stageNote || "");
+
+  const listEl = document.getElementById("social-meta-list");
+  if (listEl) {
+    clearElement(listEl);
+    const cats = (socialBundle?.trends?.categories || []).slice(0, 6);
+    if (!cats.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      listEl.appendChild(li);
+    } else {
+      cats.forEach((c) => {
+        const li = document.createElement("li");
+        const ch =
+          c.trendChange != null
+            ? ` (${c.trendChange >= 0 ? "+" : ""}${c.trendChange}%)`
+            : "";
+        li.textContent = `${c.label}: ${c.count}話題 / ${c.postCount}投稿${ch}`;
+        listEl.appendChild(li);
+      });
+    }
+  }
+}
+
+function bindSocialDevUi(socialBundle) {
+  const dash = getSocialDashboard();
+  const stats = socialBundle?.stats || dash.stats || {};
+  const by = stats.byCategory || {};
+  const scores = socialBundle?.trends?.scores || dash.trends?.scores || {};
+  setText(
+    "dev-social-status",
+    socialBundle?.ok
+      ? `${stats.total ?? 0}話題 / Trend ${scores.trend ?? "—"}`
+      : "—"
+  );
+  setText(
+    "dev-trend-status",
+    scores.trend != null
+      ? `Trend ${scores.trend} / Att ${scores.attention} / Mom ${scores.momentum} / Conf ${scores.confidence}`
+      : "—"
+  );
+  setText(
+    "dev-social-categories",
+    [
+      `調${by.training ?? 0}`,
+      `体${by.body ?? 0}`,
+      `騎${by.jockey ?? 0}`,
+      `パ${by.paddock ?? 0}`,
+      `取${by.scratch ?? 0}`,
+      `人${by.popularity ?? 0}`,
+      `開${by.meeting ?? 0}`,
+      `他${by.other ?? 0}`,
+    ].join(" / ")
+  );
+  setText(
+    "dev-social-validation",
+    socialBundle?.validation?.ok
+      ? `OK (warn ${socialBundle.validation.warnings?.length || 0})`
+      : `NG ${socialBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-social-sync",
+    socialBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-social-updated",
+    socialBundle?.fetchedAt
+      ? formatUpdateTime(socialBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"

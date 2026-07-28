@@ -430,6 +430,26 @@ Provider 追加・削除しても AI・画面・モデル側の修正が不要�
 
 ---
 
+## Ver8.1 - Social Intelligence（実装済）
+
+テーマ：SNS情報をAI分析用データとして構造化する（投稿非転載）
+
+### 実装内容
+
+- SocialManager / Repository / Synchronizer / Validator / Normalizer / ScoringEngine / TrendAnalyzer
+- カテゴリ正規化（調教・馬体・騎手・パドック・取消・人気・開催・その他）
+- Trend / Attention / Momentum / Confidence Score
+- 構造化メタデータのみ AI 反映（投稿本文・画像・動画・コメント禁止）
+- Smart Update（新規話題・スパイク・重要カテゴリ・トレンド変化）
+- Unified Model `Social` 統合（News と併存）
+- Analysis / Dev Panel 表示（メタ・件数のみ）
+
+### 目標
+
+SNSを安全に構造化し、News と合わせて AI が総合評価できる基盤を構築する。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

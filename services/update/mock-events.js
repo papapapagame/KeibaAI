@@ -70,6 +70,24 @@ export const MOCK_EVENTS = [
     payload: { newsOnly: true },
   },
   {
+    type: "social_topic_added",
+    label: "SNS話題追加",
+    detail: "構造化SNSメタ追加",
+    payload: { socialOnly: true },
+  },
+  {
+    type: "social_spike",
+    label: "SNS投稿急増",
+    detail: "投稿数スパイク検知",
+    payload: { socialOnly: true },
+  },
+  {
+    type: "social_trend_change",
+    label: "SNSトレンド変化",
+    detail: "Trend Score 変化",
+    payload: { socialOnly: true },
+  },
+  {
     type: "stage_changed",
     label: "Stage変化",
     detail: "Stage3 → Stage4",

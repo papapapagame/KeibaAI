@@ -21,6 +21,7 @@ import { loadDrawForAi } from "../services/draw/index.js";
 import { loadOddsForAi } from "../services/odds/index.js";
 import { loadWeatherForAi } from "../services/weather/index.js";
 import { loadNewsForAi } from "../services/news/index.js";
+import { loadSocialForAi } from "../services/social/index.js";
 import {
   applyCardStagger,
   clearElement,
@@ -129,6 +130,12 @@ export async function initTopPage(goRaceListButton) {
           emitUpdate: false,
           silent: true,
         });
+        void loadSocialForAi({
+          date: cell.date,
+          venueId: raceVenueSelect.value || undefined,
+          emitUpdate: false,
+          silent: true,
+        });
       });
       grid.appendChild(btn);
     }
@@ -229,6 +236,12 @@ export async function initTopPage(goRaceListButton) {
         emitUpdate: false,
         silent: true,
       });
+      void loadSocialForAi({
+        date,
+        venueId,
+        emitUpdate: false,
+        silent: true,
+      });
     }
   });
 
@@ -264,6 +277,11 @@ export async function initTopPage(goRaceListButton) {
       silent: true,
     });
     void loadNewsForAi({
+      date: defaultDate,
+      emitUpdate: false,
+      silent: true,
+    });
+    void loadSocialForAi({
       date: defaultDate,
       emitUpdate: false,
       silent: true,

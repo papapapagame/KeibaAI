@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "8.0.0";
+export const VERSION = "8.1.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -66,6 +66,9 @@ export const WEATHER_ENGINE_VERSION = "7.9.0";
 
 /** News Intelligence（services/news） */
 export const NEWS_ENGINE_VERSION = "8.0.0";
+
+/** Social Intelligence（services/social） */
+export const SOCIAL_ENGINE_VERSION = "8.1.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

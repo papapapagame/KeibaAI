@@ -1,6 +1,7 @@
 /* ========================================
-   SocialAnalyzer — Ver5.4
+   SocialAnalyzer — Ver5.4 / Ver8.1 bridge
    X等の社会シグナル（本文非保存・非表示）
+   Ver8.1: aiInput.social（構造化メタ）があれば優先
    ======================================== */
 
 import { clamp, hashSeed } from "../utils.js";
@@ -9,6 +10,45 @@ import { buildXSearchPlan, summarizeXMetrics } from "../x-signals.js";
 export function analyzeSocial(context = {}) {
   const plan = buildXSearchPlan(context);
   const started = Date.now();
+  const structured = context.aiInput?.social || context.social || null;
+
+  if (structured?.available && (structured.itemCount > 0 || structured.scores)) {
+    const scores = structured.scores || {};
+    const postCount = Number(structured.totalPosts) || 0;
+    const support = clamp(Math.round((scores.attention || 50) * 0.7 + 15));
+    const deny = clamp(Math.round(100 - (scores.confidence || 50)));
+    const buzz = clamp(scores.momentum ?? scores.trend ?? 50);
+    const topicHeat = clamp(scores.trend ?? scores.attention ?? 50);
+    return {
+      analyzer: "SocialAnalyzer",
+      status: "STRUCTURED",
+      implemented: true,
+      fetchedCount: structured.itemCount || 0,
+      analyzedCount: structured.itemCount || 0,
+      searchPlan: {
+        queryCount: plan.queries.length,
+        sampleTags: (structured.topCategories || []).slice(0, 3),
+        aiOnly: true,
+      },
+      metrics: {
+        postCount,
+        supportRate: support,
+        denyRate: deny,
+        topicHeat,
+        buzz,
+        risingWords: (structured.topCategories || []).slice(0, 3),
+        trendScore: scores.trend ?? null,
+        attentionScore: scores.attention ?? null,
+        momentumScore: scores.momentum ?? null,
+        confidenceScore: scores.confidence ?? null,
+      },
+      // 投稿本文は一切含めない
+      responseMs: Date.now() - started,
+      updatedAt: new Date().toISOString(),
+      note: "Ver8.1 structured social metadata only. Posts never stored/displayed.",
+    };
+  }
+
   const seed = hashSeed(
     context.race?.date,
     context.race?.number,
@@ -37,7 +77,6 @@ export function analyzeSocial(context = {}) {
     analyzedCount: dummyMetrics.postCount ? 1 : 0,
     searchPlan: {
       queryCount: plan.queries.length,
-      // クエリ文字列は Dev 用に件数のみ必須。全文リストは aiOnly 内部。
       sampleTags: ["#本命", "#穴馬", "#危険馬"],
       aiOnly: true,
     },

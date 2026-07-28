@@ -116,18 +116,21 @@ export function computeNewsCompleteness(items = [], aggregate = {}) {
   const newsPct = n > 0 ? 100 : 0;
   const coverage = Number(aggregate.coverage) || 0;
   const reliability = Number(aggregate.reliability) || 0;
-  const sns = 0;
+  const snsRaw = Number(aggregate.sns);
+  const snsPct = Number.isFinite(snsRaw)
+    ? Math.max(0, Math.min(100, snsRaw))
+    : 0;
   const postRace = 0;
-  const scored = [newsPct, coverage, reliability, sns, postRace];
+  const scored = [newsPct, coverage, reliability, snsPct, postRace];
   const overall = Math.round(scored.reduce((a, b) => a + b, 0) / scored.length);
   return {
     news: newsPct,
     coverage,
     reliability,
-    sns,
+    sns: snsPct,
     postRace,
     overall,
-    note: "記事本文・SNS・レース後レビューは未取得（メタデータのみ）",
+    note: "記事本文は未取得。SNSはVer8.1構造化メタのみ（本文非転載）",
   };
 }
 
@@ -142,7 +145,7 @@ export function formatNewsStagePanel(stats = {}, completeness = null) {
   return {
     title: "News Intelligence",
     acquired: ["ニュースメタデータ", "カテゴリ", "重要度", "鮮度"],
-    pending: ["記事本文", "SNS", "レース後レビュー"],
+    pending: ["記事本文", "レース後レビュー"],
     provisionalText: "ニュースは構造化メタデータのみ反映（本文非表示）。",
     stats,
     completeness,
