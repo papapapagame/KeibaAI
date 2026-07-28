@@ -63,7 +63,27 @@
 
 ---
 
-## Ver5.3 - Live Data Update
+## Ver5.3 - AI Intelligence Engine（実装済）
+
+テーマ：AI分析エンジン
+
+### 実装内容
+
+- services/ai 独立 Analyzer 群
+- IQ Score および衛星スコア生成
+- Explainable AI（評価根拠）
+- AI Confidence
+- 可変 AI コメント
+- AI REPORT（総評・展開・危険/穴・EV・買い目）
+- ※ 既存 ai-engine / thinking-engine は未変更
+
+### 目標
+
+取得情報を統合し、PAPAPA IQ 独自の指数・根拠・レポートを生成する。
+
+---
+
+## Ver5.4 - Live Data Update
 
 テーマ：リアルタイム競馬データ
 
@@ -83,9 +103,9 @@
 
 ---
 
-## Ver5.4 - AI Engine Upgrade
+## Ver5.5 - AI Engine Upgrade
 
-テーマ：AI分析エンジン強化
+テーマ：既存評価エンジン強化（thinking / index）
 
 ### 実装予定
 
@@ -106,7 +126,7 @@
 
 ---
 
-## Ver5.5 - Betting AI
+## Ver5.6 - Betting AI
 
 テーマ：AI馬券アシスタント
 

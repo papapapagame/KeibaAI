@@ -4466,6 +4466,143 @@ body.has-home-fab .scroll-top {
 }
 
 /* ==========================================================================
+   Ver5.3.0 AI Intelligence Engine — scores / explain / report
+   ========================================================================== */
+
+.v53-confidence {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.35rem 0.85rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.v53-confidence__label {
+  margin: 0;
+  grid-column: 1 / -1;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v53-confidence__stars {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+}
+
+.v53-confidence__pct {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.v53-confidence__note {
+  margin: 0;
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.v53-explain-card {
+  padding: 0.95rem 1rem;
+}
+
+.v53-explain-card__iq {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.v53-explain-card__focus {
+  margin: 0 0 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.v53-explain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.v53-explain-list li {
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 162, 39, 0.18);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.v53-explain-list li.is-plus {
+  border-color: rgba(129, 199, 132, 0.35);
+}
+
+.v53-explain-list li.is-minus {
+  border-color: rgba(239, 154, 154, 0.35);
+}
+
+.v53-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.v53-report-card {
+  padding: 0.85rem 0.95rem;
+}
+
+.v53-report-card__title {
+  margin: 0 0 0.45rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.v53-report-card p {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.v53-report-card--wide {
+  grid-column: span 2;
+}
+
+.v53-ev-rank,
+.v53-ticket-suggest {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 767px) {
+  .v53-confidence {
+    grid-template-columns: 1fr;
+  }
+
+  .v53-report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .v53-report-card--wide {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================================
    Ver5.0.0 — 思考ログ / 履歴 / ニュース / 対決強化 / 完了演出
    ========================================================================== */
 

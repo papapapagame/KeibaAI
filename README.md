@@ -1,61 +1,56 @@
 # PAPAPA IQ KEIBA
 
-**Ver5.2.0** — Real Intelligence Connect（実データ接続）
+**Ver5.3.0** — AI Intelligence Engine（AI分析エンジン）
 
-AI評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-Ver5.1 までの機能（AI体験 / Intelligence Platform / Real Data Foundation）を維持したまま、実装可能な情報取得を接続しました。
+既存の評価ロジック（`ai-engine.js` / `thinking-engine.js`）は維持したまま、  
+取得データを統合解析する **独自 Intelligence Engine** を追加しました。
 
-## Real Intelligence Connect
+## AI Intelligence Engine
 
-同一オリジン（GitHub Pages 対応）で取得できるデータのみ実装しています。  
-外部サイトのスクレイピングや API キー必須の接続は、利用規約・CORS 制約のため **TODO** のまま残しています。
+```
+services/ai/
+  intelligence-engine.js   … 統合オーケストレータ
+  analyzers/
+    race-analyzer.js
+    horse-analyzer.js
+    odds-analyzer.js
+    history-analyzer.js
+    pace-analyzer.js
+    track-analyzer.js
+    trend-analyzer.js
+    sentiment-analyzer.js
+  score-builder.js         … IQ / Pace / Value / Trust …
+  explainable.js           … 評価根拠
+  comment-generator.js     … 可変コメント
+  report-builder.js        … AI REPORT
+```
 
-### Provider 構成
+### Analyzer 構造
 
-| Provider | 状態 | 取得方法 |
-|----------|------|----------|
-| JRA | **実装済** | `data/race.json` / `horses.json` + `data/intelligence/*` スナップショット |
-| ニュース | **実装済** | `data/intelligence/news-feed.json` |
-| netkeiba | TODO | CORS / 利用規約 |
-| JBIS | TODO | CORS / 利用規約 |
-| 競馬ラボ | TODO | 未接続 |
-| ウマークス | TODO | 未接続 |
-| ウマニティ | TODO | 未接続 |
-| X | TODO | API キー必須 |
-| YouTube | TODO | API キー必須 |
+各 Analyzer は独立。Race / Horse / Odds / History / Pace / Track / Trend / Sentiment。
 
-### 取得フロー
+### Score 計算
 
-1. `buildIntelligencePacket()` → Intelligence Manager が各 Provider を優先順位順に実行
-2. **Race / Horse / History Collector** が項目を抽出
-3. **Data Validator** が不足・欠損・異常値・重複を検出
-4. **Cache**（TTL / 更新日時 / 差分ハッシュ）へ保存
-5. **AI Preprocessor** が共通モデルへ変換（Horse / Race / Odds / History / Track / Weather / Comment / Trend）
-6. 既存 AI エンジンへは従来どおり legacy データを渡し、予想ロジックは不変
+取得データ（レース・馬・オッズ・履歴・ニュース等）から:
 
-### Collector 項目
+- **IQ Score**（0〜100）
+- Pace / Value / Trust / Danger / Trend / Buzz / Support / Risk
+- Market Sentiment
 
-- Race: 開催日 / 競馬場 / レース番号 / レース名 / 距離 / 芝・ダート / 馬場状態 / 発走時刻
-- Horse: 馬番 / 馬名 / 性齢 / 斤量 / 騎手 / 調教師 / 所属 / 人気 / オッズ
-- History: 着順 / 距離 / タイム / 上がり / 開催 / クラス
+を生成します。
 
-### Developer Panel（DEBUG）
+### Explainable AI
 
-- Provider Monitor（状態 / 最終取得 / 件数 / エラー件数 / 応答時間）
-- 取得 JSON / Normalizer 結果 / Cache 確認
-- Validation サマリ
+IQ Score に対し「距離適性 +8」「期待値 +12」など寄与要因を表示します。
 
-## AI Intelligence Platform（Ver5.1）
+### AI Confidence / AI REPORT
 
-AIは将来的に JRA公式・netkeiba・JBIS・競馬ラボ・ウマークス・ウマニティ・ニュース・X・YouTube などを統合し、**独自AI分析のみをユーザーへ提供**する設計です。  
-X / ニュースの生情報は画面表示せず、AI入力専用です。
+- Confidence: ★表示 + パーセント
+- REPORT: 総評 / 展開 / 危険馬 / 穴馬 / 期待値ランキング / おすすめ買い目
 
-## 今後の取得予定
+## Real Intelligence Connect（Ver5.2）
 
-- 公式ライセンスフィード / 公開 API への JRAProvider 差替
-- 認可済みパートナー API（netkeiba 等）接続
-- X / YouTube API（キー管理付き）
-- ライブオッズの差分更新頻度向上（Ver5.2 以降の Live Data）
+JRA・ニュースは同一オリジン実装。他 Provider は TODO。
 
 ## 確認方法
 
@@ -63,6 +58,5 @@ X / ニュースの生情報は画面表示せず、AI入力専用です。
 python -m http.server 5500
 ```
 
-1. AI分析画面で独自AI指標を確認
-2. DEBUG 時に Provider Monitor / Debug タブを確認
-3. JRA / ニュースが ONLINE または READY、他は OFFLINE(TODO) であること
+1. AI分析画面で独自AI指標・Explainable AI・AI REPORT を確認
+2. 既存の AI新聞 / AI対決 / シミュレーションが従来どおり動くこと

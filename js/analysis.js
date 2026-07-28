@@ -1,7 +1,7 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver5.2.0 Real Intelligence Connect（表示層）
-   AIロジックは ai-engine.js / thinking-engine.js を変更しない
+   Ver5.3.0 AI Intelligence Engine（表示層）
+   既存 ai-engine.js / thinking-engine.js は変更しない
    ======================================== */
 
 import { analyzeRace } from "./ai-engine.js";
@@ -22,6 +22,7 @@ import {
   getProviderMetas,
   initIntelligenceManager,
 } from "../services/intelligence/index.js";
+import { runIntelligenceEngine } from "../services/ai/index.js";
 import { DEBUG, DEBUG_MODE } from "./config.js";
 import {
   appendLines,
@@ -120,7 +121,30 @@ export async function initAnalysisPage() {
     horses,
     forceRefresh: false,
   });
-  bindIntelligenceScores(intelPacket.scores);
+
+  // レース情報を Intelligence 側で補完（距離・馬場など）
+  const intelRace =
+    (intelPacket.fusedInput?.aiInput?.races || []).find(
+      (r) => Number(r.number) === Number(race.number)
+    ) || (intelPacket.fusedInput?.aiInput?.races || [])[0];
+  const raceForEngine = {
+    ...race,
+    distance: race.distance || intelRace?.distance || 1600,
+    track: race.track || intelRace?.track || "芝",
+    trackCondition:
+      race.trackCondition || intelRace?.condition || race.condition || "良",
+    weather: race.weather || intelRace?.weather || "",
+    grade: race.grade || intelRace?.grade || "",
+  };
+
+  // Ver5.3: 取得データを統合解析（既存 ai-engine とは独立）
+  const engineResult = runIntelligenceEngine({
+    race: raceForEngine,
+    horses,
+    intelPacket,
+  });
+  bindIntelligenceScores(engineResult.scores);
+  bindIntelligenceEngineUi(engineResult);
   bindDeveloperPanel(bundle, intelPacket);
 
   if (!horses.length) {
@@ -232,6 +256,99 @@ function bindIntelligenceScores(scores = {}) {
   setText("score-support", formatScore(scores.supportScore));
   setText("score-risk", formatScore(scores.riskScore));
   setText("score-sentiment", scores.marketSentiment || "—");
+}
+
+function bindIntelligenceEngineUi(engineResult = {}) {
+  const confidence = engineResult.confidence || {};
+  setText("ai-confidence-stars", confidence.starsLabel || "★★★☆☆");
+  setText(
+    "ai-confidence-pct",
+    confidence.percent != null ? `${confidence.percent}%` : "—%"
+  );
+  setText("ai-confidence-note", confidence.note || "");
+
+  const explain = engineResult.explanations || {};
+  setText("explain-iq", formatScore(explain.iqScore));
+  setText(
+    "explain-focus",
+    explain.focusHorse
+      ? `注目馬: ${explain.focusNumber || ""} ${explain.focusHorse}`
+      : "—"
+  );
+  const list = document.getElementById("explain-list");
+  if (list) {
+    clearElement(list);
+    const factors = Array.isArray(explain.factors) ? explain.factors : [];
+    if (!factors.length) {
+      const li = createElement("li");
+      li.textContent = "根拠データ不足";
+      list.appendChild(li);
+    } else {
+      for (const f of factors) {
+        const li = createElement("li");
+        const delta = Number(f.delta) || 0;
+        const sign = delta > 0 ? `+${delta}` : String(delta);
+        li.textContent = `・${f.label} ${sign}`;
+        li.className = delta >= 0 ? "is-plus" : "is-minus";
+        list.appendChild(li);
+      }
+    }
+  }
+
+  setText(
+    "v53-ai-comment",
+    engineResult.comments?.full || "—"
+  );
+
+  const report = engineResult.report || {};
+  setText("report-overview", report.overview || "—");
+  setText("report-pace", report.pace || "—");
+  setText(
+    "report-danger",
+    report.danger
+      ? `${report.danger.number} ${report.danger.name}（${report.danger.reason}）`
+      : "—"
+  );
+  setText(
+    "report-upset",
+    report.upset
+      ? `${report.upset.number} ${report.upset.name}（${report.upset.reason}）`
+      : "—"
+  );
+
+  const evBox = document.getElementById("report-ev-rank");
+  if (evBox) {
+    clearElement(evBox);
+    const rows = Array.isArray(report.evRanking) ? report.evRanking : [];
+    if (!rows.length) {
+      const li = createElement("li");
+      li.textContent = "—";
+      evBox.appendChild(li);
+    } else {
+      for (const row of rows) {
+        const li = createElement("li");
+        li.textContent = `${row.rank}. ${row.number} ${row.name}  EV ${row.expectedValue} / オッズ ${row.odds}`;
+        evBox.appendChild(li);
+      }
+    }
+  }
+
+  const ticketBox = document.getElementById("report-tickets");
+  if (ticketBox) {
+    clearElement(ticketBox);
+    const tickets = Array.isArray(report.tickets) ? report.tickets : [];
+    if (!tickets.length) {
+      const li = createElement("li");
+      li.textContent = "—";
+      ticketBox.appendChild(li);
+    } else {
+      for (const t of tickets) {
+        const li = createElement("li");
+        li.textContent = `${t.type} ${t.text}（${t.note || ""}）`;
+        ticketBox.appendChild(li);
+      }
+    }
+  }
 }
 
 function formatScore(value) {

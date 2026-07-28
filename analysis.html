@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading page-analysis page-v40 page-v50 page-v51 page-v52">
+<body class="is-loading page-analysis page-v40 page-v50 page-v51 page-v52 page-v53">
   <div class="ai-scan-overlay" id="ai-scan-overlay" aria-hidden="true">
     <div class="ai-scan-overlay__glow"></div>
     <div class="ai-scan-overlay__line"></div>
@@ -56,9 +56,9 @@
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52">
+  <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52 page--v53">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver5.2</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver5.3</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
@@ -132,10 +132,16 @@
       </aside>
     </section>
 
-    <!-- Ver5.1 独自AI指標（ダミー表示） -->
+    <!-- Ver5.3 独自AI指標（Intelligence Engine） -->
     <section class="paper-section v51-scores reveal" aria-label="独自AI指標">
       <h2 class="paper-section__title">独自AI指標</h2>
-      <p class="paper-section__lead">Intelligence Connect 連携後のプレースホルダ指標（評価ロジック非接続）</p>
+      <p class="paper-section__lead">AI Intelligence Engine による統合スコア（取得データ反映）</p>
+      <div class="v53-confidence glass-card" id="v53-confidence">
+        <p class="v53-confidence__label">AI Confidence</p>
+        <p class="v53-confidence__stars" id="ai-confidence-stars">★★★★☆</p>
+        <p class="v53-confidence__pct" id="ai-confidence-pct">—%</p>
+        <p class="v53-confidence__note" id="ai-confidence-note"></p>
+      </div>
       <div class="v51-score-grid" id="v51-score-grid">
         <article class="glass-card v51-score-card"><p class="v51-score-card__label">IQ Score</p><p class="v51-score-card__value" id="score-iq">—</p></article>
         <article class="glass-card v51-score-card"><p class="v51-score-card__label">Pace Score</p><p class="v51-score-card__value" id="score-pace">—</p></article>
@@ -147,6 +153,54 @@
         <article class="glass-card v51-score-card"><p class="v51-score-card__label">Support Score</p><p class="v51-score-card__value" id="score-support">—</p></article>
         <article class="glass-card v51-score-card"><p class="v51-score-card__label">Risk Score</p><p class="v51-score-card__value" id="score-risk">—</p></article>
         <article class="glass-card v51-score-card v51-score-card--wide"><p class="v51-score-card__label">Market Sentiment</p><p class="v51-score-card__value" id="score-sentiment">—</p></article>
+      </div>
+    </section>
+
+    <!-- Ver5.3 Explainable AI -->
+    <section class="paper-section v53-explain reveal" aria-label="Explainable AI">
+      <h2 class="paper-section__title">Explainable AI</h2>
+      <p class="paper-section__lead">なぜその評価なのか — IQ Score の根拠</p>
+      <div class="v53-explain-card glass-card">
+        <p class="v53-explain-card__iq">IQ Score <span id="explain-iq">—</span></p>
+        <p class="v53-explain-card__focus" id="explain-focus">—</p>
+        <ul class="v53-explain-list" id="explain-list"></ul>
+      </div>
+    </section>
+
+    <!-- Ver5.3 AIコメント -->
+    <section class="paper-section v53-comment reveal" aria-label="AIインテリジェンスコメント">
+      <h2 class="paper-section__title">AIインテリジェンスコメント</h2>
+      <p class="paper-section__lead" id="v53-ai-comment">—</p>
+    </section>
+
+    <!-- Ver5.3 AI REPORT -->
+    <section class="paper-section v53-report reveal" aria-label="AI REPORT">
+      <h2 class="paper-section__title">AI REPORT</h2>
+      <div class="v53-report-grid" id="v53-report">
+        <article class="glass-card v53-report-card">
+          <h3 class="v53-report-card__title">総評</h3>
+          <p id="report-overview">—</p>
+        </article>
+        <article class="glass-card v53-report-card">
+          <h3 class="v53-report-card__title">展開</h3>
+          <p id="report-pace">—</p>
+        </article>
+        <article class="glass-card v53-report-card">
+          <h3 class="v53-report-card__title">危険馬</h3>
+          <p id="report-danger">—</p>
+        </article>
+        <article class="glass-card v53-report-card">
+          <h3 class="v53-report-card__title">穴馬</h3>
+          <p id="report-upset">—</p>
+        </article>
+        <article class="glass-card v53-report-card v53-report-card--wide">
+          <h3 class="v53-report-card__title">期待値ランキング</h3>
+          <ol class="v53-ev-rank" id="report-ev-rank"></ol>
+        </article>
+        <article class="glass-card v53-report-card v53-report-card--wide">
+          <h3 class="v53-report-card__title">おすすめ買い目</h3>
+          <ul class="v53-ticket-suggest" id="report-tickets"></ul>
+        </article>
       </div>
     </section>
 
@@ -475,7 +529,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 5.2.0</p>
+    <p>Version 5.3.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
