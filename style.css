@@ -5770,6 +5770,27 @@ body.has-home-fab .scroll-top {
 .v73-status-list span.is-partial { color: #e8d48b; }
 .v73-status-list span.is-ng { color: rgba(255, 200, 160, 0.75); }
 
+@media (max-width: 767px) {
+  .v73-status-list,
+  .v80-news-meta-list,
+  .v81-social-meta-list,
+  #explain-important-list,
+  #explain-contribution-list,
+  #explain-diff-list {
+    grid-template-columns: 1fr;
+  }
+
+  .v51-dev-panel {
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .v73-data-block__note {
+    word-break: break-word;
+  }
+}
+
 .v73-comp-grid {
   display: flex;
   flex-wrap: wrap;

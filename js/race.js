@@ -4,7 +4,7 @@
    Ver7.1 Race Calendar Intelligence
    ======================================== */
 
-import { DEBUG, DEBUG_MODE, DEFAULT_RACE, MAX_HORSE } from "./config.js";
+import { DEBUG, DEBUG_MODE, DEFAULT_RACE, MAX_HORSE, PREFETCH_DEDUP_TTL_MS } from "./config.js";
 import {
   getCalendarDashboard,
   getCalendarMode,
@@ -22,6 +22,7 @@ import { loadOddsForAi } from "../services/odds/index.js";
 import { loadWeatherForAi } from "../services/weather/index.js";
 import { loadNewsForAi } from "../services/news/index.js";
 import { loadSocialForAi } from "../services/social/index.js";
+import { shouldPrefetch } from "../services/runtime/prefetch-deduper.js";
 import {
   applyCardStagger,
   clearElement,
@@ -66,6 +67,23 @@ export async function initTopPage(goRaceListButton) {
 
   const meetingSet = cal.meetingDateSet || new Set();
 
+  function prefetchIntel(date, venueId) {
+    const key = `intel:${date || ""}:${venueId || ""}`;
+    if (!shouldPrefetch(key, PREFETCH_DEDUP_TTL_MS)) return;
+    const opts = {
+      date,
+      venueId: venueId || undefined,
+      emitUpdate: false,
+      silent: true,
+    };
+    void loadEntriesForAi(opts);
+    void loadDrawForAi(opts);
+    void loadOddsForAi(opts);
+    void loadWeatherForAi(opts);
+    void loadNewsForAi(opts);
+    void loadSocialForAi(opts);
+  }
+
   function renderCalendar() {
     const label = document.getElementById("cal-month-label");
     if (label) label.textContent = `${viewYear}年${viewMonth}月`;
@@ -99,43 +117,8 @@ export async function initTopPage(goRaceListButton) {
         raceDateInput.value = cell.date;
         renderCalendar();
         populateVenues(cell.date);
-        // Ver7.6: 開催日変更 → Entry 取得のみ（Calendar 再更新はしない）
-        void loadEntriesForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
-        void loadDrawForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
-        void loadOddsForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
-        void loadWeatherForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
-        void loadNewsForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
-        void loadSocialForAi({
-          date: cell.date,
-          venueId: raceVenueSelect.value || undefined,
-          emitUpdate: false,
-          silent: true,
-        });
+        // Ver9.0: 同一日付の重複プリフェッチを抑制
+        prefetchIntel(cell.date, raceVenueSelect.value || undefined);
       });
       grid.appendChild(btn);
     }
@@ -202,46 +185,10 @@ export async function initTopPage(goRaceListButton) {
 
   raceVenueSelect.addEventListener("change", () => {
     refreshSession();
-    // Ver7.6/7.7: 開催場変更 → 対象開催場の Entry / Draw 再取得
     const date = raceDateInput.value;
     const venueId = raceVenueSelect.value;
     if (date && venueId) {
-      void loadEntriesForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
-      void loadDrawForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
-      void loadOddsForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
-      void loadWeatherForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
-      void loadNewsForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
-      void loadSocialForAi({
-        date,
-        venueId,
-        emitUpdate: false,
-        silent: true,
-      });
+      prefetchIntel(date, venueId);
     }
   });
 
@@ -256,36 +203,7 @@ export async function initTopPage(goRaceListButton) {
     viewYear = y;
     viewMonth = m;
     populateVenues(defaultDate);
-    void loadEntriesForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
-    void loadDrawForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
-    void loadOddsForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
-    void loadWeatherForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
-    void loadNewsForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
-    void loadSocialForAi({
-      date: defaultDate,
-      emitUpdate: false,
-      silent: true,
-    });
+    prefetchIntel(defaultDate, raceVenueSelect.value || undefined);
   }
 
   renderCalendar();

@@ -506,6 +506,24 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver9.0 - Release Candidate（実装済）
+
+テーマ：製品版リリース前の最終統合・品質向上・最適化（新機能なし）
+
+### 実施内容
+
+- 全 Engine 連携確認・依存の一方向維持
+- Prefetch / Smart Update 重複抑制・Knowledge 再同期スキップ
+- ServiceGuard（例外・タイムアウト・Recovery）
+- UI レスポンシブ微調整・RC 表示（Version / Build）
+- README 最終版
+
+### 判定
+
+Release Candidate として GitHub Pages 上での安定動作を目標とする。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI
@@ -525,9 +543,9 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 
 ---
 
-## Ver9.0 - Premium AI
+## Ver9.1+ / Premium AI（将来構想）
 
-テーマ：次世代AI分析
+テーマ：次世代AI分析（Ver9.0 RC 以降の拡張案）
 
 ### 実装予定
 
@@ -573,5 +591,6 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver5.1〜5.3で実データ連携とAI分析の基盤を構築する。
 - Ver5.4でAI馬券アシスタントを実装する。
 - Ver6.0で自己学習AIへ進化させる。
-- Ver9.0で高度なAI分析機能を追加する。
+- Ver9.0 Release Candidate で製品版前の品質統合を完了する。
+- Ver9.1+ で高度なAI分析機能を追加する。
 - Ver10.0を正式リリース版とする。

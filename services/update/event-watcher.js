@@ -6,8 +6,11 @@
 import { priorityOf, reasonForEvent } from "./priorities.js";
 import { nowIso } from "./utils.js";
 import { MOCK_EVENTS, getMockEventCatalog } from "./mock-events.js";
+import { UPDATE_EVENT_DEDUP_MS } from "../../js/config.js";
 
 const listeners = new Set();
+let lastEmitKey = "";
+let lastEmitAt = 0;
 let watchTargets = [
   "frame_confirmed",
   "jockey_change",
@@ -57,6 +60,15 @@ export function subscribeEvents(fn) {
 
 export function emitEvent(raw = {}) {
   const type = raw.type || "meeting_update";
+  const dedupeKey = `${type}|${raw.detail || ""}|${JSON.stringify(raw.payload || {})}`;
+  const now = Date.now();
+  const windowMs = Number(UPDATE_EVENT_DEDUP_MS) || 2000;
+  if (dedupeKey === lastEmitKey && now - lastEmitAt < windowMs) {
+    return null; // Ver9.0: 同一イベントの短時間重複発火を抑制
+  }
+  lastEmitKey = dedupeKey;
+  lastEmitAt = now;
+
   const event = {
     id: raw.id || `ev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     type,

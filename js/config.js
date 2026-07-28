@@ -1,10 +1,15 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver2.0.0
+   Ver9.0.0 Release Candidate
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "8.4.0";
+export const VERSION = "9.0.0";
+export const RELEASE_CHANNEL = "Release Candidate";
+export const BUILD_DATE = "2026-07-28";
+export const BUILD_NUMBER = "20260728.90";
+export const IS_RELEASE_CANDIDATE = true;
+
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -21,6 +26,12 @@ export const DATA_PROVIDER = "dummy";
 /** Intelligence Cache TTL（ms）— Ver5.2 差分更新と併用 */
 export const DATA_CACHE_TTL_MS = 10 * 60 * 1000;
 export const INTEL_CACHE_TTL_MS = DATA_CACHE_TTL_MS;
+
+/** Prefetch 重複防止 TTL（ms）— Ver9.0 */
+export const PREFETCH_DEDUP_TTL_MS = 60 * 1000;
+
+/** Smart Update 同一イベント抑制窓（ms）— Ver9.0 */
+export const UPDATE_EVENT_DEDUP_MS = 2000;
 
 /** Learning AI Engine（services/learning） */
 export const LEARNING_AI_VERSION = "5.5.0";
@@ -142,3 +153,18 @@ export const LEARNING_RATE = 0.08;
 export const LEARNING_STORAGE_KEY = "papapa_iq_learning_v2";
 export const ROI_STORAGE_KEY = "papapa_iq_roi_v2";
 export const THINKING_WEIGHT_STORAGE_KEY = "papapa_iq_thinking_weight_v2";
+
+/** リリース表示用 */
+export function getReleaseLabel() {
+  return `${APP_NAME} Ver${VERSION} ${RELEASE_CHANNEL}`;
+}
+
+export function getBuildInfo() {
+  return {
+    version: VERSION,
+    channel: RELEASE_CHANNEL,
+    buildDate: BUILD_DATE,
+    buildNumber: BUILD_NUMBER,
+    isRc: IS_RELEASE_CANDIDATE,
+  };
+}

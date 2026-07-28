@@ -109,7 +109,20 @@ import {
 import { runIntelligenceEngine } from "../services/ai/index.js";
 import { runMarketEngine } from "../services/market/index.js";
 import { recordPrediction } from "../services/learning/index.js";
-import { DEBUG, DEBUG_MODE } from "./config.js";
+import {
+  DEBUG,
+  DEBUG_MODE,
+  BUILD_DATE,
+  BUILD_NUMBER,
+  RELEASE_CHANNEL,
+  VERSION,
+  getBuildInfo,
+} from "./config.js";
+import {
+  guardAsync,
+  guardSync,
+  getErrorStats,
+} from "../services/runtime/service-guard.js";
 import {
   appendLines,
   applyCardStagger,
@@ -165,6 +178,7 @@ let sequenceStarted = false;
 let debateContext = { reports: [], result: {}, race: {} };
 
 export async function initAnalysisPage() {
+  const perfStarted = typeof performance !== "undefined" ? performance.now() : Date.now();
   const params = getSearchParams();
   const detailParams = new URLSearchParams({
     date: params.get("date") || "",
@@ -244,10 +258,19 @@ export async function initAnalysisPage() {
 
   if (!bundle.ok || !horses.length) {
     const msg = bundle.blocked
-      ? "Provider未接続（Developer Panel で Data Source を Mock に戻してください）"
-      : bundle.message || bundle.status?.error || "データ取得に失敗しました";
-    console.error("[analysis] data platform:", msg);
+      ? "Provider未接続です。Developer Panel で Data Source を Mock に戻してください。"
+      : bundle.message || bundle.status?.error || "データ取得に失敗しました。キャッシュ表示を確認してください。";
+    if (DEBUG) console.error("[analysis] data platform:", msg);
     setText("data-source-label", bundle.status?.sourceLabel || "Error");
+    setText("data-error-detail", msg);
+    document.getElementById("data-error-banner")?.classList.add("is-visible");
+    document.getElementById("data-error-banner")?.removeAttribute("hidden");
+    bindReleaseRcUi({
+      analysisMs: Math.round(
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+          perfStarted
+      ),
+    });
     return;
   }
 
@@ -285,85 +308,115 @@ export async function initAnalysisPage() {
   const completenessNow = raceCtx.completeness?.percent ?? null;
 
   // Ver7.6 Horse Entry — Stage に応じた登録馬
-  const entryBundle = await loadEntriesForAi({
-    stage: stageNow,
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-  });
+  const entryBundle = await loadEngineSafe(
+    "entry",
+    () =>
+      loadEntriesForAi({
+        stage: stageNow,
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+      }),
+    { ok: false, entries: [], message: "Entry 取得失敗" }
+  );
   bindEntryStatusUi(entryBundle);
   bindEntryAiPanel(entryBundle);
   bindEntryDevUi(entryBundle);
 
   // Ver7.7 Draw & Jockey — 枠順・騎手・斤量（確定のみ）
-  const drawBundle = await loadDrawForAi({
-    stage: stageNow,
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-    baseConfidence: entryBundle?.confidenceHint ?? confidenceNow ?? 72,
-  });
+  const drawBundle = await loadEngineSafe(
+    "draw",
+    () =>
+      loadDrawForAi({
+        stage: stageNow,
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+        baseConfidence: entryBundle?.confidenceHint ?? confidenceNow ?? 72,
+      }),
+    { ok: false, message: "Draw 取得失敗" }
+  );
 
   // Ver7.8 Odds & Market — オッズ・人気・市場（Stage6+）
-  const oddsBundle = await loadOddsForAi({
-    stage: Math.max(stageNow, Number(drawBundle?.confirmedStage) || 0),
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-    baseConfidence:
-      drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
-  });
+  const oddsBundle = await loadEngineSafe(
+    "odds",
+    () =>
+      loadOddsForAi({
+        stage: Math.max(stageNow, Number(drawBundle?.confirmedStage) || 0),
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+        baseConfidence:
+          drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
+      }),
+    { ok: false, message: "Odds 取得失敗" }
+  );
 
   // Ver7.9 Weather & Track — 天候・馬場・風（Stage6+）
-  const weatherBundle = await loadWeatherForAi({
-    stage: Math.max(
-      stageNow,
-      Number(drawBundle?.confirmedStage) || 0,
-      Number(oddsBundle?.confirmedStage) || 0
-    ),
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-    baseConfidence:
-      oddsBundle?.confidenceHint ??
-      drawBundle?.confidenceHint ??
-      entryBundle?.confidenceHint ??
-      82,
-  });
+  const weatherBundle = await loadEngineSafe(
+    "weather",
+    () =>
+      loadWeatherForAi({
+        stage: Math.max(
+          stageNow,
+          Number(drawBundle?.confirmedStage) || 0,
+          Number(oddsBundle?.confirmedStage) || 0
+        ),
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+        baseConfidence:
+          oddsBundle?.confidenceHint ??
+          drawBundle?.confidenceHint ??
+          entryBundle?.confidenceHint ??
+          82,
+      }),
+    { ok: false, message: "Weather 取得失敗" }
+  );
 
   // Ver8.0 News Intelligence — 構造化メタデータのみ（本文なし）
-  const newsBundle = await loadNewsForAi({
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-    baseConfidence:
-      weatherBundle?.confidenceHint ??
-      oddsBundle?.confidenceHint ??
-      86,
-  });
+  const newsBundle = await loadEngineSafe(
+    "news",
+    () =>
+      loadNewsForAi({
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+        baseConfidence:
+          weatherBundle?.confidenceHint ??
+          oddsBundle?.confidenceHint ??
+          86,
+      }),
+    { ok: false, items: [], message: "News 取得失敗" }
+  );
 
   // Ver8.1 Social Intelligence — 構造化メタデータのみ（投稿本文なし）
-  const socialBundle = await loadSocialForAi({
-    date: params.get("date") || race.date || "",
-    venueId: params.get("venue") || race.venue || "",
-    raceNumber: raceNumber || race.number,
-    emitUpdate: false,
-    silent: true,
-    baseConfidence:
-      newsBundle?.confidenceHint ??
-      weatherBundle?.confidenceHint ??
-      86,
-  });
+  const socialBundle = await loadEngineSafe(
+    "social",
+    () =>
+      loadSocialForAi({
+        date: params.get("date") || race.date || "",
+        venueId: params.get("venue") || race.venue || "",
+        raceNumber: raceNumber || race.number,
+        emitUpdate: false,
+        silent: true,
+        baseConfidence:
+          newsBundle?.confidenceHint ??
+          weatherBundle?.confidenceHint ??
+          86,
+      }),
+    { ok: false, items: [], trends: null, message: "Social 取得失敗" }
+  );
 
   const effectiveStage = Math.max(
     stageNow,
@@ -581,20 +634,27 @@ export async function initAnalysisPage() {
   });
 
   // Ver8.2 AI Discussion Engine — Evidence比較・矛盾解決・合意形成
-  const discussionBundle = loadDiscussionForAi({
-    race: raceForEngine,
-    horses: stagedHorses,
-    entryBundle,
-    drawBundle,
-    oddsBundle,
-    weatherBundle,
-    newsBundle,
-    socialBundle,
-    intelPacket,
-    marketResult,
-    engineResult,
-    fetchedAt: new Date().toISOString(),
-  });
+  const discussionBundle =
+    guardSync(
+      "Discussion",
+      () =>
+        loadDiscussionForAi({
+          race: raceForEngine,
+          horses: stagedHorses,
+          entryBundle,
+          drawBundle,
+          oddsBundle,
+          weatherBundle,
+          newsBundle,
+          socialBundle,
+          intelPacket,
+          marketResult,
+          engineResult,
+          fetchedAt: new Date().toISOString(),
+        }),
+      { ok: false, status: "error", count: 0 },
+      "Discussion の解析に失敗しました。他の分析結果は表示を継続します。"
+    ).data || { ok: false, status: "error", count: 0 };
 
   if (discussionBundle?.ok && discussionBundle.aiDiscussion) {
     try {
@@ -764,19 +824,26 @@ export async function initAnalysisPage() {
     ? Number(String(blendedConfEl.textContent).replace("%", ""))
     : discussionBundle?.consensus?.finalConfidence ?? confHint ?? null;
 
-  const explainBundle = loadExplainForAi({
-    discussion: discussionBundle,
-    ranked,
-    stage: effectiveStage,
-    blendedConfidence: Number.isFinite(blendedConfNum)
-      ? blendedConfNum
-      : null,
-    raceKey,
-    hasWeather: Boolean(weatherBundle?.ok),
-    hasNews: Boolean(newsBundle?.ok),
-    hasSocial: Boolean(socialBundle?.ok),
-    hasLearning: true,
-  });
+  const explainBundle =
+    guardSync(
+      "Explain",
+      () =>
+        loadExplainForAi({
+          discussion: discussionBundle,
+          ranked,
+          stage: effectiveStage,
+          blendedConfidence: Number.isFinite(blendedConfNum)
+            ? blendedConfNum
+            : null,
+          raceKey,
+          hasWeather: Boolean(weatherBundle?.ok),
+          hasNews: Boolean(newsBundle?.ok),
+          hasSocial: Boolean(socialBundle?.ok),
+          hasLearning: true,
+        }),
+      { ok: false, status: "error" },
+      "説明生成に失敗しました。予想結果の表示は継続します。"
+    ).data || { ok: false, status: "error" };
 
   if (explainBundle?.ok && explainBundle.aiExplain) {
     try {
@@ -798,21 +865,28 @@ export async function initAnalysisPage() {
   bindExplainDevUi(explainBundle);
 
   // Ver8.4 Knowledge Graph — AI推論基盤（全データ統合）
-  const knowledgeBundle = loadKnowledgeGraphForAi({
-    race: raceForEngine,
-    horses: stagedHorses,
-    ranked,
-    stage: effectiveStage,
-    raceKey,
-    entryBundle,
-    drawBundle,
-    oddsBundle,
-    weatherBundle,
-    newsBundle,
-    socialBundle,
-    discussionBundle,
-    explainBundle,
-  });
+  const knowledgeBundle =
+    guardSync(
+      "KnowledgeGraph",
+      () =>
+        loadKnowledgeGraphForAi({
+          race: raceForEngine,
+          horses: stagedHorses,
+          ranked,
+          stage: effectiveStage,
+          raceKey,
+          entryBundle,
+          drawBundle,
+          oddsBundle,
+          weatherBundle,
+          newsBundle,
+          socialBundle,
+          discussionBundle,
+          explainBundle,
+        }),
+      { ok: false, status: "error", syncSkipped: false },
+      "Knowledge Graph の同期に失敗しました。他の分析結果は表示を継続します。"
+    ).data || { ok: false, status: "error", syncSkipped: false };
 
   if (knowledgeBundle?.ok && knowledgeBundle.aiKnowledge) {
     try {
@@ -859,6 +933,13 @@ export async function initAnalysisPage() {
   }
   bindKnowledgeStatusUi(knowledgeBundle);
   bindKnowledgeDevUi(knowledgeBundle);
+  bindReleaseRcUi({
+    analysisMs: Math.round(
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+        perfStarted
+    ),
+    knowledgeSkipped: Boolean(knowledgeBundle?.syncSkipped),
+  });
 
   // Ver5.5: 予想スナップショットを Learning DB へ蓄積（ロジック書換なし）
   try {
@@ -2063,6 +2144,40 @@ function bindKnowledgeDevUi(knowledgeBundle) {
   );
 }
 
+async function loadEngineSafe(scope, fn, fallback) {
+  const result = await guardAsync(scope, fn, {
+    timeoutMs: 15000,
+    fallbackValue: fallback,
+    userMessage: `${scope} のデータ取得に失敗しました。利用可能な範囲で分析を継続します。`,
+  });
+  return result.data ?? fallback;
+}
+
+function bindReleaseRcUi(meta = {}) {
+  const info = getBuildInfo();
+  setText("rc-version", `Version ${info.version}`);
+  setText("rc-channel", info.channel || RELEASE_CHANNEL);
+  setText("rc-build-date", `Build Date ${info.buildDate || BUILD_DATE}`);
+  setText("rc-build-number", `Build ${info.buildNumber || BUILD_NUMBER}`);
+  setText("dev-rc-version", `${VERSION} ${RELEASE_CHANNEL}`);
+  setText("dev-rc-build-date", BUILD_DATE);
+  setText("dev-rc-build-number", BUILD_NUMBER);
+  const stats = getErrorStats();
+  setText("dev-rc-errors", String(stats.errorCount));
+  setText("dev-rc-warnings", String(stats.warningCount));
+  setText("dev-rc-recoveries", String(stats.recoveries));
+  setText(
+    "dev-rc-perf",
+    meta.analysisMs != null ? `${meta.analysisMs} ms` : "—"
+  );
+  setText(
+    "dev-rc-note",
+    meta.knowledgeSkipped
+      ? "Knowledge sync skipped (unchanged)"
+      : "RC quality guards active"
+  );
+}
+
 function clearList(id, placeholder = null) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -2525,6 +2640,8 @@ function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
   }
 
   bindSourceModeControls();
+  // Ver9.0: Dev Panel 表示時に RC エラー件数を最新化
+  bindReleaseRcUi();
 
   const forceBtn = document.getElementById("dev-force-error");
   if (forceBtn && !forceBtn.dataset.bound) {

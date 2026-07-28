@@ -62,6 +62,7 @@ export function startSmartUpdateEngine(options = {}) {
   if (options.analysisHandler) registerAnalysisHandler(options.analysisHandler);
 
   unsub = subscribeEvents((event) => {
+    if (!event) return; // Ver9.0 dedupe may suppress emit
     void handleIncomingEvent(event);
   });
 

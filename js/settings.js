@@ -3,7 +3,7 @@
    Ver1.0.0 学習入力（HTML追加なし / prompt）
    ======================================== */
 
-import { APP_NAME, VERSION } from "./config.js";
+import { APP_NAME, VERSION, RELEASE_CHANNEL, BUILD_DATE, BUILD_NUMBER } from "./config.js";
 import { formatDateTime, loadJson } from "./utils.js";
 import {
   clearLearningOverlay,
@@ -56,7 +56,8 @@ export function renderSettings(settingsData) {
   document.getElementById("settings-app-name").textContent =
     settingsData.appName || APP_NAME;
   document.getElementById("settings-version").textContent =
-    settingsData.displayVersion || `Ver${VERSION}`;
+    settingsData.displayVersion ||
+    `Ver${VERSION} ${RELEASE_CHANNEL} (${BUILD_NUMBER} / ${BUILD_DATE})`;
 }
 
 function bindSettingsEvents() {

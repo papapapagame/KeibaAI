@@ -26,12 +26,47 @@ import { getLearningDashboard } from "../learning/index.js";
 export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
 
 let lastBundle = null;
+let lastSyncFingerprint = null;
+
+function buildContextFingerprint(options = {}) {
+  const ranked = options.ranked || options.horses || [];
+  const top = ranked
+    .slice(0, 5)
+    .map((h) => `${h.number}:${h.horse || h.horseName || ""}`)
+    .join(",");
+  return [
+    options.raceKey || "",
+    options.stage ?? "",
+    options.discussionBundle?.fingerprint ||
+      options.discussionBundle?.count ||
+      "",
+    options.explainBundle?.updatedAt || options.explainBundle?.fetchedAt || "",
+    options.newsBundle?.fingerprint || options.newsBundle?.count || "",
+    options.socialBundle?.fingerprint || options.socialBundle?.count || "",
+    top,
+  ].join("|");
+}
 
 /**
  * Build / refresh Knowledge Graph from analysis context.
  * Used by Discussion / Explain / Learning / Prediction via query facade.
+ * Ver9.0: 同一コンテキストなら再同期をスキップ
  */
 export function loadKnowledgeGraphForAi(options = {}) {
+  const fp = buildContextFingerprint(options);
+  if (
+    lastBundle?.ok &&
+    lastSyncFingerprint &&
+    fp === lastSyncFingerprint &&
+    options.force !== true
+  ) {
+    return {
+      ...lastBundle,
+      message: "Knowledge Graph unchanged (skipped sync)",
+      syncSkipped: true,
+    };
+  }
+
   let learningDashboard = options.learningDashboard || null;
   try {
     if (!learningDashboard) {
@@ -62,6 +97,7 @@ export function loadKnowledgeGraphForAi(options = {}) {
   const aiKnowledge = toAiKnowledgePayload(query);
   const unified = toUnified(syncResult);
 
+  lastSyncFingerprint = fp;
   lastBundle = {
     ok: syncResult.ok,
     version: KNOWLEDGE_GRAPH_VERSION,
@@ -85,6 +121,8 @@ export function loadKnowledgeGraphForAi(options = {}) {
     },
     fetchedAt: syncResult.updatedAt,
     stageNote: "Knowledge Graph は AI 推論基盤（表示用DBではない）",
+    syncSkipped: false,
+    fingerprint: fp,
   };
 
   return lastBundle;

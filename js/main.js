@@ -3,7 +3,7 @@
    エントリーポイント（HTMLからはこのファイルのみ読込）
    ======================================== */
 
-import { APP_NAME, DEBUG, VERSION } from "./config.js";
+import { APP_NAME, DEBUG, VERSION, RELEASE_CHANNEL, BUILD_NUMBER } from "./config.js";
 import { initCommonUI } from "./utils.js";
 import {
   initRaceDetailPage,
@@ -22,7 +22,7 @@ import { exposeLearningApi } from "./learning-engine.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (DEBUG) {
-    console.log(`${APP_NAME} Ver${VERSION}`);
+    console.log(`${APP_NAME} Ver${VERSION} ${RELEASE_CHANNEL} (${BUILD_NUMBER})`);
   }
 
   try {
