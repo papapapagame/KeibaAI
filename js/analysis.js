@@ -34,6 +34,8 @@ import {
   filterEntriesForStage,
   entryToHorseModel,
   getEntryDashboard,
+  getEntryMode,
+  setEntryMode,
 } from "../services/entry/index.js";
 import {
   loadDrawForAi,
@@ -324,11 +326,19 @@ export async function initAnalysisPage() {
         emitUpdate: false,
         silent: true,
       }),
-    { ok: false, entries: [], message: "Entry 取得失敗" }
+    { ok: false, entries: [], message: "出馬表を取得できませんでした", userMessage: "出馬表を取得できませんでした" }
   );
   bindEntryStatusUi(entryBundle);
   bindEntryAiPanel(entryBundle);
   bindEntryDevUi(entryBundle);
+  if (entryBundle?.unified && race && typeof race === "object") {
+    race.entries = entryBundle.unified;
+    race.entryProvider = {
+      kind: entryBundle.providerKind || entryBundle.mode || "mock",
+      providerId: entryBundle.providerId || null,
+      updatedAt: entryBundle.fetchedAt || null,
+    };
+  }
 
   // Ver7.7 Draw & Jockey — 枠順・騎手・斤量（確定のみ）
   const drawBundle = await loadEngineSafe(
@@ -1261,6 +1271,10 @@ function mergeHorsesWithEntries(horses = [], entries = []) {
 function bindEntryStatusUi(entryBundle) {
   const stats = entryBundle?.stats || {};
   const ec = entryBundle?.entryCompleteness || {};
+  const active =
+    (stats.entryExpected ?? 0) +
+    (stats.confirmed ?? 0) +
+    (stats.registered ?? 0);
   setText("entry-registered", String(stats.registered ?? "—"));
   setText(
     "entry-planned",
@@ -1268,6 +1282,10 @@ function bindEntryStatusUi(entryBundle) {
   );
   setText("entry-scratched", String(stats.scratched ?? "—"));
   setText("entry-excluded", String(stats.excluded ?? "—"));
+  setText(
+    "entry-field-size",
+    String(stats.active ?? active ?? entryBundle?.count ?? "—")
+  );
   setText(
     "entry-completeness",
     ec.overall != null
@@ -1280,7 +1298,17 @@ function bindEntryStatusUi(entryBundle) {
     "entry-updated",
     entryBundle?.fetchedAt ? formatUpdateTime(entryBundle.fetchedAt) : "—"
   );
-  setText("entry-stage-note", entryBundle?.stageNote || "");
+  setText(
+    "entry-provider-kind",
+    entryBundle?.providerKind ||
+      (entryBundle?.mode === "real" ? "Real" : "Mock")
+  );
+  setText(
+    "entry-stage-note",
+    entryBundle?.ok === false
+      ? entryBundle?.userMessage || "出馬表を取得できませんでした"
+      : entryBundle?.stageNote || ""
+  );
 
   setText(
     "ec-registered",
@@ -1335,6 +1363,7 @@ function bindEntryAiPanel(entryBundle) {
 function bindEntryDevUi(entryBundle) {
   const dash = getEntryDashboard();
   const stats = entryBundle?.stats || dash.stats || {};
+  const mode = getEntryMode();
   setText(
     "dev-entry-count",
     String(entryBundle?.count ?? stats.total ?? 0)
@@ -1365,6 +1394,63 @@ function bindEntryDevUi(entryBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+  setText(
+    "dev-horse-status",
+    entryBundle?.ok === false
+      ? "ERROR"
+      : entryBundle?.mode === "real"
+        ? "ONLINE"
+        : "MOCK"
+  );
+  setText(
+    "dev-horse-provider",
+    entryBundle?.providerId || (mode === "real" ? "real-horse" : "mock")
+  );
+  setText(
+    "dev-horse-count",
+    String(entryBundle?.count ?? stats.total ?? 0)
+  );
+  setText(
+    "dev-horse-validation",
+    entryBundle?.validation?.ok
+      ? `OK (warn ${entryBundle.validation.warnings?.length || 0})`
+      : `NG ${entryBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-horse-sync",
+    entryBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-horse-updated",
+    entryBundle?.fetchedAt
+      ? formatUpdateTime(entryBundle.fetchedAt)
+      : "—"
+  );
+
+  bindEntryModeControls();
+}
+
+function bindEntryModeControls() {
+  const mode = getEntryMode();
+  const note = document.getElementById("entry-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real Horse Entry（失敗時は Mock へ自動切替しません）"
+        : "Mock Horse Entry を使用中";
+  }
+  document.querySelectorAll("[data-entry-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-entry-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setEntryMode(btn.getAttribute("data-entry-mode"));
+      location.reload();
+    });
+  });
 }
 
 function bindDrawStatusUi(drawBundle) {

@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "10.0.0";
+export const UNIFIED_VERSION = "10.1.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -610,13 +610,18 @@ export function createHorse(raw = {}) {
   };
 }
 
-/** Ver7.6 HorseEntry — 登録情報（枠・騎手・斤量・オッズは未確定） */
+/** Ver7.6 / Ver10.1 HorseEntry — Stage に応じて枠・騎手・斤量を確定反映 */
 export function createHorseEntry(raw = {}) {
+  const frameConfirmed = Boolean(raw.frameConfirmed);
+  const jockeyConfirmed = Boolean(raw.jockeyConfirmed);
+  const weightConfirmed = Boolean(raw.weightConfirmed);
+  const numberConfirmed = Boolean(raw.numberConfirmed);
+
   const horse = createHorse({
     ...raw,
-    frame: null,
-    jockey: null,
-    weight: null,
+    frame: frameConfirmed ? raw.frame ?? raw._rawFrame : null,
+    jockey: jockeyConfirmed ? raw.jockey ?? raw._rawJockey : null,
+    weight: weightConfirmed ? raw.weight ?? raw._rawWeight : null,
     odds: null,
     popularity: null,
   });
@@ -635,15 +640,22 @@ export function createHorseEntry(raw = {}) {
     trackRecord: raw.trackRecord || "",
     stakesRecord: raw.stakesRecord || "",
     earnings: raw.earnings != null ? Number(raw.earnings) : null,
+    jockeyId: raw.jockeyId || raw._rawJockeyId || null,
+    trainerId: raw.trainerId || null,
+    carriedWeight: raw.carriedWeight ?? raw._rawCarriedWeight ?? null,
     analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
     learning: raw.learning ? createLearningDataRef(raw.learning) : null,
     knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
-    // 確定情報として利用しない
-    frameConfirmed: false,
-    numberConfirmed: false,
-    jockeyConfirmed: false,
-    weightConfirmed: false,
+    frameConfirmed,
+    numberConfirmed,
+    jockeyConfirmed,
+    weightConfirmed,
     oddsConfirmed: false,
+    _rawFrame: raw._rawFrame ?? raw.frame,
+    _rawJockey: raw._rawJockey ?? (typeof raw.jockey === "object" ? raw.jockey?.name : raw.jockey),
+    _rawJockeyId: raw._rawJockeyId ?? raw.jockeyId,
+    _rawWeight: raw._rawWeight ?? raw.weight,
+    _rawCarriedWeight: raw._rawCarriedWeight ?? raw.carriedWeight,
   };
 }
 

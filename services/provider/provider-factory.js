@@ -4,6 +4,7 @@
 
 import { MockProvider } from "./providers/mock-provider.js";
 import { RealRaceProvider } from "./race/real-race-provider.js";
+import { RealHorseProvider } from "./horse/real-horse-provider.js";
 import {
   JraProvider,
   JbisProvider,
@@ -17,6 +18,7 @@ import {
 const FACTORIES = {
   mock: () => new MockProvider(),
   "real-race": () => new RealRaceProvider(),
+  "real-horse": () => new RealHorseProvider(),
   jra: () => new JraProvider(),
   jbis: () => new JbisProvider(),
   netkeiba: () => new NetkeibaProvider(),

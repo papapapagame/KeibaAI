@@ -171,10 +171,11 @@ async function handleIncomingEventInner(event) {
     }
   }
 
-  // Ver7.6: Entry 変更時は登録馬のみ再取得。変更無ければ再分析しない
+  // Ver7.6 / Ver10.1: Entry 変更時は登録馬のみ再取得。変更無ければ再分析しない
   if (
     event?.payload?.entryOnly ||
     event?.source === "entry-engine" ||
+    event?.source === "real-horse" ||
     ["entry_added", "entry_scratched", "entry_status_changed"].includes(
       event?.type
     )
@@ -215,6 +216,10 @@ async function handleIncomingEventInner(event) {
         entryFingerprint: entryRefresh.fingerprint,
         entryCount: entryRefresh.count,
       };
+      // Real Horse Entry 由来は Entry のみ再取得して AI 再分析へ
+      if (event?.payload?.entryOnly || event?.source === "real-horse") {
+        // fall through to analysis with updated snapshot
+      }
     } catch {
       /* Entry 失敗時は従来トリガへ */
     }
@@ -222,16 +227,18 @@ async function handleIncomingEventInner(event) {
 
   // Ver7.7: Draw 変更時は枠・騎手・斤量のみ再取得。変更無ければ再分析しない
   if (
-    event?.payload?.drawOnly ||
-    event?.source === "draw-engine" ||
-    [
-      "frame_confirmed",
-      "frame_changed",
-      "jockey_change",
-      "weight_change",
-      "scratched",
-      "excluded",
-    ].includes(event?.type)
+    !event?.payload?.entryOnly &&
+    event?.source !== "real-horse" &&
+    (event?.payload?.drawOnly ||
+      event?.source === "draw-engine" ||
+      [
+        "frame_confirmed",
+        "frame_changed",
+        "jockey_change",
+        "weight_change",
+        "scratched",
+        "excluded",
+      ].includes(event?.type))
   ) {
     try {
       const drawRefresh = await refreshDrawOnly({

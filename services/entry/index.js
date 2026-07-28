@@ -81,3 +81,11 @@ export {
   isRemovedEntry,
   UNCONFIRMED_FIELDS,
 } from "./entry-status.js";
+
+export {
+  getEntryMode,
+  setEntryMode,
+  ENTRY_MODE_KEY,
+  ENTRY_MODES,
+  EntryMode,
+} from "./entry-mode.js";

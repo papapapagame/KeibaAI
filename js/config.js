@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.0.0 Real Race Calendar
+   Ver10.1.0 Real Horse Entry
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.0.0";
-export const RELEASE_CHANNEL = "Real Race Calendar";
+export const VERSION = "10.1.0";
+export const RELEASE_CHANNEL = "Real Horse Entry";
 export const BUILD_DATE = "2026-07-28";
-export const BUILD_NUMBER = "20260728.100";
+export const BUILD_NUMBER = "20260728.101";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -23,6 +23,14 @@ export const API_BASE_URL = "data/";
 export const REAL_RACE_CALENDAR_URL = "data/calendar/real-calendar.json";
 export const REAL_RACE_FETCH_TIMEOUT_MS = 12000;
 export const REAL_RACE_PROVIDER_VERSION = "10.0.0";
+
+/**
+ * Real Horse Entry 取得先（GitHub Pages 対応）
+ */
+export const REAL_HORSE_ENTRY_URL = "data/entry/real-entries.json";
+export const REAL_HORSE_FETCH_TIMEOUT_MS = 12000;
+export const REAL_HORSE_PROVIDER_VERSION = "10.1.0";
+export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v101";
 
 /**
  * データ取得 Provider 切替（レガシー Ver5.1）
@@ -100,6 +108,9 @@ export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
 
 /** Real Race Calendar（services/provider/race） */
 export const REAL_RACE_CALENDAR_VERSION = "10.0.0";
+
+/** Real Horse Entry（services/provider/horse） */
+export const REAL_HORSE_ENTRY_VERSION = "10.1.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

@@ -1,9 +1,9 @@
 # PAPAPA IQ KEIBA
 
-**Version 10.0.0 — Real Race Calendar**  
-Build Date: 2026-07-28 · Build Number: 20260728.100
+**Version 10.1.0 — Real Horse Entry**  
+Build Date: 2026-07-28 · Build Number: 20260728.101
 
-実開催カレンダー取得へ移行した第一段階です。  
+実開催カレンダーに続き、出馬表（Horse Entry）を Real Data へ移行した段階です。  
 既存評価ロジック（`js/ai-engine.js` / `js/thinking-engine.js`）は変更していません。
 
 ---
@@ -25,7 +25,8 @@ Build Date: 2026-07-28 · Build Number: 20260728.100
 UI (HTML/CSS/js/*)
   └─ services/*
        ├─ calendar          ← Mock / Real Race Calendar
-       ├─ provider/race     ← Ver10 RealRaceProvider 一式
+       ├─ provider/race     ← Ver10.0 RealRaceProvider
+       ├─ provider/horse    ← Ver10.1 RealHorseProvider
        ├─ update / entry / draw / odds / weather
        ├─ news / social / discussion / explain / knowledge
        ├─ learning / review / market / intelligence / provider
@@ -34,6 +35,46 @@ Runtime (services/runtime) — エラーガード / Prefetch 重複防止
 ```
 
 **Prediction Engine** = 既存 `ai-engine.js` + `thinking-engine.js`（非改変）
+
+---
+
+## Real Horse Provider（Ver10.1）
+
+配置: `services/provider/horse/`
+
+| モジュール | 責務 |
+|------------|------|
+| `RealHorseProvider` | Provider 共通 I/F |
+| `HorseEntryFetcher` | 出馬表生データ取得 |
+| `HorseEntryParser` | パース |
+| `HorseEntryNormalizer` | Unified Horse/Entry/Draw/Jockey/Trainer |
+| `HorseEntryValidator` | 馬番/枠番重複・騎手・斤量・必須検証 |
+| `HorseEntrySynchronizer` | 変更時のみ同期 / Smart Update |
+
+### Horse Entry 取得
+
+既定 URL: `data/entry/real-entries.json`  
+`REAL_HORSE_ENTRY_URL` で差し替え可能。
+
+取得項目: 馬名 / 馬番 / 枠番 / 性齢 / 斤量 / 騎手 / 調教師 / 所属 / 負担重量 / 出走状態 / 除外 / 取消 / 各 ID
+
+### Provider 切替
+
+Analysis Developer Panel: **Mock Entry / Real Entry**  
+`localStorage` キー: `papapa_iq_entry_mode_v101`  
+Real 失敗時は自動 Mock 切替なし（「出馬表を取得できませんでした」）
+
+### Validation / Synchronization
+
+馬番重複・枠番異常・騎手欠損・斤量異常・必須欠損は不採用。  
+取消・除外・騎手変更・斤量変更・出馬表更新時のみ再同期。
+
+### Analysis Stage 反映
+
+- Stage2: 登録馬・出走予定
+- Stage3: 確定出馬表（枠・馬番）
+- Stage4: 騎手確定
+- Stage5: 斤量確定
 
 ---
 
@@ -92,15 +133,20 @@ KeibaAI/
   js/
   services/
     provider/
-      race/                 # Ver10 Real Race Calendar
+      race/                 # Ver10.0 Real Race Calendar
+      horse/                # Ver10.1 Real Horse Entry
       providers/mock-provider.js
     calendar/
+    entry/
     models/unified.js
     ...
   data/
     calendar/
-      mock-calendar.json    # Mock（維持）
-      real-calendar.json    # Real フィード（差し替え可）
+      mock-calendar.json
+      real-calendar.json
+    entry/
+      real-entries.json
+      mock-entries.json     # 任意
 ```
 
 ---

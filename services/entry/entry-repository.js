@@ -1,41 +1,59 @@
 /* ========================================
-   Entry Repository — Ver7.6
+   Entry Repository — Ver7.6 / Ver10.1
    Provider Framework 経由（直アクセス禁止）
    ======================================== */
 
-import { acquireBundle } from "../provider/index.js";
-import { getSourceMode } from "../data/source-mode.js";
 import { API_BASE_URL } from "../../js/config.js";
+import { getEntryMode } from "./entry-mode.js";
+import { loadRealHorseEntries } from "../provider/horse/index.js";
 
 export async function fetchEntryRaw(options = {}) {
-  const mode = options.mode || getSourceMode();
+  const entryMode = options.entryMode || getEntryMode();
 
-  if (mode === "real") {
-    // Real: Framework 経由。未接続ならブロック
-    const acquired = await acquireBundle({ ...options, mode: "real" });
-    if (!acquired.ok) {
+  // Ver10.1 Real Horse Entry（自動 Mock フォールバックなし）
+  if (entryMode === "real") {
+    const real = await loadRealHorseEntries({
+      ...options,
+      stage: options.stage,
+      force: options.forceRefresh || options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+    });
+    if (!real.ok) {
       return {
         ok: false,
-        blocked: true,
-        message: acquired.message || "Provider未接続",
-        providerId: acquired.providerId || "real",
-        mode,
+        blocked: false,
+        message: real.userMessage || "出馬表を取得できませんでした",
+        userMessage: "出馬表を取得できませんでした",
+        providerId: real.providerId || "real-horse",
+        mode: "real",
         items: [],
+        validation: real.validation,
+        error: real.error || null,
       };
     }
     return {
       ok: true,
       blocked: false,
-      message: "Real Entry via Framework",
-      providerId: acquired.providerId,
-      mode,
-      items: stripConfirmedFields(acquired.raw?.horses || acquired.data?.horses || []),
-      provenance: acquired.provenance,
-      framework: acquired.framework,
+      message: real.message || "Real Horse Entry",
+      providerId: real.providerId || "real-horse",
+      mode: "real",
+      items: real.entries,
+      meta: {
+        ...(real.meta || {}),
+        updatedAt: real.updatedAt || real.fetchedAt,
+        confirmation: real.confirmation,
+        skipped: real.skipped,
+        changed: real.changed,
+        fingerprint: real.fingerprint,
+        defaultStage: real.meta?.defaultStage ?? options.stage ?? 5,
+      },
+      realBundle: real,
+      provenance: { providerId: real.providerId, source: "real-horse" },
     };
   }
 
-  // Mock / Auto: 専用 Entry JSON + horses 補完
+  // Mock: 専用 Entry JSON + horses 補完
   try {
     const [entryJson, horsesJson] = await Promise.all([
       fetchJsonOptional("entry/mock-entries.json"),
@@ -53,7 +71,7 @@ export async function fetchEntryRaw(options = {}) {
       blocked: false,
       message: "Mock Entry Repository",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items: stripConfirmedFields(items),
       meta: {
         raceDate: options.date || entryJson?.raceDate || null,
@@ -68,13 +86,13 @@ export async function fetchEntryRaw(options = {}) {
       blocked: false,
       message: err?.message || "Entry fetch failed",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items: [],
     };
   }
 }
 
-/** 枠・騎手・斤量・オッズは確定情報として保持しない */
+/** Mock: 枠・騎手・斤量・オッズは確定情報として保持しない */
 function stripConfirmedFields(items = []) {
   return (items || []).map((h) => {
     const {
@@ -88,7 +106,6 @@ function stripConfirmedFields(items = []) {
     } = h || {};
     return {
       ...rest,
-      // 明示的に未確定フラグ
       frame: null,
       jockey: null,
       weight: null,
@@ -121,7 +138,6 @@ function mergeEntryHints(items, statusMap = {}) {
 }
 
 function defaultStatusByIndex(idx) {
-  // Demo: 大半は出走予定、一部登録/取消/除外
   if (idx === 14) return "scratched";
   if (idx === 15) return "excluded";
   if (idx >= 12) return "registered";

@@ -36,6 +36,10 @@ export async function loadEntriesForAi(options = {}) {
     });
     return {
       ...connected,
+      userMessage:
+        connected.userMessage ||
+        connected.message ||
+        "出馬表を取得できませんでした",
       stats: computeEntryStats([]),
       entryCompleteness: computeEntryCompleteness([]),
       stagePanel: formatEntryStagePanel(options.stage || 0, null),
@@ -75,6 +79,8 @@ export async function loadEntriesForAi(options = {}) {
     blocked: false,
     message: contentChanged ? "Entry loaded" : "Entry unchanged",
     providerId: connected.providerId,
+    providerKind: connected.mode === "real" ? "Real" : "Mock",
+    mode: connected.mode || "mock",
     version: ENTRY_ENGINE_VERSION,
     changed: contentChanged,
     fingerprint: fp,
@@ -94,6 +100,7 @@ export async function loadEntriesForAi(options = {}) {
     fetchedAt: connected.fetchedAt,
     stage,
     stageNote: stageNote(stage),
+    confirmation: connected.confirmation || null,
     confidenceHint: confidenceFromEntryCompleteness(
       options.baseConfidence ?? 72,
       entryCompleteness
@@ -132,14 +139,21 @@ export function filterEntriesForStage(entries = [], stage = 0) {
  */
 export function entryToHorseModel(entry, stage = 0) {
   const s = Number(stage) || 0;
+  const isReal = entry._providerMode === "real";
+  const frameOk = isReal && s >= 3 && entry._rawFrame != null;
+  const jockeyOk = isReal && s >= 4 && (entry._rawJockey || entry.jockey);
+  const weightOk =
+    isReal && s >= 5 && (entry._rawWeight != null || entry.weight != null);
+
   return {
     horseId: entry.horseId,
-    number: entry.number || 0, // AIエンジン互換の provisional key
+    number: entry.number || 0,
     horseName: entry.horseName,
     horse: entry.horseName,
     age: entry.age,
     sex: entry.sex,
     trainer: entry.trainer,
+    trainerId: entry.trainerId || null,
     runningStyle: entry.runningStyle,
     lastRace: entry.lastRace,
     last3: entry.last3,
@@ -159,18 +173,24 @@ export function entryToHorseModel(entry, stage = 0) {
     earnings: entry.earnings,
     scratched: entry.entryStatus === ENTRY_STATUS.SCRATCHED,
     excluded: entry.entryStatus === ENTRY_STATUS.EXCLUDED,
-    frame: 0,
-    jockey: "未定",
-    weight: 55,
+    frame: frameOk ? Number(entry._rawFrame) : 0,
+    jockey: jockeyOk
+      ? entry._rawJockey ||
+        (typeof entry.jockey === "object" ? entry.jockey.name : entry.jockey)
+      : "未定",
+    jockeyId: entry.jockeyId || entry._rawJockeyId || null,
+    weight: weightOk ? Number(entry._rawWeight ?? entry.weight) : 55,
+    carriedWeight: entry.carriedWeight ?? entry._rawCarriedWeight ?? null,
     odds: 99.9,
     popularity: 99,
-    _frameUnconfirmed: true,
-    _numberUnconfirmed: true,
-    _jockeyUnconfirmed: true,
-    _weightUnconfirmed: true,
+    _frameUnconfirmed: !frameOk,
+    _numberUnconfirmed: !(isReal && s >= 3),
+    _jockeyUnconfirmed: !jockeyOk,
+    _weightUnconfirmed: !weightOk,
     _oddsUnconfirmed: true,
     _entryProvisional: s < 3,
-    _entryAwaitingConfirm: s >= 3,
+    _entryAwaitingConfirm: s >= 3 && !isReal,
+    _providerMode: isReal ? "real" : "mock",
   };
 }
 
@@ -178,8 +198,11 @@ function stageNote(stage) {
   const s = Number(stage) || 0;
   if (s < 1) return "開催情報のみ（登録馬なし）";
   if (s === 1) return "登録馬情報のみ利用（枠/馬番/騎手/斤量/オッズは未確定）";
-  if (s === 2) return "出走予定馬情報を利用（枠/馬番/騎手/斤量/オッズは未確定）";
-  return "確定情報待機（枠・騎手・斤量・オッズは未確定のまま）";
+  if (s === 2) return "Stage2 登録馬・出走予定（枠/騎手/斤量は未確定）";
+  if (s === 3) return "Stage3 確定出馬表（枠・馬番確定 / 騎手・斤量は段階反映）";
+  if (s === 4) return "Stage4 騎手確定（斤量は未確定の場合あり）";
+  if (s === 5) return "Stage5 斤量確定";
+  return "当日情報を含む最終段階の出馬表を利用";
 }
 
 export function getEntryDashboard() {

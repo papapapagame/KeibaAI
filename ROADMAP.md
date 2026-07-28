@@ -506,6 +506,25 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver10.1 - Real Horse Entry（実装済）
+
+テーマ：実際の出馬表を取得し AI へ渡す
+
+### 実装内容
+
+- RealHorseProvider（Fetch / Parse / Normalize / Validate / Synchronize）
+- Horse Entry Intelligence（Ver7.6）連携・Registered〜Withdraw 維持
+- Stage2〜5 で登録馬 / 確定出馬表 / 騎手 / 斤量を実データ反映
+- Smart Update: 取消・除外・騎手変更・斤量変更・出馬表更新時のみ再取得
+- 失敗時は Mock 自動切替なし（「出馬表を取得できませんでした」）
+
+### データ
+
+- Mock: `data/horses.json` / `data/entry/mock-entries.json`（維持）
+- Real: `data/entry/real-entries.json`（URL は config で差し替え可）
+
+---
+
 ## Ver10.0 - Real Race Calendar（実装済）
 
 テーマ：実際の開催日・開催場・レース一覧を取得する（Mock→Real 第一段階）
@@ -610,5 +629,6 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver6.0で自己学習AIへ進化させる。
 - Ver9.0 Release Candidate で製品版前の品質統合を完了する。
 - Ver10.0 Real Race Calendar で Mock→Real 第一段階を完了する。
+- Ver10.1 Real Horse Entry で出馬表の Real 化を完了する。
 - Ver9.1+ / 以降で高度なAI分析機能を追加する。
 - 正式リリース版へ向けて Real Provider を拡張する。
