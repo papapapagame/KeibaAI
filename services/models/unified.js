@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "9.0.0";
+export const UNIFIED_VERSION = "10.0.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -11,6 +11,59 @@ export function createVenue(raw = {}) {
     label: raw.label || raw.venueLabel || "",
     kai: Number(raw.kai) || 0,
     day: Number(raw.day) || 0,
+    totalDays: Number(raw.totalDays) || 0,
+    isFinalDay: Boolean(raw.isFinalDay),
+    division: raw.division || "",
+    status: raw.status || "",
+  };
+}
+
+/** Ver10.0 Schedule — 開催日×開催場のスケジュール単位 */
+export function createSchedule(raw = {}) {
+  const venue = createVenue(raw.venue || raw);
+  const stage = createAnalysisStageRef(
+    raw.analysisStage ?? raw.stage ?? venue.defaultStage
+  );
+  return {
+    modelVersion: UNIFIED_VERSION,
+    scheduleId:
+      raw.scheduleId ||
+      `${raw.date || ""}|${venue.venueId}|${venue.kai}-${venue.day}`,
+    date: String(raw.date || ""),
+    venue,
+    kai: Number(raw.kai ?? venue.kai) || 0,
+    day: Number(raw.day ?? venue.day) || 0,
+    totalDays: Number(raw.totalDays ?? venue.totalDays) || 0,
+    isFinalDay:
+      raw.isFinalDay != null ? Boolean(raw.isFinalDay) : Boolean(venue.isFinalDay),
+    status: raw.status || venue.status || "scheduled",
+    raceCount: Number(raw.raceCount) || 0,
+    analysisStage: stage,
+  };
+}
+
+/** Ver10.0 Calendar — 開催カレンダー統合モデル */
+export function createCalendar(raw = {}) {
+  const meetings = Array.isArray(raw.meetings) ? raw.meetings : [];
+  const venues = Array.isArray(raw.venues)
+    ? raw.venues.map((v) => createVenue(v))
+    : [];
+  const schedules = Array.isArray(raw.schedules)
+    ? raw.schedules.map((s) => createSchedule(s))
+    : [];
+  const races = Array.isArray(raw.races) ? raw.races : [];
+  return {
+    modelVersion: UNIFIED_VERSION,
+    source: raw.source || "unknown",
+    providerId: raw.providerId || null,
+    updatedAt: raw.updatedAt || null,
+    meetings,
+    venues,
+    schedules,
+    races,
+    meetingCount: meetings.length,
+    venueCount: venues.length,
+    raceCount: races.length,
   };
 }
 
@@ -624,6 +677,7 @@ export function createRace(raw = {}, horses = []) {
     pacePrediction: raw.pacePrediction || "",
     grade: raw.grade || "",
     raceClass: raw.raceClass || raw.class || "",
+    ageCondition: raw.ageCondition || raw.age || "",
     prize: Number(raw.prize ?? raw.prizeMoney) || 0,
     horses: horseModels,
     analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),

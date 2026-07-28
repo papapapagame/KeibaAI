@@ -1,5 +1,5 @@
 /* ========================================
-   RaceCalendarEngine — Ver7.1
+   RaceCalendarEngine — Ver7.1 / Ver10.0
    ======================================== */
 
 import { API_BASE_URL } from "../../js/config.js";
@@ -31,53 +31,93 @@ import {
   mergeMeetingsWithOverlay,
   getRaceConnectOverlay,
 } from "../race-connect/race-connect-overlay.js";
+import {
+  loadRealRaceCalendar,
+  getRealRaceState,
+  getRealRaceDashboard,
+} from "../provider/race/index.js";
 
-const PLATFORM_VERSION = "7.1.0";
+const PLATFORM_VERSION = "10.0.0";
 let cachedPayload = null;
 let lastError = null;
+let lastProviderKind = "mock";
 
 export async function loadCalendar(options = {}) {
   const mode = options.mode || getCalendarMode();
-  const overlay = getRaceConnectOverlay();
+  lastProviderKind = mode === "real" ? "real" : "mock";
 
-  // Ver7.5 Real: Race Connect 経由の開催情報があれば利用
+  // Ver10.0 Real Race Calendar（Mock へ自動フォールバックしない）
   if (mode === "real") {
-    if (overlay?.meetings?.length) {
-      lastError = null;
-      cachedPayload = {
-        meetings: overlay.meetings,
-        raceStages: overlay.raceStages || {},
-        source: "race-connect",
-        updatedAt: overlay.updatedAt,
-      };
+    const real = await loadRealRaceCalendar({
+      force: options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+      url: options.url,
+    });
+
+    if (!real.ok) {
+      lastError = real.userMessage || real.message || "現在実データを取得できません";
+      cachedPayload = null;
       return {
-        ok: true,
+        ok: false,
         mode,
         blocked: false,
-        message: "Race Connect Calendar",
-        meetings: overlay.meetings,
-        raceStages: overlay.raceStages || {},
-        validation: { ok: true, errors: [], warnings: [] },
-        source: "race-connect",
-        updatedAt: overlay.updatedAt || null,
+        message: lastError,
+        userMessage: "現在実データを取得できません",
+        meetings: [],
+        raceStages: {},
+        races: [],
+        validation: real.validation || {
+          ok: false,
+          errors: [{ code: "REAL_UNAVAILABLE", message: lastError }],
+          warnings: [],
+        },
+        providerId: real.providerId || "real-race",
+        providerKind: "real",
+        source: "real-race",
+        error: real.error || null,
         version: PLATFORM_VERSION,
         modelVersion: CALENDAR_MODEL_VERSION,
-        raceConnect: true,
       };
     }
-    lastError = "Provider未接続";
+
+    lastError = null;
+    cachedPayload = {
+      meetings: real.meetings,
+      raceStages: real.raceStages || {},
+      races: real.legacyRaces || real.races || [],
+      source: "real-race",
+      updatedAt: real.updatedAt || real.fetchedAt,
+      calendar: real.calendar,
+      schedules: real.schedules,
+    };
+
     return {
-      ok: false,
+      ok: true,
       mode,
-      blocked: true,
-      message: "Provider未接続（Real Calendar / Race Connect 未取得）",
-      meetings: [],
-      raceStages: {},
-      validation: { ok: false, errors: [{ code: "NOT_CONNECTED", message: "Provider未接続" }], warnings: [] },
+      blocked: false,
+      message: real.message || "Real Race Calendar",
+      meetings: real.meetings,
+      raceStages: real.raceStages || {},
+      races: real.legacyRaces || real.races || [],
+      calendar: real.calendar,
+      schedules: real.schedules,
+      validation: real.validation || { ok: true, errors: [], warnings: [] },
+      providerId: real.providerId || "real-race",
+      providerKind: "real",
+      source: "real-race",
+      updatedAt: real.updatedAt || real.fetchedAt || null,
+      skipped: Boolean(real.skipped),
+      changed: Boolean(real.changed),
+      fingerprint: real.fingerprint,
       version: PLATFORM_VERSION,
+      modelVersion: CALENDAR_MODEL_VERSION,
+      raceConnect: true,
+      realRace: true,
     };
   }
 
+  // Mock（従来どおり）。Race Connect / Real overlay があればマージ
   try {
     const payload = await fetchMockCalendar();
     const validation = validateCalendarPayload(payload);
@@ -91,10 +131,13 @@ export async function loadCalendar(options = {}) {
         meetings: [],
         raceStages: {},
         validation,
+        providerId: "mock",
+        providerKind: "mock",
         version: PLATFORM_VERSION,
       };
     }
 
+    const overlay = getRaceConnectOverlay();
     const meetings = mergeMeetingsWithOverlay(payload.meetings || []);
     cachedPayload = { ...payload, meetings };
     lastError = null;
@@ -102,14 +145,17 @@ export async function loadCalendar(options = {}) {
       ok: true,
       mode,
       blocked: false,
-      message: overlay ? "Mock Calendar + Race Connect" : "Mock Calendar",
+      message: overlay ? "Mock Calendar + Overlay" : "Mock Calendar",
       meetings,
       raceStages: {
         ...(payload.raceStages || {}),
         ...(overlay?.raceStages || {}),
       },
+      races: overlay?.races || [],
       validation,
-      source: overlay ? "mock+race-connect" : payload.source || "mock",
+      providerId: "mock",
+      providerKind: "mock",
+      source: overlay ? "mock+overlay" : payload.source || "mock",
       updatedAt: overlay?.updatedAt || payload.updatedAt || null,
       version: PLATFORM_VERSION,
       modelVersion: CALENDAR_MODEL_VERSION,
@@ -125,6 +171,8 @@ export async function loadCalendar(options = {}) {
       meetings: [],
       raceStages: {},
       validation: { ok: false, errors: [{ code: "FETCH", message: lastError }], warnings: [] },
+      providerId: "mock",
+      providerKind: "mock",
       version: PLATFORM_VERSION,
     };
   }
@@ -141,11 +189,14 @@ export async function getCalendarDashboard(options = {}) {
   const cal = await loadCalendar(options);
   const meetingDates = listMeetingDates(cal.meetings);
   const range = getDateRange(cal.meetings);
+  const realDash = getRealRaceDashboard();
   return {
     ...cal,
     meetingDates,
     range,
     meetingDateSet: new Set(meetingDates.map((d) => d.date)),
+    realRaceDashboard: realDash,
+    lastProviderKind,
   };
 }
 
@@ -183,6 +234,14 @@ export function prepareAiInput(race, horses, stage) {
   return sanitizeForStage(race, horses, stage);
 }
 
+export function getCachedCalendarPayload() {
+  return cachedPayload;
+}
+
+export function getLastCalendarError() {
+  return lastError;
+}
+
 export {
   getCalendarMode,
   setCalendarMode,
@@ -202,6 +261,8 @@ export {
   buildStageContext,
   sanitizeForStage,
   createRaceDate,
+  getRealRaceState,
+  getRealRaceDashboard,
 };
 
 export const RaceCalendarEngine = {

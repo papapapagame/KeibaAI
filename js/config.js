@@ -1,20 +1,28 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver9.0.0 Release Candidate
+   Ver10.0.0 Real Race Calendar
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "9.0.0";
-export const RELEASE_CHANNEL = "Release Candidate";
+export const VERSION = "10.0.0";
+export const RELEASE_CHANNEL = "Real Race Calendar";
 export const BUILD_DATE = "2026-07-28";
-export const BUILD_NUMBER = "20260728.90";
-export const IS_RELEASE_CANDIDATE = true;
+export const BUILD_NUMBER = "20260728.100";
+export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
 /** ローカルJSON: "data/" / 本番API例: "https://api.example.com/v1/" */
 export const API_BASE_URL = "data/";
+
+/**
+ * Real Race Calendar 取得先（GitHub Pages 対応）
+ * 外部 API へ差し替える場合は絶対 URL を設定
+ */
+export const REAL_RACE_CALENDAR_URL = "data/calendar/real-calendar.json";
+export const REAL_RACE_FETCH_TIMEOUT_MS = 12000;
+export const REAL_RACE_PROVIDER_VERSION = "10.0.0";
 
 /**
  * データ取得 Provider 切替（レガシー Ver5.1）
@@ -89,6 +97,9 @@ export const EXPLAIN_ENGINE_VERSION = "8.3.0";
 
 /** Knowledge Graph（services/knowledge） */
 export const KNOWLEDGE_GRAPH_VERSION = "8.4.0";
+
+/** Real Race Calendar（services/provider/race） */
+export const REAL_RACE_CALENDAR_VERSION = "10.0.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

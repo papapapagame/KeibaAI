@@ -1,10 +1,11 @@
 /* ========================================
-   Provider Registry — Ver7.4 / 7.6.1 fix
-   Mock のみ有効。他は登録・無効。
+   Provider Registry — Ver7.4 / Ver10.0
+   Mock + Real Race を登録。既定は Mock 有効。
    ======================================== */
 
 import { createProvider, listFactoryIds } from "./provider-factory.js";
 import { logProviderEvent } from "./provider-logger.js";
+import { REAL_RACE_PROVIDER_ID } from "./race/real-race-provider.js";
 
 /** @type {Map<string, import("./provider-interface.js").ProviderInterface>} */
 const registry = new Map();
@@ -15,13 +16,19 @@ export function ensureRegistry() {
     for (const id of listFactoryIds()) {
       const provider = createProvider(id);
       if (!provider) continue;
-      // Ver7.4: Mock のみ有効
-      provider.enabled = id === "mock";
+      // Ver10.0: Mock 既定有効。Real Race は実装済だが手動/モード切替で使用
+      if (id === "mock") {
+        provider.enabled = true;
+      } else if (id === REAL_RACE_PROVIDER_ID) {
+        provider.enabled = true; // real mode 候補として有効（mock モードでは Loader が除外）
+      } else {
+        provider.enabled = false;
+      }
       registry.set(id, provider);
     }
     initialized = true;
     logProviderEvent("registry_init", {
-      message: `registered ${registry.size} providers (mock enabled)`,
+      message: `registered ${registry.size} providers (mock + real-race ready)`,
     });
   }
   return [...registry.values()];

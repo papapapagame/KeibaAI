@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -70,14 +70,33 @@
         </ul>
       </section>
 
+      <section class="v71-session glass-card" id="real-race-status" aria-label="Race Calendar Status">
+        <p class="v71-session__title">Race Calendar Status</p>
+        <ul class="v71-session__list">
+          <li>Provider: <span id="cal-provider-kind">—</span></li>
+          <li>開催日数: <span id="cal-meeting-count">—</span></li>
+          <li>レース数: <span id="cal-race-count">—</span></li>
+          <li>同期: <span id="cal-sync-status">—</span></li>
+          <li>最終更新: <span id="cal-updated">—</span></li>
+        </ul>
+      </section>
+
       <aside class="v51-dev-panel glass-card v71-dev" id="cal-dev-panel" hidden>
         <p class="v51-dev-panel__title">Developer Panel — Calendar</p>
-        <p class="v51-dev-panel__note">Calendar Source（現段階は Mock のみ動作）</p>
+        <p class="v51-dev-panel__note">Mock / Real を設定だけで切替（Real失敗時は自動Mock切替なし）</p>
         <div class="v70-source-switch" id="cal-mode-controls" role="group" aria-label="Calendar Source">
           <button type="button" class="v70-source-btn" data-cal-mode="mock">Mock Calendar</button>
           <button type="button" class="v70-source-btn" data-cal-mode="real">Real Calendar</button>
         </div>
         <p class="v51-dev-panel__note" id="cal-mode-note">Mock Calendar を使用中</p>
+        <p class="v51-dev-panel__subtitle">Real Race Provider（Ver10.0）</p>
+        <ul class="v51-dev-list">
+          <li>Current Provider: <span id="dev-real-provider">—</span></li>
+          <li>取得件数: <span id="dev-real-count">—</span></li>
+          <li>同期状態: <span id="dev-real-sync">—</span></li>
+          <li>Validation: <span id="dev-real-validation">—</span></li>
+          <li>更新時刻: <span id="dev-real-updated">—</span></li>
+        </ul>
       </aside>
 
       <p class="v71-error" id="cal-error" hidden></p>
@@ -90,8 +109,8 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 9.0.0</p>
-    <p>Release Candidate</p>
+    <p>Version 10.0.0</p>
+    <p>Real Race Calendar</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="ページ上部へ">↑</button>

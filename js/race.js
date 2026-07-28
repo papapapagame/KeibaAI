@@ -16,6 +16,7 @@ import {
   validateVenueSelection,
 } from "../services/calendar/index.js";
 import { connectRaceData } from "../services/race-connect/index.js";
+import { listRealRacesFor } from "../services/provider/race/index.js";
 import { loadEntriesForAi } from "../services/entry/index.js";
 import { loadDrawForAi } from "../services/draw/index.js";
 import { loadOddsForAi } from "../services/odds/index.js";
@@ -45,8 +46,11 @@ export async function initTopPage(goRaceListButton) {
   const sessionBox = document.getElementById("session-info");
   const errorEl = document.getElementById("cal-error");
 
-  // Ver7.5: 開催情報を Race Connect → Calendar へ反映（通知なし・一方向）
-  await connectRaceData({ emitUpdate: false, silent: true });
+  // Ver7.5/Ver10.0: 開催情報を Calendar へ反映（通知なし）
+  // Real モードは RealRaceProvider。Mock 時のみ Race Connect を補助同期
+  if (getCalendarMode() !== "real") {
+    await connectRaceData({ emitUpdate: false, silent: true });
+  }
   let cal = await getCalendarDashboard();
   let viewYear = 2026;
   let viewMonth = 7;
@@ -57,11 +61,16 @@ export async function initTopPage(goRaceListButton) {
   }
 
   bindCalendarDevPanel(() => location.reload());
+  bindRealRaceStatus(cal);
 
   if (cal.blocked || !cal.ok) {
     showCalError(
       errorEl,
-      cal.message || "カレンダーを読み込めません（Real は Provider未接続）"
+      cal.userMessage ||
+        cal.message ||
+        (getCalendarMode() === "real"
+          ? "現在実データを取得できません"
+          : "カレンダーを読み込めません")
     );
   }
 
@@ -257,7 +266,7 @@ function bindCalendarDevPanel(onChange) {
   if (note) {
     note.textContent =
       mode === "real"
-        ? "Real Calendar: Provider未接続"
+        ? "Real Race Calendar（失敗時は Mock へ自動切替しません）"
         : "Mock Calendar を使用中";
   }
   document.querySelectorAll("[data-cal-mode]").forEach((btn) => {
@@ -272,6 +281,57 @@ function bindCalendarDevPanel(onChange) {
       onChange?.();
     });
   });
+}
+
+function bindRealRaceStatus(cal) {
+  setText(
+    "cal-provider-kind",
+    cal?.providerKind === "real" || cal?.mode === "real" ? "Real" : "Mock"
+  );
+  setText(
+    "cal-meeting-count",
+    String(cal?.meetings?.length || cal?.meetingDates?.length || 0)
+  );
+  setText(
+    "cal-race-count",
+    String(cal?.races?.length || 0)
+  );
+  setText(
+    "cal-updated",
+    cal?.updatedAt ? String(cal.updatedAt).replace("T", " ").slice(0, 19) : "—"
+  );
+  setText(
+    "cal-sync-status",
+    !cal?.ok
+      ? "失敗"
+      : cal?.skipped
+        ? "変更なし"
+        : cal?.ok
+          ? "同期済"
+          : "—"
+  );
+  setText(
+    "dev-real-provider",
+    cal?.providerId || (cal?.mode === "real" ? "real-race" : "mock")
+  );
+  setText(
+    "dev-real-count",
+    `meetings ${cal?.meetings?.length || 0} / races ${cal?.races?.length || 0}`
+  );
+  setText(
+    "dev-real-validation",
+    cal?.validation?.ok
+      ? `OK (warn ${cal.validation.warnings?.length || 0})`
+      : `NG ${cal?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-sync",
+    cal?.skipped ? "skipped(unchanged)" : cal?.ok ? "synced" : "—"
+  );
+  setText(
+    "dev-real-updated",
+    cal?.updatedAt ? String(cal.updatedAt).replace("T", " ").slice(0, 19) : "—"
+  );
 }
 
 function hideSession(box) {
@@ -382,12 +442,15 @@ export async function initRaceListPage() {
   const raceDate = params.get("date") || "";
   const raceVenue = params.get("venue") || "";
   const venueLabel = params.get("venueLabel") || "";
+  const mode = getCalendarMode();
 
   document.getElementById("display-date").textContent = raceDate || "未選択";
   document.getElementById("display-venue").textContent = venueLabel || "未選択";
 
-  await connectRaceData({ emitUpdate: false, silent: true });
-  const cal = await getCalendarDashboard({ mode: getCalendarMode() });
+  if (mode !== "real") {
+    await connectRaceData({ emitUpdate: false, silent: true });
+  }
+  const cal = await getCalendarDashboard({ mode });
   const session = getSessionInfo(cal.meetings || [], raceDate, raceVenue);
 
   const sessionMeta = document.getElementById("list-session-meta");
@@ -400,17 +463,55 @@ export async function initRaceListPage() {
       session.divisionLabel,
       session.statusLabel,
       `Stage${session.analysisStage.stage} ${session.analysisStage.short}`,
+      mode === "real" ? "Provider: Real" : "Provider: Mock",
     ]
       .filter(Boolean)
       .join(" · ");
   }
 
-  const raceData = await loadJson("race");
-  const filtered = (raceData.races || []).filter((r) => {
-    const dateOk = !raceDate || r.date === raceDate;
-    const venueOk = !raceVenue || r.venue === raceVenue;
-    return dateOk && venueOk;
-  });
+  let filtered = [];
+  if (mode === "real") {
+    if (!cal.ok) {
+      const listError = document.getElementById("list-error");
+      if (listError) {
+        listError.hidden = false;
+        listError.textContent =
+          cal.userMessage || "現在実データを取得できません";
+      }
+      filtered = [];
+    } else {
+      filtered = listRealRacesFor(raceDate, raceVenue);
+      if (!filtered.length && Array.isArray(cal.races)) {
+        filtered = cal.races
+          .filter((r) => {
+            const dateOk = !raceDate || r.date === raceDate;
+            const venueOk =
+              !raceVenue || r.venue === raceVenue || r.venueId === raceVenue;
+            return dateOk && venueOk;
+          })
+          .sort(
+            (a, b) =>
+              (Number(a.number) || 0) - (Number(b.number) || 0) ||
+              String(a.time || a.startTime || "").localeCompare(
+                String(b.time || b.startTime || "")
+              )
+          );
+      }
+    }
+  } else {
+    const raceData = await loadJson("race");
+    filtered = (raceData.races || [])
+      .filter((r) => {
+        const dateOk = !raceDate || r.date === raceDate;
+        const venueOk = !raceVenue || r.venue === raceVenue;
+        return dateOk && venueOk;
+      })
+      .sort(
+        (a, b) =>
+          (Number(a.number) || 0) - (Number(b.number) || 0) ||
+          String(a.time || "").localeCompare(String(b.time || ""))
+      );
+  }
 
   renderRace(document.getElementById("race-list"), filtered, {
     raceDate,

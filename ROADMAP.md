@@ -506,6 +506,27 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver10.0 - Real Race Calendar（実装済）
+
+テーマ：実際の開催日・開催場・レース一覧を取得する（Mock→Real 第一段階）
+
+### 実装内容
+
+- RealRaceProvider（Fetch / Parse / Normalize / Validate / Synchronize）
+- ProviderManager で Mock / Real 切替（失敗時は自動Mock切替なし）
+- Real 開催日のみ選択可・その日の開催場のみ表示
+- レース一覧を 1R→12R / 発走順で表示
+- Unified Model（Calendar / Schedule / Venue / Race / AnalysisStage）統合
+- Smart Update: 開催情報変更時のみ同期
+- Analysis / Developer Panel に Provider 状態表示
+
+### データ
+
+- Mock: `data/calendar/mock-calendar.json`（維持）
+- Real: `data/calendar/real-calendar.json`（GH Pages 対応。URL は config で差し替え可）
+
+---
+
 ## Ver9.0 - Release Candidate（実装済）
 
 テーマ：製品版リリース前の最終統合・品質向上・最適化（新機能なし）
@@ -563,25 +584,21 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 
 ---
 
-## Ver10.0 - Official Release
+## Ver10.0 - Official Release（将来）
 
-テーマ：正式リリース
+テーマ：正式リリース（Real Race Calendar 基盤の上に構築）
 
 ### 実装予定
 
-- UI最終調整
-- レスポンス最適化
-- PWA対応
-- SEO最適化
-- アクセシビリティ改善
-- パフォーマンス最適化
-- エラーゼロ
-- README最終更新
-- 正式リリース
+- Real Provider の本接続拡大（Horse / Odds / Weather 等）
+- UI最終調整 / レスポンス最適化
+- PWA対応 / SEO / アクセシビリティ
+- エラーゼロ運用ゲート
+- README 運用版最終更新
 
 ### 目標
 
-「PAPAPA IQ KEIBA Version 1.0」として一般公開できる完成度へ到達する。
+製品版として安定公開する。
 
 ---
 
@@ -592,5 +609,6 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver5.4でAI馬券アシスタントを実装する。
 - Ver6.0で自己学習AIへ進化させる。
 - Ver9.0 Release Candidate で製品版前の品質統合を完了する。
-- Ver9.1+ で高度なAI分析機能を追加する。
-- Ver10.0を正式リリース版とする。
+- Ver10.0 Real Race Calendar で Mock→Real 第一段階を完了する。
+- Ver9.1+ / 以降で高度なAI分析機能を追加する。
+- 正式リリース版へ向けて Real Provider を拡張する。

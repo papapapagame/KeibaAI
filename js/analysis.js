@@ -302,6 +302,11 @@ export async function initAnalysisPage() {
     );
   }
   bindAnalysisStageUi(raceCtx);
+  bindRealRaceCalendarUi(cal);
+  if (cal?.calendar && race && typeof race === "object") {
+    race.calendar = cal.calendar;
+    race.schedules = cal.schedules || [];
+  }
 
   const stageNow = raceCtx.analysisStage?.stage ?? 0;
   const confidenceNow = raceCtx.confidence?.percent ?? null;
@@ -543,6 +548,27 @@ export async function initAnalysisPage() {
     horses: stagedHorses,
     forceRefresh: false,
   });
+
+  // Ver10.0: Unified Calendar / Schedule を AI 入力へ（AIエンジン非改変）
+  if (cal?.calendar) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.calendar = cal.calendar;
+        aiInput.schedules = cal.schedules || [];
+        aiInput.calendarProvider = {
+          kind: cal.providerKind || cal.mode || "mock",
+          providerId: cal.providerId || null,
+          updatedAt: cal.updatedAt || null,
+        };
+      }
+    } catch {
+      /* calendar inject must not break analysis */
+    }
+  }
 
   // Ver8.0: 構造化ニュースのみ Intelligence / Market へ渡す（本文なし）
   if (newsBundle?.ok && Array.isArray(newsBundle.aiNews)) {
@@ -1117,6 +1143,75 @@ function bindRaceConnectStatusUi(raceConnect) {
     raceConnect?.validation?.ok
       ? `OK (warn ${raceConnect.validation.warnings?.length || 0})`
       : `NG ${raceConnect?.validation?.errors?.length || 0}`
+  );
+}
+
+function bindRealRaceCalendarUi(cal) {
+  const mode = cal?.mode || getCalendarMode();
+  const kind = cal?.providerKind || (mode === "real" ? "Real" : "Mock");
+  const venues = (cal?.meetings || [])
+    .flatMap((m) => (m.venues || []).map((v) => v.label || v.venueId))
+    .filter(Boolean);
+  const uniqueVenues = [...new Set(venues)];
+
+  setText(
+    "real-meeting-active",
+    cal?.ok
+      ? `${cal.meetings?.length || 0} 日`
+      : mode === "real"
+        ? "取得不可"
+        : "Mock"
+  );
+  setText(
+    "real-venues",
+    uniqueVenues.length ? uniqueVenues.slice(0, 6).join(" / ") : "—"
+  );
+  setText("real-race-count", String(cal?.races?.length || 0));
+  setText(
+    "real-updated",
+    cal?.updatedAt ? formatUpdateTime(cal.updatedAt) : "—"
+  );
+  setText(
+    "real-provider-kind",
+    kind === "real" || kind === "Real" ? "Real" : "Mock"
+  );
+  setText(
+    "real-race-note",
+    !cal?.ok && mode === "real"
+      ? cal?.userMessage || "現在実データを取得できません"
+      : cal?.skipped
+        ? "開催情報に変更なし（再取得スキップ）"
+        : ""
+  );
+
+  setText(
+    "dev-real-status",
+    !cal?.ok && mode === "real"
+      ? "ERROR"
+      : cal?.ok
+        ? "ONLINE"
+        : mode === "real"
+          ? "OFFLINE"
+          : "MOCK"
+  );
+  setText("dev-real-provider", cal?.providerId || (mode === "real" ? "real-race" : "mock"));
+  setText(
+    "dev-real-count",
+    `meetings ${cal?.meetings?.length || 0} / races ${cal?.races?.length || 0}`
+  );
+  setText(
+    "dev-real-sync",
+    cal?.skipped ? "skipped(unchanged)" : cal?.ok ? "synced" : "—"
+  );
+  setText(
+    "dev-real-validation",
+    cal?.validation?.ok
+      ? `OK (warn ${cal.validation.warnings?.length || 0})`
+      : `NG ${cal?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-updated",
+    cal?.updatedAt ? formatUpdateTime(cal.updatedAt) : "—"
   );
 }
 

@@ -76,3 +76,4 @@ export {
 } from "./data-provenance.js";
 
 export { MockProvider } from "./providers/mock-provider.js";
+export * from "./race/index.js";

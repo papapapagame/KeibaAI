@@ -55,5 +55,10 @@ export {
   CALENDAR_MODEL_VERSION,
 } from "./models.js";
 
+export {
+  getRealRaceState,
+  getRealRaceDashboard,
+} from "../provider/race/index.js";
+
 export { StageEvaluation } from "./stage-evaluation.js";
 export { CALENDAR_MODE_KEY, CALENDAR_MODES } from "./calendar-mode.js";
