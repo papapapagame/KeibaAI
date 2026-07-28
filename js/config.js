@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "6.5.0";
+export const VERSION = "7.0.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 
@@ -12,10 +12,9 @@ export const DEFAULT_THEME = "dark";
 export const API_BASE_URL = "data/";
 
 /**
- * データ取得 Provider 切替
+ * データ取得 Provider 切替（レガシー Ver5.1）
  * dummy | csv | api | jra
- * ※ Ver5.1 は dummy のみ実装済み
- * Intelligence Platform（複数情報源）は services/intelligence/ を参照
+ * Ver7.0 以降は services/data の Source Mode (mock|real|auto) を優先
  */
 export const DATA_PROVIDER = "dummy";
 
@@ -30,6 +29,10 @@ export const LEARNING_AI_DB_KEY = "papapa_iq_learning_ai_v55";
 /** Race Review Knowledge Base（services/review） */
 export const REVIEW_AI_VERSION = "6.5.0";
 export const REVIEW_KB_KEY = "papapa_iq_review_kb_v65";
+
+/** Real Data Platform（services/data） */
+export const DATA_PLATFORM_VERSION = "7.0.0";
+export const DATA_SOURCE_MODE_KEY = "papapa_iq_data_source_mode_v70";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

@@ -10,10 +10,15 @@ import { initAiDebateMode } from "./ai-debate.js";
 import { initV5Extras } from "./v5-extras.js";
 import {
   clearDataCache,
-  fetchAnalysisBundle,
   formatUpdateTime,
   getDataStatus,
 } from "../services/data-provider.js";
+import {
+  fetchAnalysisBundleViaPlatform,
+  getSourceMode,
+  setSourceMode,
+  clearPlatformCache,
+} from "../services/data/index.js";
 import {
   buildIntelligencePacket,
   clearAllIntelligenceState,
@@ -95,7 +100,7 @@ export async function initAnalysisPage() {
   const raceNumber = Number(params.get("race") || 0);
   const forceError = params.get("forceError") === "1";
 
-  const bundle = await fetchAnalysisBundle({
+  const bundle = await fetchAnalysisBundleViaPlatform({
     raceNumber,
     forceError,
   });
@@ -116,6 +121,17 @@ export async function initAnalysisPage() {
 
   const horses = bundle.legacy?.horses || [];
   const settingsData = bundle.legacy?.settings || {};
+
+  bindDeveloperPanel(bundle, null, null);
+
+  if (!bundle.ok || !horses.length) {
+    const msg = bundle.blocked
+      ? "Provider未接続（Developer Panel で Data Source を Mock に戻してください）"
+      : bundle.message || bundle.status?.error || "データ取得に失敗しました";
+    console.error("[analysis] data platform:", msg);
+    setText("data-source-label", bundle.status?.sourceLabel || "Error");
+    return;
+  }
 
   initIntelligenceManager();
   const intelPacket = await buildIntelligencePacket({
@@ -257,7 +273,8 @@ function bindDataErrorUi(bundle, raceNumber) {
       banner.hidden = true;
       clearDataCache();
       clearProviderCache();
-      const fresh = await fetchAnalysisBundle({
+      clearPlatformCache();
+      const fresh = await fetchAnalysisBundleViaPlatform({
         raceNumber,
         forceRefresh: true,
       });
@@ -469,6 +486,7 @@ function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
   const status = bundle.status || getDataStatus();
   setText("dev-provider", status.providerId || "—");
   setText("dev-source", status.sourceLabel || "—");
+  setText("dev-source-mode", status.sourceMode || getSourceMode() || "—");
   setText(
     "dev-cache",
     status.fromCache
@@ -518,11 +536,14 @@ function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
       clearDataCache();
       clearProviderCache();
       clearAllIntelligenceState();
+      clearPlatformCache();
       setText("dev-cache", "CLEARED");
       const view = document.getElementById("dev-debug-view");
       if (view) view.textContent = "cache cleared";
     });
   }
+
+  bindSourceModeControls();
 
   const forceBtn = document.getElementById("dev-force-error");
   if (forceBtn && !forceBtn.dataset.bound) {
@@ -533,6 +554,41 @@ function bindDeveloperPanel(bundle, intelPacket = null, marketResult = null) {
       window.location.href = url.toString();
     });
   }
+}
+
+function bindSourceModeControls() {
+  const wrap = document.getElementById("dev-source-mode-controls");
+  if (!wrap) return;
+  const current = getSourceMode();
+  setText("dev-source-mode", current);
+  wrap.querySelectorAll("[data-source-mode]").forEach((btn) => {
+    const mode = btn.getAttribute("data-source-mode");
+    btn.classList.toggle("is-active", mode === current);
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      const next = setSourceMode(mode);
+      clearPlatformCache();
+      setText("dev-source-mode", next);
+      wrap.querySelectorAll("[data-source-mode]").forEach((b) => {
+        b.classList.toggle(
+          "is-active",
+          b.getAttribute("data-source-mode") === next
+        );
+      });
+      const note = document.getElementById("dev-source-mode-note");
+      if (note) {
+        note.textContent =
+          next === "real"
+            ? "Real: Provider未接続（現段階では Mock のみ動作）"
+            : next === "auto"
+              ? "Auto: Real 未接続のため Mock へフォールバック"
+              : "Mock: ローカルJSONを使用";
+      }
+      // 反映のため再読込
+      location.reload();
+    });
+  });
 }
 
 function renderMarketMonitor(marketResult) {

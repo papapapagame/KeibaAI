@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="PAPAPA IQ KEIBA Real Data Platform。Provider・キャッシュ・ヘルスを管理。">
+  <meta name="theme-color" content="#070707">
+  <title>Data Platform | PAPAPA IQ KEIBA</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading page-data page-v70">
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <p class="loading-screen__brand">PAPAPA IQ KEIBA</p>
+    <p class="loading-screen__text">Data Platform...</p>
+  </div>
+
+  <div class="bg-layer" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="gold-particles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="index.html">PAPAPA IQ KEIBA</a>
+    <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
+  </header>
+
+  <main class="page page--list page--data page--v70">
+    <header class="hero hero--compact reveal">
+      <p class="eyebrow">REAL DATA PLATFORM</p>
+      <h1 class="title title--page">Data Dashboard</h1>
+      <p class="subtitle subtitle--small">実データ移行のための基盤（Mock ⇔ Real 切替）</p>
+      <div class="gold-line" aria-hidden="true"></div>
+    </header>
+
+    <section class="paper-section reveal" aria-label="Version">
+      <div class="v51-meta-grid">
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Platform Version</p>
+          <p class="v51-meta-card__value" id="data-platform-ver">7.0.0</p>
+        </div>
+        <div class="v51-meta-card glass-card">
+          <p class="v51-meta-card__label">Current Provider</p>
+          <p class="v51-meta-card__value" id="data-current-provider">—</p>
+        </div>
+      </div>
+      <p class="paper-section__lead" id="data-selection-note"></p>
+      <p class="paper-section__lead" id="data-policy-note"></p>
+    </section>
+
+    <div class="v70-banner glass-card" id="data-block-banner" hidden>
+      <p class="v70-banner__title">Provider未接続</p>
+      <p class="v70-banner__text" id="data-block-message">Real Provider は未実装です。Mock に切り替えてください。</p>
+    </div>
+
+    <section class="paper-section reveal" aria-label="Data Source">
+      <h2 class="paper-section__title">Data Source</h2>
+      <p class="paper-section__lead">現在: <span id="data-source-mode-label">mock</span>（現段階は Mock のみ動作）</p>
+      <div class="v70-source-switch" role="group" aria-label="Data Source">
+        <button type="button" class="v70-source-btn" data-dash-source-mode="mock">Mock</button>
+        <button type="button" class="v70-source-btn" data-dash-source-mode="real">Real</button>
+        <button type="button" class="v70-source-btn" data-dash-source-mode="auto">Auto</button>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Stats">
+      <h2 class="paper-section__title">プラットフォーム状況</h2>
+      <div class="v55-stat-grid" id="data-platform-stats">
+        <article class="glass-card v55-stat"><p class="v55-stat__label">キャッシュ件数</p><p class="v55-stat__value" id="stat-data-cache">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">更新時間</p><p class="v55-stat__value v55-stat__value--sm" id="stat-data-updated">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">レース件数</p><p class="v55-stat__value" id="stat-data-races">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">馬データ件数</p><p class="v55-stat__value" id="stat-data-horses">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">エラー件数</p><p class="v55-stat__value" id="stat-data-errors">—</p></article>
+        <article class="glass-card v55-stat"><p class="v55-stat__label">ONLINE</p><p class="v55-stat__value" id="stat-data-online">—</p></article>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Provider Health">
+      <h2 class="paper-section__title">Provider状態</h2>
+      <div class="v52-monitor-wrap">
+        <table class="v52-monitor-table" aria-label="Provider Health">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>状態</th>
+              <th>LAST UPDATE</th>
+              <th>実装</th>
+              <th>LATENCY</th>
+              <th>ERROR</th>
+            </tr>
+          </thead>
+          <tbody id="data-provider-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Scheduler">
+      <h2 class="paper-section__title">Update Scheduler</h2>
+      <ul class="v55-list" id="data-scheduler-list"></ul>
+    </section>
+
+    <section class="paper-section reveal" aria-label="Cache">
+      <h2 class="paper-section__title">Cache Keys</h2>
+      <ul class="v55-list" id="data-cache-keys"></ul>
+    </section>
+
+    <div class="page-actions page-actions--stack reveal">
+      <button type="button" class="btn-secondary" id="btn-data-refresh">再取得</button>
+      <button type="button" class="btn-secondary" id="btn-data-clear-cache">キャッシュクリア</button>
+      <a href="analysis.html" class="btn-secondary">AI分析へ</a>
+      <a href="review.html" class="btn-secondary">AI Race Review</a>
+      <a href="index.html" class="btn-primary">トップへ戻る</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>©2026 PAPAPA IQ KEIBA</p>
+    <p>Version 7.0.0</p>
+  </footer>
+
+  <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

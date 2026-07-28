@@ -16,6 +16,7 @@ import { initBalancePage } from "./balance.js";
 import { initSettingsPage } from "./settings.js";
 import { initPerformancePage } from "./performance.js";
 import { initReviewPage } from "./review.js";
+import { initDataPlatformPage } from "./data-platform.js";
 import { exposeLearningApi } from "./learning-engine.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -72,6 +73,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (document.getElementById("review-stats")) {
       await initReviewPage();
+    }
+
+    if (document.getElementById("data-platform-stats")) {
+      await initDataPlatformPage();
     }
   } catch (error) {
     console.error(error);

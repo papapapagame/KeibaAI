@@ -225,6 +225,25 @@ AIによる最適な買い目提案を実現する。
 
 ---
 
+## Ver7.0 - Real Data Platform Foundation（実装済）
+
+テーマ：AIへ実データを供給するための基盤構築
+
+### 実装内容
+
+- DataProviderManager / Normalizer / Validator / Cache / Scheduler
+- ProviderHealthMonitor / ProviderSelector
+- MockProvider 実装、他 Provider はインターフェースのみ
+- Unified Race Model + API Layer（AI は Provider 直アクセス禁止）
+- Data Dashboard（`data.html`）
+- Mock / Real / Auto 切替（Real は Provider未接続表示）
+
+### 目標
+
+ダミーから実データへいつでも切り替えられる拡張可能な基盤を完成させる。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

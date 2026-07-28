@@ -25,12 +25,12 @@ import {
   buildIntelligencePacket,
   initIntelligenceManager,
 } from "../services/intelligence/index.js";
+import { getRaceBundleForAi } from "../services/data/index.js";
 import {
   clearElement,
   createElement,
   formatYen,
   getSearchParams,
-  loadJson,
   navigateWithFade,
 } from "./utils.js";
 
@@ -55,18 +55,21 @@ export async function initTicketPage() {
     `analysis.html?${analysisParams.toString()}`;
 
   const raceNumber = Number(params.get("race") || 0);
-  const [raceData, horsesData, settingsData] = await Promise.all([
-    loadJson("race"),
-    loadJson("horses"),
-    loadJson("settings"),
-  ]);
+  const platformBundle = await getRaceBundleForAi({ raceNumber });
 
-  const race =
-    raceData.races.find((item) => item.number === raceNumber) ||
-    raceData.races[0] ||
-    {};
+  if (!platformBundle.ok || !(platformBundle.horses || []).length) {
+    const msg =
+      platformBundle.blocked
+        ? "Provider未接続（Data Source を Mock に戻してください）"
+        : platformBundle.message || "レースデータを取得できませんでした";
+    console.error("[ticket] data platform:", msg);
+    alert(msg);
+    return;
+  }
 
-  const horses = horsesData.entries || [];
+  const race = platformBundle.race || {};
+  const horses = platformBundle.horses || [];
+  const settingsData = platformBundle.settings || {};
 
   const analysisResult = await analyzeRace({
     race,

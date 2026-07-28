@@ -88,11 +88,20 @@
         <ul class="v51-dev-list">
           <li>Provider: <span id="dev-provider">—</span></li>
           <li>Data Source: <span id="dev-source">—</span></li>
+          <li>Source Mode: <span id="dev-source-mode">—</span></li>
           <li>Cache Status: <span id="dev-cache">—</span></li>
           <li>Update Time: <span id="dev-updated">—</span></li>
           <li>取得件数: <span id="dev-count">—</span></li>
           <li>Validation: <span id="dev-validation">—</span></li>
         </ul>
+
+        <p class="v51-dev-panel__subtitle">Data Source Switch（Ver7.0）</p>
+        <div class="v70-source-switch" id="dev-source-mode-controls" role="group" aria-label="Data Source">
+          <button type="button" class="v70-source-btn" data-source-mode="mock">Mock</button>
+          <button type="button" class="v70-source-btn" data-source-mode="real">Real</button>
+          <button type="button" class="v70-source-btn" data-source-mode="auto">Auto</button>
+        </div>
+        <p class="v51-dev-panel__note" id="dev-source-mode-note">現段階は Mock のみ動作。Real は Provider未接続。</p>
 
         <p class="v51-dev-panel__subtitle">Provider Monitor</p>
         <div class="v52-monitor-wrap">
@@ -574,6 +583,7 @@
 
     <div class="page-actions page-actions--stack reveal">
       <button type="button" class="btn-primary" id="go-ticket">買い目生成へ</button>
+      <a href="data.html" class="btn-secondary">Data Platform</a>
       <a href="performance.html" class="btn-secondary">AI Performance</a>
       <a href="review.html" class="btn-secondary">AI Race Review</a>
       <a href="race-detail.html" class="btn-secondary" id="back-to-detail">レース詳細へ戻る</a>
@@ -582,7 +592,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 6.5.0</p>
+    <p>Version 7.0.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>
