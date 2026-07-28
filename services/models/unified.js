@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "8.1.0";
+export const UNIFIED_VERSION = "8.2.0";
 
 export function createVenue(raw = {}) {
   return {
@@ -194,6 +194,125 @@ export function createSocial(raw = {}) {
   };
 }
 
+/** Ver8.2 Evidence */
+export function createEvidence(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Evidence",
+    evidenceId: raw.id || raw.evidenceId || null,
+    source: raw.source || "",
+    sourceLabel: raw.sourceLabel || raw.source || "",
+    claimType: raw.claimType || "",
+    claim: raw.claim || "",
+    subject: raw.subject || null,
+    value: raw.value ?? null,
+    polarity: raw.polarity || "neutral",
+    horseNames: Array.isArray(raw.horseNames) ? raw.horseNames : [],
+    updatedAt: raw.updatedAt || null,
+    scores: raw.scores
+      ? {
+          confidence: Number(raw.scores.confidence) || 0,
+          freshness: Number(raw.scores.freshness) || 0,
+          reliability: Number(raw.scores.reliability) || 0,
+          coverage: Number(raw.scores.coverage) || 0,
+          importance: Number(raw.scores.importance) || 0,
+        }
+      : null,
+    available: raw.available !== false,
+    meta: raw.meta || {},
+  };
+}
+
+/** Ver8.2 Conflict */
+export function createConflict(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Conflict",
+    conflictId: raw.id || raw.conflictId || null,
+    claimType: raw.claimType || "",
+    subject: raw.subject || null,
+    members: Array.isArray(raw.members) ? raw.members : [],
+    adoptedId: raw.adoptedId || null,
+    excludedIds: Array.isArray(raw.excludedIds) ? raw.excludedIds : [],
+    reason: raw.reason || "",
+    severity: raw.severity || "low",
+  };
+}
+
+/** Ver8.2 Consensus */
+export function createConsensus(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Consensus",
+    consensusScore:
+      raw.consensusScore != null ? Number(raw.consensusScore) : null,
+    agreementScore:
+      raw.agreementScore != null ? Number(raw.agreementScore) : null,
+    conflictScore:
+      raw.conflictScore != null ? Number(raw.conflictScore) : null,
+    finalConfidence:
+      raw.finalConfidence != null ? Number(raw.finalConfidence) : null,
+    adoptedCount: Number(raw.adoptedCount) || 0,
+    excludedCount: Number(raw.excludedCount) || 0,
+    evidenceCount: Number(raw.evidenceCount) || 0,
+    conflictCount: Number(raw.conflictCount) || 0,
+  };
+}
+
+/** Ver8.2 Reasoning */
+export function createReasoning(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Reasoning",
+    agreed: Array.isArray(raw.agreed) ? raw.agreed : [],
+    conflicted: Array.isArray(raw.conflicted) ? raw.conflicted : [],
+    adopted: Array.isArray(raw.adopted) ? raw.adopted : [],
+    excluded: Array.isArray(raw.excluded) ? raw.excluded : [],
+    conflictReasons: Array.isArray(raw.conflictReasons)
+      ? raw.conflictReasons
+      : [],
+    narrative: raw.narrative || "",
+    judgment: raw.judgment || null,
+  };
+}
+
+/** Ver8.2 Discussion — Evidence比較・合意形成の統合結果 */
+export function createDiscussion(raw = {}) {
+  return {
+    modelVersion: UNIFIED_VERSION,
+    kind: "Discussion",
+    available: raw.available !== false,
+    status: raw.status || "idle",
+    evidence: Array.isArray(raw.evidence)
+      ? raw.evidence.map((e) =>
+          e?.kind === "Evidence" ? e : createEvidence(e)
+        )
+      : [],
+    conflicts: Array.isArray(raw.conflicts)
+      ? raw.conflicts.map((c) =>
+          c?.kind === "Conflict" ? c : createConflict(c)
+        )
+      : [],
+    consensus: raw.consensus
+      ? raw.consensus.kind === "Consensus"
+        ? raw.consensus
+        : createConsensus(raw.consensus)
+      : createConsensus({}),
+    reasoning: raw.reasoning
+      ? raw.reasoning.kind === "Reasoning"
+        ? raw.reasoning
+        : createReasoning(raw.reasoning)
+      : createReasoning({}),
+    aiPayload: raw.aiPayload || null,
+    validation: raw.validation || null,
+    updatedAt: raw.updatedAt || null,
+    version: raw.version || null,
+    analysisStage: createAnalysisStageRef(raw.analysisStage ?? raw.stage),
+    learning: raw.learning ? createLearningDataRef(raw.learning) : null,
+    knowledge: raw.knowledge ? createKnowledgeRef(raw.knowledge) : null,
+  };
+}
+
 export function createReviewRef(raw = {}) {
   return { reviewId: raw.reviewId || raw.id || null, summary: raw.summary || "" };
 }
@@ -335,6 +454,9 @@ export function createRace(raw = {}, horses = []) {
     social: raw.social
       ? createSocial(raw.social)
       : createSocial({ available: false }),
+    discussion: raw.discussion
+      ? createDiscussion(raw.discussion)
+      : createDiscussion({ available: false }),
     // AIエンジン互換
     name: raw.raceName || raw.name || "",
     time: raw.startTime || raw.time || "",

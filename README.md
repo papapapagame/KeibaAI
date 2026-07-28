@@ -1,66 +1,53 @@
 # PAPAPA IQ KEIBA
 
-**Ver8.1.0** — Social Intelligence
+**Ver8.2.0** — AI Discussion Engine
 
 既存評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更していません。  
-SNS投稿は**本文・画像・動画・コメントを転載せず**、公開メタデータを構造化して AI 分析へ取り込みます。  
-ニュース（Ver8.0）と統合し、AI が双方を総合評価できる基盤です。
+各データソースの評価を独立 Evidence として収集し、**単純な平均・加算ではなく**信頼度・鮮度・重要度・取得率・一致／矛盾を比較して最終判断します。
 
-## Social Engine
+## AI Discussion Engine
 
 ```
-services/social/
-  SocialManager
-  SocialRepository
-  SocialSynchronizer
-  SocialValidator
-  SocialNormalizer
-  SocialScoringEngine
-  TrendAnalyzer
+services/discussion/
+  DiscussionManager
+  DiscussionEngine
+  EvidenceCollector
+  ConflictResolver
+  ConsensusEngine
+  ReasoningBuilder
+  DiscussionValidator
 ```
 
-### 取得対象（メタデータのみ）
+### Evidence
 
-投稿日時・対象レース／馬／騎手／調教師・投稿種別・情報ソース・更新時刻・投稿数  
+収集対象: Horse / Race / Entry / Draw / Odds / Weather / News / Social / Learning  
 
-**投稿本文・画像・動画・コメントは保存・表示しません。**
+各 Evidence に Confidence / Freshness / Reliability / Coverage / Importance を付与します。
 
-### Normalization
+### Conflict Resolution
 
-調教話題 / 馬体話題 / 騎手話題 / パドック話題 / 取消話題 / 人気話題 / 開催話題 / その他
+同一主張タイプで矛盾した場合、信頼度・更新時刻・重要度・取得率を比較して採用／除外を決定します。
 
-### Trend Analysis
+### Consensus Engine
 
 | Score | 意味 |
 |-------|------|
-| Trend Score | 総合トレンド |
-| Attention Score | 注目度 |
-| Momentum Score | 勢い |
-| Confidence Score | 信頼度 |
+| Consensus Score | 合意度（上位 Evidence の質を重視） |
+| Agreement Score | 一致度 |
+| Conflict Score | 矛盾度 |
+| Final Confidence | 最終信頼度 |
 
-AI へはカテゴリ・対象馬・重要度・鮮度・投稿数・トレンド変化・信頼度など構造化データのみ渡します（本文なし）。
+### Reasoning
 
-### Validation / Synchronization
-
-重複・カテゴリ・対象レース・対象馬・型を検証。失敗データは AI へ渡しません。  
-新規話題・急激な投稿増加・重要カテゴリ追加・トレンド変化時のみ Smart Update 再分析します。
+一致した根拠・矛盾した根拠・採用した根拠・除外した根拠と判断理由を内部保持し、AI へ構造化ペイロードとして渡します。
 
 ### Unified Model
 
-`Social` を Horse / Race / AnalysisStage / Knowledge / Learning / News と統合。AI は Unified Model のみ参照します。
+`Discussion` / `Evidence` / `Consensus` / `Conflict` / `Reasoning` を統合。AI は Unified Model のみ参照します。
 
-## News Engine（Ver8.0 維持）
+## Social / News（維持）
 
-```
-services/news/
-  NewsManager / Repository / Synchronizer / Validator / Normalizer / ScoringEngine
-```
-
-記事本文・画像は非転載。構造化メタデータのみ。
-
-## Weather / Odds / Draw / Entry（維持）
-
-Ver7.9 までの全機能を維持しています。
+Ver8.1 Social Intelligence・Ver8.0 News Intelligence を維持（投稿／記事本文は非転載）。
 
 ## 確認方法
 
@@ -68,10 +55,10 @@ Ver7.9 までの全機能を維持しています。
 python -m http.server 5500
 ```
 
-1. 分析画面「SNS解析件数 / 現在のトレンド / 注目カテゴリ / AI反映状況」  
-2. 投稿本文が表示されないこと  
-3. Dev Panel「Social Status / Trend Status / カテゴリ件数 / Validation / 同期 / 最終更新」  
+1. 分析画面「Discussion Status / Evidence数 / Consensus / Conflict / Final Confidence」  
+2. Dev Panel「Evidence一覧 / Conflict一覧 / Consensus結果 / Validation」  
+3. 単純平均ではなく採用・除外理由が残ること  
 
 ## 維持機能
 
-Ver8.0 News Intelligence までの全機能を維持しています。
+Ver8.1 までの全機能を維持しています。

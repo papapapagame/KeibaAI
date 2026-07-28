@@ -450,6 +450,25 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver8.2 - AI Discussion Engine（実装済）
+
+テーマ：複数のAI評価を統合・比較・議論して最終判断を行う
+
+### 実装内容
+
+- DiscussionManager / Engine / EvidenceCollector / ConflictResolver / ConsensusEngine / ReasoningBuilder / Validator
+- Evidence 収集（Horse〜Learning）と品質スコア（Confidence / Freshness / Reliability / Coverage / Importance）
+- 矛盾解決（信頼度・更新時刻・重要度・取得率）— 単純平均・加算ではない
+- Consensus / Agreement / Conflict / Final Confidence
+- Reasoning（一致・矛盾・採用・除外）を Unified Model へ統合
+- Analysis / Dev Panel 表示
+
+### 目標
+
+情報源の一致と矛盾を明示し、根拠付きで最終評価の信頼度を高める。
+
+---
+
 ## Ver6.0 - Learning AI
 
 テーマ：自己学習AI

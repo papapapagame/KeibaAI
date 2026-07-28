@@ -65,6 +65,11 @@ import {
   getSocialDashboard,
   applySocialScoreAdjustments,
 } from "../services/social/index.js";
+import {
+  loadDiscussionForAi,
+  getDiscussionDashboard,
+  applyDiscussionScoreAdjustments,
+} from "../services/discussion/index.js";
 import { toLegacyHorse } from "../services/models/unified.js";
 import {
   getCalendarDashboard,
@@ -565,12 +570,68 @@ export async function initAnalysisPage() {
     engineResult,
   });
 
+  // Ver8.2 AI Discussion Engine — Evidence比較・矛盾解決・合意形成
+  const discussionBundle = loadDiscussionForAi({
+    race: raceForEngine,
+    horses: stagedHorses,
+    entryBundle,
+    drawBundle,
+    oddsBundle,
+    weatherBundle,
+    newsBundle,
+    socialBundle,
+    intelPacket,
+    marketResult,
+    engineResult,
+    fetchedAt: new Date().toISOString(),
+  });
+
+  if (discussionBundle?.ok && discussionBundle.aiDiscussion) {
+    try {
+      const aiInput =
+        intelPacket.fusedInput?.aiInput ||
+        intelPacket.aiInput ||
+        null;
+      if (aiInput && typeof aiInput === "object") {
+        aiInput.discussion = discussionBundle.aiDiscussion;
+      }
+      if (intelPacket.fusedInput && typeof intelPacket.fusedInput === "object") {
+        intelPacket.fusedInput.discussionMeta = {
+          evidenceCount: discussionBundle.count,
+          consensus: discussionBundle.consensus?.consensusScore,
+          conflict: discussionBundle.consensus?.conflictScore,
+          finalConfidence: discussionBundle.consensus?.finalConfidence,
+          status: discussionBundle.status,
+        };
+      }
+      if (raceForEngine && typeof raceForEngine === "object") {
+        raceForEngine.discussion = discussionBundle.unified || null;
+      }
+    } catch {
+      /* discussion inject must not break analysis */
+    }
+  }
+
   bindIntelligenceScores(engineResult.scores, marketResult);
   bindIntelligenceEngineUi(engineResult);
   bindMarketIntelligenceUi(marketResult);
+  bindDiscussionStatusUi(discussionBundle);
+  bindDiscussionDevUi(discussionBundle);
   bindDeveloperPanel(bundle, intelPacket, marketResult);
   bindSmartUpdateDevControls();
   bindRaceConnectDevUi(raceConnect);
+
+  // Discussion Final Confidence を Stage Confidence へ反映（補助）
+  if (
+    discussionBundle?.ok &&
+    discussionBundle.consensus?.finalConfidence != null
+  ) {
+    const blended = Math.round(
+      ((confHint ?? 80) + discussionBundle.consensus.finalConfidence) / 2
+    );
+    const confEl = document.getElementById("stage-confidence");
+    if (confEl) confEl.textContent = `${blended}%`;
+  }
 
   // Ver7.2 Smart Update Engine（AI本体は変更せず、必要時のみ再分析トリガ）
   const snapshotBase = AnalysisTrigger.buildSnapshot({
@@ -672,6 +733,10 @@ export async function initAnalysisPage() {
   ranked = applySocialScoreAdjustments(
     ranked,
     socialBundle?.trends || null
+  );
+  ranked = applyDiscussionScoreAdjustments(
+    ranked,
+    discussionBundle
   ).sort(
     (a, b) =>
       (b.thinking?.score || 0) - (a.thinking?.score || 0) ||
@@ -1564,6 +1629,100 @@ function bindSocialDevUi(socialBundle) {
     "dev-social-updated",
     socialBundle?.fetchedAt
       ? formatUpdateTime(socialBundle.fetchedAt)
+      : dash.updatedAt
+        ? formatUpdateTime(dash.updatedAt)
+        : "—"
+  );
+}
+
+function bindDiscussionStatusUi(discussionBundle) {
+  const status = discussionBundle?.status || {};
+  const consensus = discussionBundle?.consensus || {};
+  setText(
+    "discussion-status",
+    status.label || (discussionBundle?.ok ? "合意形成済" : "—")
+  );
+  setText(
+    "discussion-evidence-count",
+    String(status.evidenceCount ?? discussionBundle?.count ?? "—")
+  );
+  setText(
+    "discussion-consensus",
+    consensus.consensusScore != null ? String(consensus.consensusScore) : "—"
+  );
+  setText(
+    "discussion-conflict",
+    consensus.conflictScore != null ? String(consensus.conflictScore) : "—"
+  );
+  setText(
+    "discussion-final-confidence",
+    consensus.finalConfidence != null
+      ? `${consensus.finalConfidence}%`
+      : "—"
+  );
+  setText("discussion-stage-note", discussionBundle?.stageNote || "");
+}
+
+function bindDiscussionDevUi(discussionBundle) {
+  const dash = getDiscussionDashboard();
+  const consensus =
+    discussionBundle?.consensus || dash.consensus || {};
+  setText(
+    "dev-discussion-status",
+    discussionBundle?.status?.label ||
+      (discussionBundle?.ok ? "OK" : "—")
+  );
+
+  const listEl = document.getElementById("dev-discussion-evidence");
+  if (listEl) {
+    clearElement(listEl);
+    const items = (discussionBundle?.evidence || []).slice(0, 12);
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.textContent = "—";
+      listEl.appendChild(li);
+    } else {
+      items.forEach((e) => {
+        const li = document.createElement("li");
+        li.textContent = `[${e.sourceLabel || e.source}] ${e.claim} (C${e.scores?.confidence ?? "—"})`;
+        listEl.appendChild(li);
+      });
+    }
+  }
+
+  const conflictEl = document.getElementById("dev-discussion-conflicts");
+  if (conflictEl) {
+    clearElement(conflictEl);
+    const items = discussionBundle?.conflicts || [];
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.textContent = "矛盾なし";
+      conflictEl.appendChild(li);
+    } else {
+      items.forEach((c) => {
+        const li = document.createElement("li");
+        li.textContent = `${c.claimType} [${c.severity}] → 採用 ${c.adoptedId}`;
+        conflictEl.appendChild(li);
+      });
+    }
+  }
+
+  setText(
+    "dev-discussion-consensus",
+    consensus.consensusScore != null
+      ? `Consensus ${consensus.consensusScore} / Agree ${consensus.agreementScore ?? "—"} / Conflict ${consensus.conflictScore ?? "—"} / Final ${consensus.finalConfidence ?? "—"}`
+      : "—"
+  );
+  setText(
+    "dev-discussion-validation",
+    discussionBundle?.validation?.ok
+      ? `OK (warn ${discussionBundle.validation.warnings?.length || 0})`
+      : `NG ${discussionBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-discussion-updated",
+    discussionBundle?.fetchedAt
+      ? formatUpdateTime(discussionBundle.fetchedAt)
       : dash.updatedAt
         ? formatUpdateTime(dash.updatedAt)
         : "—"

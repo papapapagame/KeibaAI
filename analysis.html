@@ -250,6 +250,15 @@
         <p class="v73-data-block__note">※投稿本文・画像・動画・コメントは表示しません（構造化メタのみ）</p>
         <ul class="v73-status-list v81-social-meta-list" id="social-meta-list"></ul>
         <p class="v73-data-block__note" id="social-stage-note"></p>
+        <p class="v73-data-block__title">AI Discussion（Ver8.2）</p>
+        <ul class="v73-status-list v82-discussion-status">
+          <li>Discussion Status <span id="discussion-status">—</span></li>
+          <li>Evidence数 <span id="discussion-evidence-count">—</span></li>
+          <li>Consensus Score <span id="discussion-consensus">—</span></li>
+          <li>Conflict Score <span id="discussion-conflict">—</span></li>
+          <li>Final Confidence <span id="discussion-final-confidence">—</span></li>
+        </ul>
+        <p class="v73-data-block__note" id="discussion-stage-note"></p>
         <p class="v73-data-block__title">Data Completeness</p>
         <div class="v73-comp-grid">
           <span>Race <strong id="dc-race">—</strong></span>
@@ -403,6 +412,18 @@
           <li>同期状態: <span id="dev-social-sync">—</span></li>
           <li>最終更新: <span id="dev-social-updated">—</span></li>
         </ul>
+
+        <p class="v51-dev-panel__subtitle">AI Discussion（Ver8.2）</p>
+        <ul class="v51-dev-list">
+          <li>Discussion Status: <span id="dev-discussion-status">—</span></li>
+          <li>Consensus結果: <span id="dev-discussion-consensus">—</span></li>
+          <li>Validation状態: <span id="dev-discussion-validation">—</span></li>
+          <li>最終更新: <span id="dev-discussion-updated">—</span></li>
+        </ul>
+        <p class="v51-dev-panel__note">Evidence一覧</p>
+        <ul class="v51-dev-list v82-dev-evidence" id="dev-discussion-evidence"></ul>
+        <p class="v51-dev-panel__note">Conflict一覧</p>
+        <ul class="v51-dev-list v82-dev-conflicts" id="dev-discussion-conflicts"></ul>
 
         <p class="v51-dev-panel__subtitle">Provider Monitor</p>
         <div class="v52-monitor-wrap">
