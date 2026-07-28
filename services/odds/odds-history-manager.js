@@ -62,6 +62,34 @@ export function diffOdds(prev = [], next = []) {
         horse: n.horse,
       });
     }
+    if (
+      p.placeOdds != null &&
+      n.placeOdds != null &&
+      Number(p.placeOdds) !== Number(n.placeOdds)
+    ) {
+      changes.push({
+        type: "odds_updated",
+        number: n.number,
+        field: "place",
+        from: p.placeOdds,
+        to: n.placeOdds,
+        horse: n.horse,
+      });
+    }
+    if (
+      (p.updatedAt || "") !== (n.updatedAt || "") &&
+      Number(p.winOdds) === Number(n.winOdds) &&
+      Number(p.popularity) === Number(n.popularity)
+    ) {
+      changes.push({
+        type: "odds_updated",
+        number: n.number,
+        field: "updatedAt",
+        from: p.updatedAt,
+        to: n.updatedAt,
+        horse: n.horse,
+      });
+    }
     if (Number(p.popularity) !== Number(n.popularity)) {
       changes.push({
         type: "popularity_changed",

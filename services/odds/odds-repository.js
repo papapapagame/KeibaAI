@@ -1,38 +1,59 @@
 /* ========================================
-   Odds Repository — Ver7.8
+   Odds Repository — Ver7.8 / Ver10.2
    ======================================== */
 
-import { acquireBundle } from "../provider/index.js";
-import { getSourceMode } from "../data/source-mode.js";
 import { API_BASE_URL } from "../../js/config.js";
+import { getOddsMode } from "./odds-mode.js";
+import { loadRealOdds } from "../provider/odds/index.js";
 
 export async function fetchOddsRaw(options = {}) {
-  const mode = options.mode || getSourceMode();
+  const oddsMode = options.oddsMode || getOddsMode();
 
-  if (mode === "real") {
-    const acquired = await acquireBundle({ ...options, mode: "real" });
-    if (!acquired.ok) {
+  // Ver10.2 Real Odds（自動 Mock フォールバックなし）
+  if (oddsMode === "real") {
+    const real = await loadRealOdds({
+      ...options,
+      stage: options.stage,
+      force: options.forceRefresh || options.force,
+      silent: options.silent !== false,
+      emitUpdate: options.emitUpdate === true,
+    });
+    if (!real.ok) {
       return {
         ok: false,
-        blocked: true,
-        message: acquired.message || "Provider未接続",
-        providerId: acquired.providerId || "real",
-        mode,
+        blocked: false,
+        message: real.userMessage || "オッズ情報を取得できませんでした",
+        userMessage: "オッズ情報を取得できませんでした",
+        providerId: real.providerId || "real-odds",
+        mode: "real",
         items: [],
         phase: "none",
+        validation: real.validation,
+        error: real.error || null,
       };
     }
-    const horses = acquired.raw?.horses || acquired.data?.horses || [];
     return {
       ok: true,
       blocked: false,
-      message: "Real Odds via Framework",
-      providerId: acquired.providerId,
-      mode,
-      items: horsesToOddsItems(horses),
-      phase: "final",
-      provenance: acquired.provenance,
-      framework: acquired.framework,
+      message: real.message || "Real Odds",
+      providerId: real.providerId || "real-odds",
+      providerName: real.providerName || "Real Odds",
+      mode: "real",
+      items: real.odds || real.items || [],
+      phase: real.phase || "final",
+      meta: {
+        ...(real.meta || {}),
+        updatedAt: real.updatedAt || real.fetchedAt,
+        phase: real.phase || "final",
+        skipped: real.skipped,
+        changed: real.changed,
+        fingerprint: real.fingerprint,
+        updateCount: real.updateCount,
+        marketStatus: real.marketStatus,
+      },
+      realBundle: real,
+      validation: real.validation,
+      provenance: { providerId: real.providerId, source: "real-odds" },
     };
   }
 
@@ -47,7 +68,7 @@ export async function fetchOddsRaw(options = {}) {
       blocked: false,
       message: "Mock Odds Repository",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items,
       phase: oddsJson?.phase || "final",
       meta: {
@@ -64,7 +85,7 @@ export async function fetchOddsRaw(options = {}) {
       blocked: false,
       message: err?.message || "Odds fetch failed",
       providerId: "mock",
-      mode,
+      mode: "mock",
       items: [],
       phase: "none",
     };

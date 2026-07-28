@@ -1,9 +1,9 @@
 # PAPAPA IQ KEIBA
 
-**Version 10.1.0 — Real Horse Entry**  
-Build Date: 2026-07-28 · Build Number: 20260728.101
+**Version 10.2.0 — Real Odds**  
+Build Date: 2026-07-28 · Build Number: 20260728.102
 
-実開催カレンダーに続き、出馬表（Horse Entry）を Real Data へ移行した段階です。  
+実開催カレンダー・出馬表に続き、オッズ／人気を Real Data へ移行した段階です。  
 既存評価ロジック（`js/ai-engine.js` / `js/thinking-engine.js`）は変更していません。
 
 ---
@@ -27,6 +27,7 @@ UI (HTML/CSS/js/*)
        ├─ calendar          ← Mock / Real Race Calendar
        ├─ provider/race     ← Ver10.0 RealRaceProvider
        ├─ provider/horse    ← Ver10.1 RealHorseProvider
+       ├─ provider/odds     ← Ver10.2 RealOddsProvider
        ├─ update / entry / draw / odds / weather
        ├─ news / social / discussion / explain / knowledge
        ├─ learning / review / market / intelligence / provider
@@ -35,6 +36,43 @@ Runtime (services/runtime) — エラーガード / Prefetch 重複防止
 ```
 
 **Prediction Engine** = 既存 `ai-engine.js` + `thinking-engine.js`（非改変）
+
+---
+
+## Real Odds Provider（Ver10.2）
+
+配置: `services/provider/odds/`
+
+| モジュール | 責務 |
+|------------|------|
+| `RealOddsProvider` | Provider 共通 I/F |
+| `OddsFetcher` | オッズ生データ取得 |
+| `OddsParser` | パース |
+| `OddsNormalizer` | Unified Odds + Market/Support/Value Score |
+| `OddsValidator` | 異常値・人気重複・欠損検証 |
+| `OddsSynchronizer` | 変更時のみ同期 / Smart Update |
+| `OddsHistoryManager` | 変動履歴・更新回数 |
+
+### Odds 取得
+
+既定 URL: `data/odds/real-odds.json`（`REAL_ODDS_URL` で差し替え可）  
+単勝 / 複勝 / 人気 / 更新時刻 / 変動履歴 / Provider 名
+
+### Odds History
+
+変更差分を履歴に記録し、更新回数を Dev Panel に表示。
+
+### Provider 切替
+
+Analysis Developer Panel: **Mock Odds / Real Odds**  
+失敗時は自動 Mock 切替なし（「オッズ情報を取得できませんでした」）
+
+### Validation / Synchronization
+
+オッズ異常・人気重複・必須欠損は不採用。  
+単勝／複勝／人気／更新時刻の変化時のみ再同期・再分析。
+
+Market / Support / Value Score は実オッズから算出し、人気順のみに依存しない。
 
 ---
 
@@ -135,9 +173,11 @@ KeibaAI/
     provider/
       race/                 # Ver10.0 Real Race Calendar
       horse/                # Ver10.1 Real Horse Entry
+      odds/                 # Ver10.2 Real Odds
       providers/mock-provider.js
     calendar/
     entry/
+    odds/
     models/unified.js
     ...
   data/
@@ -146,7 +186,9 @@ KeibaAI/
       real-calendar.json
     entry/
       real-entries.json
-      mock-entries.json     # 任意
+    odds/
+      mock-odds.json
+      real-odds.json
 ```
 
 ---

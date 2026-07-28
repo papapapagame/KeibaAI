@@ -38,32 +38,54 @@ export async function loadOddsForAi(options = {}) {
     return emptyBundle(options, fetched);
   }
 
-  const validation = validateOdds(fetched.items || []);
-  if (!validation.ok) {
-    setOddsState([], { syncStatus: "validation_error", phase: fetched.phase });
-    return {
-      ok: false,
-      blocked: false,
-      message: "Odds Validation failed",
-      providerId: fetched.providerId,
-      version: ODDS_ENGINE_VERSION,
-      odds: [],
-      validation,
-      stats: emptyStats(),
-      oddsCompleteness: computeOddsCompleteness([]),
-      stagePanel: formatOddsStagePanel(options.stage || 0, null),
-      sync: { status: "error" },
-      confirmedStage: 0,
-      effectiveStage: Number(options.stage) || 0,
-      marketStatus: { count: 0 },
-    };
+  // Real は Provider 側で検証・Market 算出済
+  let odds;
+  let validation;
+  let marketStatus = fetched.meta?.marketStatus || null;
+
+  if (fetched.mode === "real" && fetched.validation?.ok) {
+    validation = fetched.validation;
+    odds = fetched.items || [];
+    // Real sync 済みでも Market Score を確実に付与
+    if (!odds.some((o) => o.marketScore != null)) {
+      const market = analyzeMarket(odds);
+      odds = market.items;
+      marketStatus = market.marketStatus;
+    }
+  } else {
+    validation = validateOdds(fetched.items || []);
+    if (!validation.ok) {
+      setOddsState([], { syncStatus: "validation_error", phase: fetched.phase });
+      return {
+        ok: false,
+        blocked: false,
+        message: "Odds Validation failed",
+        userMessage: "オッズ情報を取得できませんでした",
+        providerId: fetched.providerId,
+        mode: fetched.mode || "mock",
+        version: ODDS_ENGINE_VERSION,
+        odds: [],
+        validation,
+        stats: emptyStats(),
+        oddsCompleteness: computeOddsCompleteness([]),
+        stagePanel: formatOddsStagePanel(options.stage || 0, null),
+        sync: { status: "error" },
+        confirmedStage: 0,
+        effectiveStage: Number(options.stage) || 0,
+        marketStatus: { count: 0 },
+      };
+    }
+    const market = analyzeMarket(validation.sanitized);
+    odds = market.items;
+    marketStatus = market.marketStatus;
   }
 
-  const market = analyzeMarket(validation.sanitized);
-  const odds = market.items;
   const prevFp = getLastOddsFingerprint();
   const fp = fingerprintOdds(odds);
-  const contentChanged = fp !== prevFp;
+  const contentChanged =
+    fetched.meta?.changed != null
+      ? Boolean(fetched.meta.changed)
+      : fp !== prevFp;
 
   const sync = syncOdds(odds, {
     emitUpdate: options.emitUpdate === true && contentChanged && prevFp != null,
@@ -91,6 +113,9 @@ export async function loadOddsForAi(options = {}) {
     blocked: false,
     message: contentChanged ? "Odds loaded" : "Odds unchanged",
     providerId: fetched.providerId,
+    providerName: fetched.providerName || fetched.providerId,
+    providerKind: fetched.mode === "real" ? "Real" : "Mock",
+    mode: fetched.mode || "mock",
     version: ODDS_ENGINE_VERSION,
     changed: contentChanged,
     fingerprint: fp,
@@ -100,12 +125,13 @@ export async function loadOddsForAi(options = {}) {
     stats,
     oddsCompleteness,
     stagePanel,
-    marketStatus: market.marketStatus,
+    marketStatus: marketStatus || { count: odds.length },
     sync: {
       status: contentChanged ? "synced" : "skipped",
       changes: sync.changes?.length || 0,
     },
     count: odds.length,
+    updateCount: fetched.meta?.updateCount ?? null,
     fetchedAt: fetched.meta?.updatedAt || new Date().toISOString(),
     phase,
     confirmedStage,
@@ -218,11 +244,17 @@ function emptyBundle(options, fetched) {
   return {
     ok: false,
     blocked: Boolean(fetched?.blocked),
-    message: fetched?.message || "Odds 取得失敗",
+    message: fetched?.userMessage || fetched?.message || "Odds 取得失敗",
+    userMessage:
+      fetched?.userMessage ||
+      fetched?.message ||
+      "オッズ情報を取得できませんでした",
     providerId: fetched?.providerId,
+    providerKind: fetched?.mode === "real" ? "Real" : "Mock",
+    mode: fetched?.mode || "mock",
     version: ODDS_ENGINE_VERSION,
     odds: [],
-    validation: {
+    validation: fetched?.validation || {
       ok: false,
       errors: [{ code: "FETCH", message: fetched?.message }],
       warnings: [],

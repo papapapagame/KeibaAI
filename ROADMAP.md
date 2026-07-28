@@ -506,6 +506,24 @@ SNSを安全に構造化し、News と合わせて AI が総合評価できる�
 
 ---
 
+## Ver10.2 - Real Odds（実装済）
+
+テーマ：実際のオッズ・人気を取得してAIへ反映する
+
+### 実装内容
+
+- RealOddsProvider（Fetch / Parse / Normalize / Validate / Synchronize / History）
+- Odds Intelligence（Ver7.8）連携・Market/Support/Value Score を実データ算出
+- Smart Update: 単勝・複勝・人気・更新時刻変更時のみ再取得
+- 失敗時は Mock 自動切替なし
+
+### データ
+
+- Mock: `data/odds/mock-odds.json` / `data/horses.json`（維持）
+- Real: `data/odds/real-odds.json`
+
+---
+
 ## Ver10.1 - Real Horse Entry（実装済）
 
 テーマ：実際の出馬表を取得し AI へ渡す
@@ -630,5 +648,6 @@ AIが予想結果から継続的に学習し、精度を向上させる。
 - Ver9.0 Release Candidate で製品版前の品質統合を完了する。
 - Ver10.0 Real Race Calendar で Mock→Real 第一段階を完了する。
 - Ver10.1 Real Horse Entry で出馬表の Real 化を完了する。
+- Ver10.2 Real Odds でオッズ／人気の Real 化を完了する。
 - Ver9.1+ / 以降で高度なAI分析機能を追加する。
 - 正式リリース版へ向けて Real Provider を拡張する。

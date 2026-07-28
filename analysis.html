@@ -58,7 +58,7 @@
 
   <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50 page--v51 page--v52 page--v53 page--v54">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.1</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver10.2</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
@@ -219,8 +219,14 @@
         </div>
         <p class="v73-data-block__note" id="oc-note"></p>
         <ul class="v73-status-list v78-odds-status">
+          <li>単勝（1人気例） <span id="odds-win-sample">—</span></li>
+          <li>複勝（1人気例） <span id="odds-place-sample">—</span></li>
+          <li>人気 <span id="odds-pop-sample">—</span></li>
           <li>取得件数 <span id="odds-count">—</span></li>
+          <li>取得率 <span id="odds-fetch-rate">—</span></li>
+          <li>Market Score <span id="odds-market-score">—</span></li>
           <li>更新時刻 <span id="odds-updated">—</span></li>
+          <li>Provider <span id="odds-provider-kind">—</span></li>
         </ul>
         <p class="v73-data-block__note" id="odds-stage-note"></p>
         <p class="v73-data-block__title">Weather Completeness（Ver7.9）</p>
@@ -430,7 +436,12 @@
           <li>更新時刻: <span id="dev-draw-updated">—</span></li>
         </ul>
 
-        <p class="v51-dev-panel__subtitle">Odds & Market（Ver7.8）</p>
+        <p class="v51-dev-panel__subtitle">Odds & Market（Ver7.8 / Ver10.2）</p>
+        <div class="v70-source-switch" id="odds-mode-controls" role="group" aria-label="Odds Source">
+          <button type="button" class="v70-source-btn" data-odds-mode="mock">Mock Odds</button>
+          <button type="button" class="v70-source-btn" data-odds-mode="real">Real Odds</button>
+        </div>
+        <p class="v51-dev-panel__note" id="odds-mode-note">Mock Odds を使用中</p>
         <ul class="v51-dev-list">
           <li>Odds Status: <span id="dev-odds-status">—</span></li>
           <li>Market Status: <span id="dev-market-status">—</span></li>
@@ -439,6 +450,16 @@
           <li>Validation状態: <span id="dev-odds-validation">—</span></li>
           <li>同期状態: <span id="dev-odds-sync">—</span></li>
           <li>更新時刻: <span id="dev-odds-updated">—</span></li>
+        </ul>
+        <p class="v51-dev-panel__subtitle">Real Odds Provider（Ver10.2）</p>
+        <ul class="v51-dev-list">
+          <li>Odds Provider Status: <span id="dev-real-odds-status">—</span></li>
+          <li>Current Provider: <span id="dev-real-odds-provider">—</span></li>
+          <li>取得件数: <span id="dev-real-odds-count">—</span></li>
+          <li>更新回数: <span id="dev-real-odds-updates">—</span></li>
+          <li>Validation: <span id="dev-real-odds-validation">—</span></li>
+          <li>同期状態: <span id="dev-real-odds-sync">—</span></li>
+          <li>更新時刻: <span id="dev-real-odds-updated">—</span></li>
         </ul>
 
         <p class="v51-dev-panel__subtitle">Weather & Track（Ver7.9）</p>
@@ -1022,7 +1043,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 10.1.0 · Real Horse Entry</p>
+    <p>Version 10.2.0 · Real Odds</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

@@ -285,10 +285,11 @@ async function handleIncomingEventInner(event) {
     }
   }
 
-  // Ver7.8: Odds 変更時のみ再取得。変更無ければ再分析しない
+  // Ver7.8 / Ver10.2: Odds 変更時のみ再取得。変更無ければ再分析しない
   if (
     event?.payload?.oddsOnly ||
     event?.source === "odds-engine" ||
+    event?.source === "real-odds" ||
     [
       "odds_updated",
       "odds_spike",

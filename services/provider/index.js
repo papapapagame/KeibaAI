@@ -78,3 +78,4 @@ export {
 export { MockProvider } from "./providers/mock-provider.js";
 export * from "./race/index.js";
 export * from "./horse/index.js";
+export * from "./odds/index.js";

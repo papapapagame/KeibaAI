@@ -40,3 +40,11 @@ export {
   mergeOddsOntoHorses,
   applyOddsMarketAdjustments,
 } from "./odds-merge.js";
+
+export {
+  getOddsMode,
+  setOddsMode,
+  ODDS_MODE_KEY,
+  ODDS_MODES,
+  OddsMode,
+} from "./odds-mode.js";

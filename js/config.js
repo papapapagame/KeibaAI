@@ -1,13 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - config.js
-   Ver10.1.0 Real Horse Entry
+   Ver10.2.0 Real Odds
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "10.1.0";
-export const RELEASE_CHANNEL = "Real Horse Entry";
+export const VERSION = "10.2.0";
+export const RELEASE_CHANNEL = "Real Odds";
 export const BUILD_DATE = "2026-07-28";
-export const BUILD_NUMBER = "20260728.101";
+export const BUILD_NUMBER = "20260728.102";
 export const IS_RELEASE_CANDIDATE = false;
 
 export const DEBUG = true;
@@ -31,6 +31,14 @@ export const REAL_HORSE_ENTRY_URL = "data/entry/real-entries.json";
 export const REAL_HORSE_FETCH_TIMEOUT_MS = 12000;
 export const REAL_HORSE_PROVIDER_VERSION = "10.1.0";
 export const ENTRY_MODE_KEY = "papapa_iq_entry_mode_v101";
+
+/**
+ * Real Odds 取得先（GitHub Pages 対応）
+ */
+export const REAL_ODDS_URL = "data/odds/real-odds.json";
+export const REAL_ODDS_FETCH_TIMEOUT_MS = 12000;
+export const REAL_ODDS_PROVIDER_VERSION = "10.2.0";
+export const ODDS_MODE_KEY = "papapa_iq_odds_mode_v102";
 
 /**
  * データ取得 Provider 切替（レガシー Ver5.1）
@@ -111,6 +119,9 @@ export const REAL_RACE_CALENDAR_VERSION = "10.0.0";
 
 /** Real Horse Entry（services/provider/horse） */
 export const REAL_HORSE_ENTRY_VERSION = "10.1.0";
+
+/** Real Odds（services/provider/odds） */
+export const REAL_ODDS_VERSION = "10.2.0";
 
 export const LOADING_DURATION_MS = 1000;
 export const PAGE_FADE_MS = 280;

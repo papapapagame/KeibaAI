@@ -3,7 +3,7 @@
    全AIはこのモデルのみを参照する
    ======================================== */
 
-export const UNIFIED_VERSION = "10.1.0";
+export const UNIFIED_VERSION = "10.2.0";
 
 export function createVenue(raw = {}) {
   return {

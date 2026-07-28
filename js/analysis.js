@@ -48,6 +48,8 @@ import {
   mergeHorsesWithOdds,
   getOddsDashboard,
   applyOddsMarketAdjustments,
+  getOddsMode,
+  setOddsMode,
 } from "../services/odds/index.js";
 import {
   loadWeatherForAi,
@@ -370,7 +372,7 @@ export async function initAnalysisPage() {
         baseConfidence:
           drawBundle?.confidenceHint ?? entryBundle?.confidenceHint ?? 78,
       }),
-    { ok: false, message: "Odds 取得失敗" }
+    { ok: false, message: "オッズ情報を取得できませんでした", userMessage: "オッズ情報を取得できませんでした" }
   );
 
   // Ver7.9 Weather & Track — 天候・馬場・風（Stage6+）
@@ -445,6 +447,15 @@ export async function initAnalysisPage() {
   bindOddsStatusUi(oddsBundle);
   bindOddsAiPanel(oddsBundle, effectiveStage);
   bindOddsDevUi(oddsBundle);
+  if (oddsBundle?.unified && race && typeof race === "object") {
+    race.oddsEntries = oddsBundle.unified;
+    race.marketStatus = oddsBundle.marketStatus || null;
+    race.oddsProvider = {
+      kind: oddsBundle.providerKind || oddsBundle.mode || "mock",
+      providerId: oddsBundle.providerId || null,
+      updatedAt: oddsBundle.fetchedAt || null,
+    };
+  }
   bindWeatherStatusUi(weatherBundle);
   bindWeatherAiPanel(weatherBundle, effectiveStage);
   bindWeatherDevUi(weatherBundle);
@@ -1602,6 +1613,11 @@ function bindDrawDevUi(drawBundle) {
 function bindOddsStatusUi(oddsBundle) {
   const oc = oddsBundle?.oddsCompleteness || {};
   const stats = oddsBundle?.stats || {};
+  const ms = oddsBundle?.marketStatus || {};
+  const sample = (oddsBundle?.odds || [])
+    .slice()
+    .sort((a, b) => (a.popularity || 99) - (b.popularity || 99))[0];
+
   setText("oc-odds", oc.odds != null ? `${oc.odds}%` : "—");
   setText("oc-popularity", oc.popularity != null ? `${oc.popularity}%` : "—");
   setText("oc-market", oc.market != null ? `${oc.market}%` : "—");
@@ -1611,16 +1627,42 @@ function bindOddsStatusUi(oddsBundle) {
   setText("oc-note", oc.note || "");
   setText("odds-count", String(stats.total ?? oddsBundle?.count ?? "—"));
   setText(
+    "odds-fetch-rate",
+    oc.overall != null ? `${oc.overall}%` : "—"
+  );
+  setText(
+    "odds-win-sample",
+    sample?.winOdds != null ? String(sample.winOdds) : "—"
+  );
+  setText(
+    "odds-place-sample",
+    sample?.placeOdds != null ? String(sample.placeOdds) : "—"
+  );
+  setText(
+    "odds-pop-sample",
+    sample?.popularity != null ? `${sample.popularity}人気` : "—"
+  );
+  setText(
+    "odds-market-score",
+    ms.avgMarketScore != null ? String(ms.avgMarketScore) : "—"
+  );
+  setText(
+    "odds-provider-kind",
+    oddsBundle?.providerKind ||
+      (oddsBundle?.mode === "real" ? "Real" : "Mock")
+  );
+  setText(
     "odds-updated",
     oddsBundle?.fetchedAt ? formatUpdateTime(oddsBundle.fetchedAt) : "—"
   );
-  setText("odds-stage-note", oddsBundle?.stageNote || "");
+  setText(
+    "odds-stage-note",
+    oddsBundle?.ok === false
+      ? oddsBundle?.userMessage || "オッズ情報を取得できませんでした"
+      : oddsBundle?.stageNote || ""
+  );
 
-  // Draw Completeness のオッズ欄を更新
   if (oc.odds != null) setText("dc-draw-odds", `${oc.odds}%`);
-  if (oc.overall != null) {
-    // news stays 0 in draw grid
-  }
 }
 
 function bindOddsAiPanel(oddsBundle, stage) {
@@ -1680,11 +1722,14 @@ function bindOddsDevUi(oddsBundle) {
   const dash = getOddsDashboard();
   const stats = oddsBundle?.stats || dash.stats || {};
   const ms = oddsBundle?.marketStatus || {};
+  const mode = getOddsMode();
   setText(
     "dev-odds-status",
-    oddsBundle?.ok
-      ? `${stats.total ?? 0}頭 / ${oddsBundle.phase || dash.phase || "—"}`
-      : "—"
+    oddsBundle?.ok === false
+      ? "ERROR"
+      : oddsBundle?.ok
+        ? `${stats.total ?? 0}頭 / ${oddsBundle.phase || dash.phase || "—"}`
+        : "—"
   );
   setText(
     "dev-market-status",
@@ -1716,6 +1761,67 @@ function bindOddsDevUi(oddsBundle) {
         ? formatUpdateTime(dash.updatedAt)
         : "—"
   );
+  setText(
+    "dev-real-odds-status",
+    oddsBundle?.ok === false
+      ? "ERROR"
+      : oddsBundle?.mode === "real"
+        ? "ONLINE"
+        : "MOCK"
+  );
+  setText(
+    "dev-real-odds-provider",
+    oddsBundle?.providerId || (mode === "real" ? "real-odds" : "mock")
+  );
+  setText(
+    "dev-real-odds-count",
+    String(oddsBundle?.count ?? stats.total ?? 0)
+  );
+  setText(
+    "dev-real-odds-updates",
+    String(oddsBundle?.updateCount ?? hist.length ?? 0)
+  );
+  setText(
+    "dev-real-odds-validation",
+    oddsBundle?.validation?.ok
+      ? `OK (warn ${oddsBundle.validation.warnings?.length || 0})`
+      : `NG ${oddsBundle?.validation?.errors?.length || 0}`
+  );
+  setText(
+    "dev-real-odds-sync",
+    oddsBundle?.sync?.status || dash.syncStatus || "—"
+  );
+  setText(
+    "dev-real-odds-updated",
+    oddsBundle?.fetchedAt
+      ? formatUpdateTime(oddsBundle.fetchedAt)
+      : "—"
+  );
+
+  bindOddsModeControls();
+}
+
+function bindOddsModeControls() {
+  const mode = getOddsMode();
+  const note = document.getElementById("odds-mode-note");
+  if (note) {
+    note.textContent =
+      mode === "real"
+        ? "Real Odds（失敗時は Mock へ自動切替しません）"
+        : "Mock Odds を使用中";
+  }
+  document.querySelectorAll("[data-odds-mode]").forEach((btn) => {
+    btn.classList.toggle(
+      "is-active",
+      btn.getAttribute("data-odds-mode") === mode
+    );
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      setOddsMode(btn.getAttribute("data-odds-mode"));
+      location.reload();
+    });
+  });
 }
 
 function bindWeatherStatusUi(weatherBundle) {

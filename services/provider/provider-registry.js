@@ -7,6 +7,7 @@ import { createProvider, listFactoryIds } from "./provider-factory.js";
 import { logProviderEvent } from "./provider-logger.js";
 import { REAL_RACE_PROVIDER_ID } from "./race/real-race-provider.js";
 import { REAL_HORSE_PROVIDER_ID } from "./horse/real-horse-provider.js";
+import { REAL_ODDS_PROVIDER_ID } from "./odds/real-odds-provider.js";
 
 /** @type {Map<string, import("./provider-interface.js").ProviderInterface>} */
 const registry = new Map();
@@ -17,11 +18,11 @@ export function ensureRegistry() {
     for (const id of listFactoryIds()) {
       const provider = createProvider(id);
       if (!provider) continue;
-      // Ver10.1: Mock 既定有効。Real Race / Real Horse は実装済（mode で切替）
       if (
         id === "mock" ||
         id === REAL_RACE_PROVIDER_ID ||
-        id === REAL_HORSE_PROVIDER_ID
+        id === REAL_HORSE_PROVIDER_ID ||
+        id === REAL_ODDS_PROVIDER_ID
       ) {
         provider.enabled = true;
       } else {
@@ -31,7 +32,7 @@ export function ensureRegistry() {
     }
     initialized = true;
     logProviderEvent("registry_init", {
-      message: `registered ${registry.size} providers (mock + real-race + real-horse)`,
+      message: `registered ${registry.size} providers (mock + real-race + real-horse + real-odds)`,
     });
   }
   return [...registry.values()];
