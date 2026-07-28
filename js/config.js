@@ -4,7 +4,7 @@
    ======================================== */
 
 export const APP_NAME = "PAPAPA IQ KEIBA";
-export const VERSION = "4.0.0";
+export const VERSION = "5.0.0";
 export const DEBUG = true;
 export const DEFAULT_THEME = "dark";
 

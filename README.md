@@ -1,33 +1,19 @@
 # PAPAPA IQ KEIBA
 
-**Ver4.0.0** — 正式版（AI対決モード）
+**Ver5.0.0** — 正式版（AI対決強化 / 思考ログ / ニュース）
 
-AIロジック（`ai-engine.js` / `thinking-engine.js`）は変更せず、分析体験と共通UIを正式版品質へ引き上げました。
+AI評価ロジック（`ai-engine.js` / `thinking-engine.js`）は変更せず、分析体験を正式版品質へ拡張しています。予想結果は変わりません。
 
-## Ver4.0.0 目玉機能
+## Ver5.0.0 追加内容
 
-### ① AI対決モード
-- 5AI（本命 / 穴馬 / データ / 展開 / オッズ）が討論
-- 思考シーケンス → 討論開始演出 → 吹き出しログ（タイピング）
-- AI FINAL DECISION（合意率・推奨印・推奨買い目・理由）
-
-### ② 全ページ共通「TOPへ戻る」
-- 右下固定 / 300px超でフェードイン
-- SVG矢印 + 金色グロー / スクロール中の脈動
-- `utils.js` で共通コンポーネント化（自動生成対応）
-
-### UI強化
-- 金色ライン発光 / カードホバー / 微粒子 / ガラスカード
-- スキャンライン・ゲージ・カウントアップ演出
-
-## 変更ファイル
-
-- `analysis.html` / `style.css` / `js/analysis.js`
-- `js/ai-debate.js`（新規・表示層）
-- `js/utils.js`（TOPボタン共通化）
-- `js/config.js` / `README.md` / `ROADMAP.md`
-
-※ 予想ロジック本体は未変更です。
+1. AI対決（GPT Racing / Deep Odds / Horse Vision / Value Hunter）
+2. AI信頼度履歴グラフ（直近10レース・デモ）
+3. AI思考ログ（0→100%）
+4. AIコメント長文化（展開・馬場・脚質・騎手・枠・オッズ・EV）
+5. AIニュース / AIランキング（デモ）
+6. 分析完了演出（金色フラッシュ / 振動 / SE / AI COMPLETE）
+7. 全ページ共通「トップページへ戻る」（既存スクロールトップは維持）
+8. スマホ最適化（Safe Area / 横画面 / reduced-motion）
 
 ## 確認方法
 
@@ -35,6 +21,6 @@ AIロジック（`ai-engine.js` / `thinking-engine.js`）は変更せず、分�
 python -m http.server 5500
 ```
 
-1. AI分析 → 「AI対決」タブ
-2. 思考シーケンス〜最終結論を確認
-3. 各ページでスクロールし「TOPへ戻る」を確認
+1. AI分析で思考ログ〜COMPLETE演出を確認
+2. AI対決タブで印提示→討論開始→FINAL DECISION
+3. 各ページで「トップページへ戻る」を確認

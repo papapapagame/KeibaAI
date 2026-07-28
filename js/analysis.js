@@ -1,12 +1,13 @@
 /* ========================================
    PAPAPA IQ KEIBA - analysis.js
-   Ver4.0.0 正式版（表示層 / AI対決連携）
+   Ver5.0.0 正式版（表示層 / AI対決・思考ログ連携）
    AIロジックは ai-engine.js / thinking-engine.js を変更しない
    ======================================== */
 
 import { analyzeRace } from "./ai-engine.js";
 import { saveLastPrediction } from "./learning-engine.js";
 import { initAiDebateMode } from "./ai-debate.js";
+import { initV5Extras } from "./v5-extras.js";
 import {
   appendLines,
   applyCardStagger,
@@ -117,6 +118,7 @@ export async function initAnalysisPage() {
 
   renderAnalysis(analysisResult, race);
   runAnalysisSequence();
+  initV5Extras({ autoThink: true });
   initAiDebateMode({
     getContext: () => debateContext,
   });
@@ -615,6 +617,7 @@ function buildDeepAiComment(result, reports, race) {
   const pace = result.paceForecast || {};
   const top = reports[0] || {};
   const second = reports[1] || {};
+  const third = reports[2] || {};
   const closer = reports.find(
     (h) => h.runningStyle === "差し" || h.runningStyle === "追込"
   );
@@ -622,57 +625,80 @@ function buildDeepAiComment(result, reports, race) {
   const venue = race.venueLabel || race.venue || "開催場";
   const dist = race.distance ? `${race.distance}m` : "今回距離";
   const condition = race.trackCondition || "良";
+  const track = race.track || "芝";
   const paceLabel = pace.pace || "平均";
   const adv = pace.advantage || "先行有利";
-  const plus = (top.plusFactors || []).slice(0, 2).join("、") || "指数上位の安定感";
+  const plus =
+    (top.plusFactors || []).slice(0, 3).join("、") || "指数上位の安定感";
   const minus =
     (top.minusFactors || []).slice(0, 2).join("、") ||
     (top.alerts?.[0]?.label || "大きな減点は限定的");
+  const frame = top.frame != null ? `${top.frame}枠` : "枠順";
+  const jockey = top.jockey || "主戦騎手";
+  const odds = top.odds != null ? `${top.odds}倍` : "オッズ";
+  const variant = (Number(race.number) || 1) + (top.number || 0);
+  const openers = [
+    "総合すると今回は",
+    "現場目線でも",
+    "数値と展開を重ねると",
+    "AIの統合見解では",
+  ];
+  const closerPhrases = [
+    "配分は軸を厚く、穴は相手へ。",
+    "単勝一点突破より、連系で幅を持たせるのが無難です。",
+    "信頼度の高い軸に、妙味馬を絡める形が合理的です。",
+  ];
+  const opener = openers[variant % openers.length];
+  const closerLine = closerPhrases[variant % closerPhrases.length];
 
   return [
     {
-      title: "展開予想",
-      text: `${venue}${dist}は${condition}馬場想定。脚質構成は逃げ${pace.nige || 0}・先行${pace.senkou || 0}・差し${pace.sashi || 0}・追込${pace.oikomi || 0}。全体として${adv}の形になりやすく、${top.horse || "上位馬"}を軸に相手を絞るのが基本線です。`,
+      title: "展開",
+      text: `${venue}${dist}（${track}／${condition}）。脚質分布は逃げ${pace.nige || 0}・先行${pace.senkou || 0}・差し${pace.sashi || 0}・追込${pace.oikomi || 0}で、${adv}の構図が基本。${opener}${top.horse || "上位馬"}を軸に、${second.horse || "対抗"}〜${third.horse || "穴候補"}までを相手候補に置くのが自然です。`,
     },
     {
-      title: "ペース予想",
-      text: `テンの質は${paceLabel}ペースを想定。${
-        String(paceLabel).includes("ハイ")
-          ? "先行勢に負荷がかかり、後方待機の末脚が相対的に生きやすい流れです。"
-          : String(paceLabel).includes("スロー")
-            ? "前が楽になる可能性が高く、押し切り・粘り込みが決まりやすい展開です。"
-            : "極端な偏りは出にくい平均寄り。位置取りの巧拙が着順差に直結します。"
-      }`,
+      title: "馬場",
+      text: `${condition}馬場では${
+        condition === "良"
+          ? "スピード負けしにくい馬が残りやすく、直線の加速勝負になりやすい"
+          : "パワーとスタミナの比重が増し、馬場適性の差が出やすい"
+      }。${track}適性の高い馬ほど評価を維持しやすく、${top.horse || "本命"}の馬場適性も加点材料です。`,
     },
     {
-      title: "位置取り",
+      title: "脚質",
       text: nige
-        ? `${nige.number}番${nige.horse}がハナを主張しやすく、${second.horse || "対抗馬"}は好位〜中団で脚を溜める構図。${top.runningStyle || "差し"}の${top.horse || "本命"}は${
+        ? `${nige.number}番${nige.horse}がハナを主張しやすく、${paceLabel}ペースへ。${top.runningStyle || "差し"}の${top.horse || "本命"}は${
             top.runningStyle === "逃げ" || top.runningStyle === "先行"
-              ? "先団で競馬を進める形が理想"
-              : "コーナー手前で外へ出しやすい位置を確保したい"
-          }。`
-        : `逃げ不在気味でペースが落ち着く可能性。各馬が内目の好位を奪い合う展開になりそうです。`,
+              ? "先団で競馬を進められるかが勝ち切れの条件"
+              : "中団〜後方から直線で外へ出せるかが焦点"
+          }。${closer ? `${closer.number}番の末脚も警戒材料です。` : ""}`
+        : `逃げ不在気味でペースが落ち着く可能性。好位争いになった場合、脚質の柔軟な${top.horse || "上位馬"}が有利です。`,
     },
     {
-      title: "仕掛けタイミング",
-      text: `${
-        String(paceLabel).includes("ハイ")
-          ? "3〜4角でじわっと押し上げ、直線入口での加速勝負がポイント。"
-          : "残り600〜400m付近の仕掛けが勝負。早仕掛けは禁物で、反応の良さを残した一発が有効。"
-      }${closer ? ` ${closer.number}番の末脚が直線でどこまで伸びるかが鍵です。` : ""}`,
+      title: "騎手・枠順",
+      text: `${top.horse || "本命"}は${frame}${top.number || ""}番、鞍上は${jockey}。枠の内外でロスを抑えつつ、${
+        Number(top.frame) >= 7
+          ? "外枠なりにポジションを取りにいく判断が重要"
+          : "内目を活かしたスムーズな競馬が理想"
+      }。騎手補正込みでも総合評価は上位を維持しています。`,
     },
     {
-      title: "勝負所",
-      text: `勝負所は${venue.includes("東京") ? "直線の長い坂区間" : venue.includes("中山") ? "急坂と小回りコーナー" : "直線の伸びとコーナーワーク"}。${top.paperMark || "◎"}${top.number || ""}番を軸に、${second.number || "相手"}番との力関係を見極めたい一戦です。`,
+      title: "オッズ・期待値",
+      text: `想定オッズは${odds}前後。推定勝率${top.winPct || 0}%に対しEV${top.evScore || 0}%で、${
+        (top.evTone || "") === "buy"
+          ? "買い目としての妙味が残る水準"
+          : (top.evTone || "") === "watch"
+            ? "様子見ゾーンだが連系での価値は十分"
+            : "単勝偏重は避け、相手候補として扱うのが無難"
+      }。人気${top.popularity || "-"}番手とのギャップも確認材料です。`,
     },
     {
       title: "期待材料",
-      text: `${top.horse || "本命"}は${plus}が光る内容。AIシミュレーションでも勝率${top.winPct || 0}%・EV${top.evScore || 0}%と上位。相手薄なら連対まで視野に入ります。`,
+      text: `${plus}が光る内容で、シミュレーションでも勝率${top.winPct || 0}%・連対${top.placePct || 0}%と上位。危険側は${result.dangerHorse?.horse || "人気先行馬"}、穴側は${result.upsetHorse?.horse || "期待値上位の人気薄"}を意識してください。`,
     },
     {
-      title: "不安材料",
-      text: `一方で${minus}は割り引き材料。危険側は${result.dangerHorse?.horse || "人気先行馬"}、穴側は${result.upsetHorse?.horse || "期待値上位の人気薄"}を意識し、買い目は本命偏重を避けたバランス配分が無難です。`,
+      title: "不安材料と結論",
+      text: `${minus}は割り引きつつも、全体の結論は崩れにくい。${opener}◎${top.number || ""}番を軸に○▲を厚く、☆はヒモ〜穴へ。${closerLine}`,
     },
   ];
 }

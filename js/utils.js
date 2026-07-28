@@ -156,13 +156,18 @@ export function ensureHomeButton() {
 
   button.type = "button";
   button.classList.add("home-fab");
-  button.setAttribute("aria-label", "ホームへ戻る");
+  button.setAttribute("aria-label", "トップページへ戻る");
   button.innerHTML =
     '<span class="home-fab__ripple" aria-hidden="true"></span>' +
-    '<svg class="home-fab__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<span class="home-fab__icons" aria-hidden="true">' +
+    '<svg class="home-fab__arrow" viewBox="0 0 24 24" focusable="false">' +
+    '<path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    "</svg>" +
+    '<svg class="home-fab__icon" viewBox="0 0 24 24" focusable="false">' +
     '<path d="M12 3.2L3.5 10.2h2.2v9.1h4.4v-5.2h3.8v5.2h4.4v-9.1h2.2L12 3.2z" fill="currentColor"/>' +
     "</svg>" +
-    '<span class="home-fab__label">ホームへ戻る</span>';
+    "</span>" +
+    '<span class="home-fab__label">トップページへ戻る</span>';
   return button;
 }
 

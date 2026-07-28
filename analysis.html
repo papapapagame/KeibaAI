@@ -12,11 +12,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="is-loading page-analysis page-v40">
+<body class="is-loading page-analysis page-v40 page-v50">
   <div class="ai-scan-overlay" id="ai-scan-overlay" aria-hidden="true">
     <div class="ai-scan-overlay__glow"></div>
     <div class="ai-scan-overlay__line"></div>
     <p class="ai-scan-overlay__text">AI DEEP ANALYSIS</p>
+  </div>
+  <div class="v5-gold-flash" id="v5-gold-flash" aria-hidden="true"></div>
+  <div class="v5-complete-overlay" id="v5-complete-overlay" aria-hidden="true">
+    <p class="v5-complete-overlay__text">AI COMPLETE</p>
   </div>
 
   <div class="loading-screen loading-screen--lux" id="loading-screen" aria-hidden="true" aria-busy="true">
@@ -52,9 +56,9 @@
     <time class="site-header__datetime" id="site-datetime">2026-07-28 00:00</time>
   </header>
 
-  <main class="page page--analysis page--paper page--v31 page--v32 page--v40">
+  <main class="page page--analysis page--paper page--v31 page--v32 page--v40 page--v50">
     <header class="paper-masthead reveal">
-      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL</p>
+      <p class="paper-masthead__eyebrow">PAPAPA IQ RACING PAPER · OFFICIAL Ver5</p>
       <h1 class="paper-masthead__title">AI競馬新聞</h1>
       <p class="paper-masthead__sub" id="paper-race-meta">—</p>
       <div class="gold-line gold-line--glow" aria-hidden="true"></div>
@@ -66,6 +70,16 @@
     </nav>
 
     <div id="view-paper" class="analysis-view">
+    <!-- AI思考ログ -->
+    <section class="paper-section v5-think reveal" aria-label="AI思考ログ">
+      <h2 class="paper-section__title">AI思考ログ</h2>
+      <div class="v5-think-head">
+        <p class="v5-think-pct" id="v5-think-pct">0%</p>
+        <div class="paper-meter v5-think-meter"><span class="paper-meter__fill" id="v5-think-bar"></span></div>
+      </div>
+      <ul class="v5-think-list" id="v5-think-list"></ul>
+    </section>
+
     <!-- ① AIシミュレーション -->
     <section class="paper-section v32-sim reveal" aria-label="AIシミュレーション">
       <h2 class="paper-section__title">AIシミュレーション ×1000</h2>
@@ -319,6 +333,26 @@
       <div class="ticket-bet-list" id="paper-ticket-bets"></div>
       <p class="paper-ticket-note" id="paper-ticket-note"></p>
     </section>
+
+    <!-- AI信頼度履歴 -->
+    <section class="paper-section reveal" aria-label="AI信頼度履歴">
+      <h2 class="paper-section__title">AI信頼度履歴</h2>
+      <p class="paper-section__lead">各AIの直近10レース（デモデータ）</p>
+      <div class="v5-history" id="v5-history"></div>
+    </section>
+
+    <!-- AIニュース -->
+    <section class="paper-section reveal" aria-label="AIニュース">
+      <h2 class="paper-section__title">AIニュース</h2>
+      <div class="v5-news" id="v5-news"></div>
+    </section>
+
+    <!-- AIランキング -->
+    <section class="paper-section reveal" aria-label="AIランキング">
+      <h2 class="paper-section__title">AIランキング</h2>
+      <p class="paper-section__lead">回収率順（デモデータ）</p>
+      <div class="v5-ranking" id="v5-ranking"></div>
+    </section>
     </div>
 
     <!-- AI対決モード -->
@@ -326,8 +360,8 @@
       <section class="paper-section debate-panel reveal is-visible" aria-label="AI対決">
         <div class="debate-panel__head">
           <h2 class="paper-section__title">AI対決</h2>
-          <p class="paper-section__lead">5つのAIが異なる視点で討論し、最終結論を導きます</p>
-          <button type="button" class="btn-secondary" id="debate-start-btn">討論をやり直す</button>
+          <p class="paper-section__lead">GPT Racing / Deep Odds / Horse Vision / Value Hunter が印を提示し討論します</p>
+          <button type="button" class="btn-primary" id="debate-start-btn">AI討論開始</button>
         </div>
 
         <div class="debate-scan" id="debate-scan" aria-hidden="true">
@@ -339,7 +373,7 @@
 
         <div class="debate-banner is-hidden" id="debate-banner" hidden>
           <p class="debate-banner__icon" aria-hidden="true">🤖</p>
-          <p class="debate-banner__text">5つのAIが討論を開始します</p>
+          <p class="debate-banner__text">4つのAIが討論を開始します</p>
         </div>
 
         <div class="debate-log" id="debate-log" aria-live="polite"></div>
@@ -355,7 +389,7 @@
 
   <footer class="site-footer">
     <p>©2026 PAPAPA IQ KEIBA</p>
-    <p>Version 4.0.0</p>
+    <p>Version 5.0.0</p>
   </footer>
 
   <button type="button" class="scroll-top" id="scroll-top" aria-label="TOPへ戻る">TOPへ戻る</button>

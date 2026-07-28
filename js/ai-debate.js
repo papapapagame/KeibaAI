@@ -1,6 +1,6 @@
 /* ========================================
    PAPAPA IQ KEIBA - ai-debate.js
-   Ver4.0.0 AI対決モード（表示層のみ）
+   Ver5.0.0 AI対決モード強化（表示層のみ）
    AI評価ロジック本体は変更しない
    ======================================== */
 
@@ -8,69 +8,40 @@ import { clearElement, createElement } from "./utils.js";
 
 const AI_ROSTER = [
   {
-    id: "honmei",
-    name: "本命AI",
-    icon: "①",
-    focus: "勝率・能力重視",
-    steps: ["思考中…", "能力分析中…", "勝率計算中…", "完了"],
-  },
-  {
-    id: "ana",
-    name: "穴馬AI",
-    icon: "②",
-    focus: "期待値・人気ギャップ",
-    steps: [
-      "期待値分析中…",
-      "人気との乖離を計算中…",
-      "穴馬候補抽出中…",
-      "完了",
-    ],
-  },
-  {
-    id: "data",
-    name: "データAI",
-    icon: "③",
-    focus: "指数・過去・血統・傾向",
-    steps: ["過去データ照合中…", "指数解析中…", "血統解析中…", "完了"],
-  },
-  {
-    id: "tenkai",
-    name: "展開AI",
-    icon: "④",
-    focus: "脚質・ペース・位置取り",
-    steps: [
-      "展開シミュレーション中…",
-      "ペース予測中…",
-      "位置取り解析中…",
-      "完了",
-    ],
+    id: "gpt",
+    name: "GPT Racing",
+    short: "GPT",
+    focus: "総合能力・勝率",
+    style: "ability",
   },
   {
     id: "odds",
-    name: "オッズAI",
-    icon: "⑤",
-    focus: "回収率・妙味・投資効率",
-    steps: [
-      "オッズ取得中…",
-      "期待回収率計算中…",
-      "投資効率分析中…",
-      "完了",
-    ],
+    name: "Deep Odds",
+    short: "Odds",
+    focus: "オッズ妙味・回収",
+    style: "odds",
+  },
+  {
+    id: "vision",
+    name: "Horse Vision",
+    short: "Vision",
+    focus: "展開・脚質・位置",
+    style: "pace",
+  },
+  {
+    id: "value",
+    name: "Value Hunter",
+    short: "Value",
+    focus: "期待値・穴狙い",
+    style: "value",
   },
 ];
 
-const REACTIONS = [
-  "その意見には賛成です。",
-  "私は少し違う見解です。",
-  "データではこちらを支持します。",
-  "回収効率も無視できません。",
-  "展開が噛み合えば覆る可能性があります。",
-  "能力差は明確ですが、オッズ妙味も重要です。",
-];
+const MARKS = ["◎", "○", "▲", "☆"];
 
-let debateStarted = false;
-let debateRunning = false;
 let getContext = () => ({ reports: [], result: {}, race: {} });
+let debateRunning = false;
+let picksCache = null;
 
 export function initAiDebateMode(options = {}) {
   if (typeof options.getContext === "function") {
@@ -84,16 +55,13 @@ export function initAiDebateMode(options = {}) {
   paperBtn?.addEventListener("click", () => switchView("paper"));
   debateBtn?.addEventListener("click", () => {
     switchView("debate");
-    if (!debateStarted) {
-      startDebate();
-    }
+    prepareDebateBoard();
   });
   startBtn?.addEventListener("click", () => {
-    debateStarted = false;
-    startDebate();
+    if (!debateRunning) startDebateTalk();
   });
 
-  renderDebateShell();
+  prepareDebateBoard();
 }
 
 function switchView(view) {
@@ -101,8 +69,8 @@ function switchView(view) {
   const debate = document.getElementById("view-debate");
   const paperBtn = document.getElementById("tab-view-paper");
   const debateBtn = document.getElementById("tab-view-debate");
-
   const isPaper = view === "paper";
+
   if (paper) {
     paper.hidden = !isPaper;
     paper.classList.toggle("is-hidden", !isPaper);
@@ -115,14 +83,160 @@ function switchView(view) {
   debateBtn?.classList.toggle("is-active", !isPaper);
 }
 
-function renderDebateShell() {
+function prepareDebateBoard() {
+  const { reports, result, race } = getContext();
+  picksCache = buildAiMarkSheets(reports, result, race);
+  renderAiCards(picksCache);
+
+  const banner = document.getElementById("debate-banner");
+  const logRoot = document.getElementById("debate-log");
+  const finalRoot = document.getElementById("debate-final");
+  const startBtn = document.getElementById("debate-start-btn");
+
+  if (banner) {
+    banner.hidden = true;
+    banner.classList.add("is-hidden");
+    banner.classList.remove("is-show");
+  }
+  if (logRoot) clearElement(logRoot);
+  if (finalRoot) {
+    finalRoot.hidden = true;
+    finalRoot.classList.add("is-hidden");
+    clearElement(finalRoot);
+  }
+  if (startBtn) {
+    startBtn.disabled = false;
+    startBtn.textContent = "AI討論開始";
+  }
+}
+
+function buildAiMarkSheets(reports, result, race) {
+  const list = reports || [];
+  const byWin = [...list].sort((a, b) => (b.winPct || 0) - (a.winPct || 0));
+  const byIndex = [...list].sort((a, b) => (b.aiIndex || 0) - (a.aiIndex || 0));
+  const byEv = [...list].sort((a, b) => (b.evScore || 0) - (a.evScore || 0));
+  const byEvGap = [...list]
+    .filter((h) => Number(h.popularity) >= 4)
+    .sort((a, b) => (b.evScore || 0) - (a.evScore || 0));
+
+  const pace = result?.paceForecast || {};
+  const adv = String(pace.advantage || "");
+  const prefer = adv.includes("差し")
+    ? ["差し", "追込"]
+    : adv.includes("先行") || adv.includes("逃げ")
+      ? ["逃げ", "先行"]
+      : ["先行", "差し"];
+  const byPace = [...list].sort((a, b) => {
+    const as = prefer.includes(a.runningStyle) ? 1 : 0;
+    const bs = prefer.includes(b.runningStyle) ? 1 : 0;
+    return bs - as || (b.winPct || 0) - (a.winPct || 0);
+  });
+
+  const pickFour = (ranked) => {
+    const used = new Set();
+    const out = [];
+    ranked.forEach((h) => {
+      if (out.length >= 4) return;
+      if (!h || used.has(h.number)) return;
+      used.add(h.number);
+      out.push(h);
+    });
+    list.forEach((h) => {
+      if (out.length >= 4) return;
+      if (used.has(h.number)) return;
+      used.add(h.number);
+      out.push(h);
+    });
+    return out;
+  };
+
+  const gpt = pickFour(byWin.length ? byWin : byIndex);
+  const odds = pickFour(byEv);
+  const vision = pickFour(byPace);
+  const value = pickFour(
+    byEvGap.length ? byEvGap : byEv
+  );
+
+  return {
+    gpt: {
+      roster: AI_ROSTER[0],
+      marks: zipMarks(gpt),
+      confidence: confOf(gpt[0], 1.1),
+      buy: `${gpt[0]?.horse || "上位馬"}は能力・勝率で抜けており軸に最適です。`,
+      skip: `人気薄だけで攻めると安定感が落ちるため、今回は本命寄りを推奨します。`,
+    },
+    odds: {
+      roster: AI_ROSTER[1],
+      marks: zipMarks(odds),
+      confidence: confOf(odds[0], 0.95),
+      buy: `${odds[0]?.horse || "妙味馬"}はオッズ対勝率のバランスが良く、回収効率が高いです。`,
+      skip: `過剰人気の低EV馬は見送り。単勝偏重は避けます。`,
+    },
+    vision: {
+      roster: AI_ROSTER[2],
+      marks: zipMarks(vision),
+      confidence: confOf(vision[0], 1.0),
+      buy: `${pace.pace || "平均"}ペース／${pace.advantage || "先行有利"}想定で${vision[0]?.horse || "展開適性馬"}が噛み合います。`,
+      skip: `展開不利な脚質は割り引きます。`,
+    },
+    value: {
+      roster: AI_ROSTER[3],
+      marks: zipMarks(value),
+      confidence: confOf(value[0], 0.9),
+      buy: `${value[0]?.horse || "穴候補"}は人気と評価のギャップが大きく、ヒモ〜穴として妙味があります。`,
+      skip: `本命一本足打法は期待値が伸びにくいため、今回は分散を推奨します。`,
+    },
+    meta: { race, pace, result },
+  };
+}
+
+function zipMarks(horses) {
+  return MARKS.map((mark, i) => ({
+    mark,
+    horse: horses[i] || null,
+  }));
+}
+
+function confOf(horse, bias) {
+  const base =
+    (horse?.winPct || 12) * 1.6 +
+    (horse?.aiIndex || 50) * 0.35 +
+    (horse?.evScore || 80) * 0.12;
+  return clamp(Math.round(base * (bias || 1)), 68, 97);
+}
+
+function renderAiCards(sheets) {
   const grid = document.getElementById("debate-ai-grid");
-  if (!grid) return;
+  if (!grid || !sheets) return;
   clearElement(grid);
+
   AI_ROSTER.forEach((ai) => {
+    const sheet = sheets[ai.id];
+    const marksWrap = createElement("div", { className: "v5-ai-marks" });
+    (sheet?.marks || []).forEach((row) => {
+      const h = row.horse;
+      marksWrap.appendChild(
+        createElement("div", {
+          className: "v5-ai-mark-row",
+          children: [
+            createElement("span", {
+              className: `v5-ai-mark mark--${markClass(row.mark)}`,
+              text: row.mark,
+            }),
+            createElement("span", {
+              className: "v5-ai-mark-horse",
+              text: h
+                ? `${h.number}番 ${h.horse}`
+                : "—",
+            }),
+          ],
+        })
+      );
+    });
+
     grid.appendChild(
       createElement("article", {
-        className: "debate-ai glass-card",
+        className: `debate-ai glass-card v5-ai-card v5-ai-card--${ai.id}`,
         attrs: { id: `debate-ai-${ai.id}`, "data-ai": ai.id },
         children: [
           createElement("div", {
@@ -130,7 +244,7 @@ function renderDebateShell() {
             children: [
               createElement("span", {
                 className: "debate-ai__icon",
-                text: ai.icon,
+                text: ai.short.slice(0, 1),
               }),
               createElement("div", {
                 children: [
@@ -146,37 +260,10 @@ function renderDebateShell() {
               }),
             ],
           }),
+          marksWrap,
           createElement("p", {
-            className: "debate-ai__status",
-            attrs: { id: `debate-status-${ai.id}` },
-            text: "待機中",
-          }),
-          createElement("div", {
-            className: "debate-ai__progress",
-            children: [
-              createElement("span", {
-                className: "debate-ai__progress-fill",
-                attrs: { id: `debate-progress-${ai.id}` },
-              }),
-            ],
-          }),
-          createElement("div", {
-            className: "debate-ai__result is-dim",
-            attrs: { id: `debate-result-${ai.id}` },
-            children: [
-              createElement("p", {
-                className: "debate-ai__pick",
-                text: "推奨馬 —",
-              }),
-              createElement("p", {
-                className: "debate-ai__reason",
-                text: "分析待機中",
-              }),
-              createElement("p", {
-                className: "debate-ai__conf",
-                text: "信頼度 —",
-              }),
-            ],
+            className: "debate-ai__conf",
+            text: `信頼度 ${sheet?.confidence || 0}%`,
           }),
         ],
       })
@@ -184,314 +271,193 @@ function renderDebateShell() {
   });
 }
 
-async function startDebate() {
+async function startDebateTalk() {
   if (debateRunning) return;
   debateRunning = true;
-  debateStarted = true;
 
   const { reports, result, race } = getContext();
-  const picks = buildAiPicks(reports, result, race);
+  if (!picksCache) {
+    picksCache = buildAiMarkSheets(reports, result, race);
+    renderAiCards(picksCache);
+  }
 
+  const startBtn = document.getElementById("debate-start-btn");
   const banner = document.getElementById("debate-banner");
   const logRoot = document.getElementById("debate-log");
   const finalRoot = document.getElementById("debate-final");
   const scan = document.getElementById("debate-scan");
 
-  if (banner) {
-    banner.hidden = true;
-    banner.classList.add("is-hidden");
+  if (startBtn) {
+    startBtn.disabled = true;
+    startBtn.textContent = "討論中…";
   }
+  if (logRoot) clearElement(logRoot);
   if (finalRoot) {
     finalRoot.hidden = true;
     finalRoot.classList.add("is-hidden");
     clearElement(finalRoot);
   }
-  if (logRoot) clearElement(logRoot);
+
   scan?.classList.add("is-active");
-
-  renderDebateShell();
-
-  for (let i = 0; i < AI_ROSTER.length; i += 1) {
-    const ai = AI_ROSTER[i];
-    const pick = picks[ai.id];
-    await runAiThinking(ai, pick);
-  }
-
-  scan?.classList.remove("is-active");
-
   if (banner) {
     banner.hidden = false;
     banner.classList.remove("is-hidden");
     banner.classList.add("is-show");
+    const text = banner.querySelector(".debate-banner__text");
+    if (text) text.textContent = "4つのAIが討論を開始します";
   }
-  await wait(900);
+  await wait(700);
+  scan?.classList.remove("is-active");
 
-  const logs = buildDebateLogs(picks, result, race);
+  const logs = buildDebateScript(picksCache);
   await playDebateLogs(logRoot, logs);
-  await wait(500);
 
-  const decision = buildFinalDecision(picks, reports, result);
+  const decision = buildFinalDecision(picksCache, reports, result);
   renderFinalDecision(finalRoot, decision);
+  playGoldFinale();
+
+  if (startBtn) {
+    startBtn.disabled = false;
+    startBtn.textContent = "AI討論開始";
+  }
   debateRunning = false;
 }
 
-function buildAiPicks(reports, result, race) {
-  const list = reports || [];
-  const byWin = [...list].sort((a, b) => (b.winPct || 0) - (a.winPct || 0));
-  const byIndex = [...list].sort((a, b) => (b.aiIndex || 0) - (a.aiIndex || 0));
-  const byEvGap = [...list]
-    .filter((h) => Number(h.popularity) >= 4)
-    .sort(
-      (a, b) =>
-        (b.evScore || 0) - (a.evScore || 0) ||
-        Number(b.popularity) - Number(a.popularity)
-    );
-  const byEv = [...list].sort((a, b) => (b.evScore || 0) - (a.evScore || 0));
+function buildDebateScript(sheets) {
+  const g = sheets.gpt;
+  const o = sheets.odds;
+  const v = sheets.vision;
+  const val = sheets.value;
+  const g0 = g.marks[0]?.horse;
+  const o0 = o.marks[0]?.horse;
+  const v0 = v.marks[0]?.horse;
+  const val0 = val.marks[0]?.horse;
 
-  const pace = result?.paceForecast || {};
-  const adv = String(pace.advantage || "");
-  const stylePrefer = adv.includes("差し")
-    ? ["差し", "追込"]
-    : adv.includes("先行") || adv.includes("逃げ")
-      ? ["逃げ", "先行"]
-      : ["先行", "差し"];
-  const byTenkai = [...list].sort((a, b) => {
-    const as = stylePrefer.includes(a.runningStyle) ? 1 : 0;
-    const bs = stylePrefer.includes(b.runningStyle) ? 1 : 0;
-    return bs - as || (b.winPct || 0) - (a.winPct || 0);
-  });
-
-  const upsetNamed = result?.upsetHorse?.horse
-    ? list.find((h) => h.horse === result.upsetHorse.horse)
-    : null;
-
-  const honmei = byWin[0] || byIndex[0] || list[0];
-  const ana = upsetNamed || byEvGap[0] || byEv[0] || list[1] || honmei;
-  const data = byIndex[0] || honmei;
-  const tenkai = byTenkai[0] || honmei;
-  const odds = byEv[0] || ana || honmei;
-
-  return {
-    honmei: {
-      horse: honmei,
-      reason: `${honmei?.horse || "上位馬"}は勝率${honmei?.winPct || 0}%・AI指数${honmei?.aiIndex || 0}で能力が抜けています。`,
-      confidence: clamp(
-        Math.round((honmei?.winPct || 20) * 2.2 + (honmei?.aiIndex || 50) * 0.35),
-        72,
-        97
-      ),
-    },
-    ana: {
-      horse: ana,
-      reason: `${ana?.horse || "穴候補"}は人気${ana?.popularity || "-"}番手に対しEV${ana?.evScore || 0}%と妙味が目立ちます。`,
-      confidence: clamp(
-        Math.round((ana?.evScore || 80) * 0.45 + Number(ana?.popularity || 5)),
-        68,
-        94
-      ),
-    },
-    data: {
-      horse: data,
-      reason: `指数・近走バランスで${data?.horse || "データ上位"}を支持。過去内容と指数の整合が取れています。`,
-      confidence: clamp(
-        Math.round((data?.aiIndex || 50) * 0.7 + (data?.confidence || 70) * 0.25),
-        70,
-        96
-      ),
-    },
-    tenkai: {
-      horse: tenkai,
-      reason: `${pace.pace || "平均"}ペース／${pace.advantage || "先行有利"}想定で、${tenkai?.runningStyle || "好位"}の${tenkai?.horse || "展開適性馬"}が噛み合います。`,
-      confidence: clamp(
-        Math.round(78 + (tenkai?.winPct || 10) * 0.4),
-        66,
-        93
-      ),
-    },
-    odds: {
-      horse: odds,
-      reason: `オッズ${odds?.odds || "-"}倍に対し推定勝率${odds?.winPct || 0}%。回収効率を重視すると${odds?.horse || "妙味馬"}です。`,
-      confidence: clamp(
-        Math.round((odds?.evScore || 80) * 0.5 + 20),
-        65,
-        95
-      ),
-    },
-    meta: { race, pace },
-  };
-}
-
-async function runAiThinking(ai, pick) {
-  const card = document.getElementById(`debate-ai-${ai.id}`);
-  const status = document.getElementById(`debate-status-${ai.id}`);
-  const fill = document.getElementById(`debate-progress-${ai.id}`);
-  const resultBox = document.getElementById(`debate-result-${ai.id}`);
-  card?.classList.add("is-thinking");
-
-  for (let i = 0; i < ai.steps.length; i += 1) {
-    if (status) status.textContent = ai.steps[i];
-    if (fill) fill.style.width = `${((i + 1) / ai.steps.length) * 100}%`;
-    await wait(i === ai.steps.length - 1 ? 280 : 420);
-  }
-
-  card?.classList.remove("is-thinking");
-  card?.classList.add("is-done");
-  if (resultBox) {
-    resultBox.classList.remove("is-dim");
-    const horse = pick?.horse;
-    clearElement(resultBox);
-    resultBox.appendChild(
-      createElement("p", {
-        className: "debate-ai__pick",
-        text: horse
-          ? `推奨馬 ${horse.paperMark || ""} ${horse.number}番 ${horse.horse}`
-          : "推奨馬 —",
-      })
-    );
-    resultBox.appendChild(
-      createElement("p", {
-        className: "debate-ai__reason",
-        text: pick?.reason || "",
-      })
-    );
-    const confEl = createElement("p", {
-      className: "debate-ai__conf",
-      text: "信頼度 0%",
-    });
-    resultBox.appendChild(confEl);
-    await animateCountText(confEl, pick?.confidence || 0, "信頼度 ", "%", 700);
-  }
-}
-
-function buildDebateLogs(picks, result, race) {
-  const pace = result?.paceForecast || {};
-  const lines = [
+  return [
+    { ai: "gpt", text: g.buy },
+    { ai: "odds", text: `反論です。${o.buy}` },
+    { ai: "vision", text: v.buy },
+    { ai: "value", text: `私は違います。${val.buy}` },
+    { ai: "gpt", text: `買わない理由として、${g.skip}` },
+    { ai: "odds", text: `買わない理由は、${o.skip}` },
     {
-      speaker: "本命AI",
-      text: `能力では${picks.honmei.horse?.horse || "この馬"}が抜けています。`,
+      ai: "vision",
+      text: `${v0?.horse || "展開馬"}を軸に据えつつ、${g0?.horse || "能力上位"}も相手に残します。`,
     },
     {
-      speaker: "穴馬AI",
-      text: `期待値は${picks.ana.horse?.horse || "こちら"}の方が高いです。`,
+      ai: "value",
+      text: `${val0?.horse || "穴馬"}はヒモ〜穴で必須。${o0?.horse || "妙味馬"}との併買も検討できます。`,
     },
-    { speaker: "本命AI", text: REACTIONS[0] },
+    { ai: "gpt", text: "能力差を無視した穴一点突破は危険です。" },
+    { ai: "odds", text: "ただし回収を取るなら本命偏重も避けたい。" },
+    { ai: "vision", text: "展開が噛み合うなら本命の押し切りも十分あります。" },
     {
-      speaker: "展開AI",
-      text: `今回は${pace.pace || "平均"}ペース濃厚です。${pace.advantage || "先行有利"}を意識すべきです。`,
-    },
-    {
-      speaker: "データAI",
-      text: `${race?.venueLabel || "開催場"}近走傾向と指数では${picks.data.horse?.horse || "上位馬"}を支持します。`,
-    },
-    { speaker: "穴馬AI", text: REACTIONS[1] },
-    {
-      speaker: "オッズAI",
-      text: `回収率重視なら${picks.odds.horse?.horse || "妙味馬"}です。`,
-    },
-    { speaker: "データAI", text: REACTIONS[2] },
-    {
-      speaker: "展開AI",
-      text: REACTIONS[4],
-    },
-    {
-      speaker: "本命AI",
-      text: `最終的には軸を${picks.honmei.horse?.horse || "本命"}に置き、穴は抑えが妥当です。`,
-    },
-    { speaker: "オッズAI", text: REACTIONS[3] },
-    {
-      speaker: "穴馬AI",
-      text: `${picks.ana.horse?.horse || "穴馬"}は相手候補として残すべきです。`,
+      ai: "value",
+      text: "最終的には軸は堅く、穴は相手に回すのが合理的です。",
     },
   ];
-  return lines;
 }
 
 async function playDebateLogs(root, logs) {
   if (!root) return;
   clearElement(root);
+
   for (let i = 0; i < logs.length; i += 1) {
     const item = logs[i];
+    const ai = AI_ROSTER.find((a) => a.id === item.ai);
+    setSpeaking(item.ai);
+
     const bubble = createElement("article", {
-      className: "debate-bubble glass-card",
+      className: `debate-bubble glass-card is-speaking-bubble debate-bubble--${item.ai}`,
       children: [
         createElement("p", {
           className: "debate-bubble__speaker",
-          text: `【${item.speaker}】`,
+          text: `【${ai?.name || item.ai}】`,
         }),
-        createElement("p", {
-          className: "debate-bubble__text",
-          text: "",
-        }),
+        createElement("p", { className: "debate-bubble__text", text: "" }),
       ],
     });
     root.appendChild(bubble);
     bubble.classList.add("is-in");
     const textEl = bubble.querySelector(".debate-bubble__text");
-    await typeText(textEl, item.text, 16);
+    await typeText(textEl, item.text, 14);
     root.scrollTop = root.scrollHeight;
-    await wait(280);
+    await wait(220);
   }
+  clearSpeaking();
 }
 
-function buildFinalDecision(picks, reports, result) {
+function setSpeaking(aiId) {
+  document.querySelectorAll(".v5-ai-card").forEach((card) => {
+    card.classList.toggle("is-speaking", card.dataset.ai === aiId);
+  });
+}
+
+function clearSpeaking() {
+  document
+    .querySelectorAll(".v5-ai-card.is-speaking")
+    .forEach((card) => card.classList.remove("is-speaking"));
+}
+
+function buildFinalDecision(sheets, reports, result) {
   const votes = {};
-  Object.keys(picks).forEach((key) => {
-    if (key === "meta") return;
-    const h = picks[key]?.horse;
-    if (!h) return;
-    const id = String(h.number);
-    if (!votes[id]) votes[id] = { horse: h, count: 0 };
+  AI_ROSTER.forEach((ai) => {
+    const top = sheets[ai.id]?.marks?.[0]?.horse;
+    if (!top) return;
+    const id = String(top.number);
+    if (!votes[id]) votes[id] = { horse: top, count: 0 };
     votes[id].count += 1;
   });
-
-  const rankedVotes = Object.values(votes).sort(
+  const ranked = Object.values(votes).sort(
     (a, b) =>
-      b.count - a.count ||
-      (b.horse.winPct || 0) - (a.horse.winPct || 0)
+      b.count - a.count || (b.horse.winPct || 0) - (a.horse.winPct || 0)
   );
-
-  const marks = ["◎", "○", "▲", "△", "☆"];
-  const markList = rankedVotes.slice(0, 5).map((v, i) => ({
-    mark: marks[i],
-    horse: v.horse,
-    votes: v.count,
-  }));
-
-  const top = markList[0]?.horse || reports?.[0];
-  const agreeCount = rankedVotes[0]?.count || 1;
-  const baseConf = Number(result?.overall?.confidence) || 80;
-  const agreement = clamp(
-    Math.round(baseConf * 0.55 + agreeCount * 8 + (top?.winPct || 10) * 0.6),
-    78,
+  const top = ranked[0]?.horse || reports?.[0];
+  const agree = ranked[0]?.count || 1;
+  const confidence = clamp(
+    Math.round(
+      (Number(result?.overall?.confidence) || 80) * 0.5 +
+        agree * 10 +
+        (top?.winPct || 10) * 0.5
+    ),
+    80,
     98
   );
-  const stars = agreement >= 94 ? 5 : agreement >= 88 ? 4 : agreement >= 80 ? 3 : 2;
 
-  const nums = markList.map((m) => m.horse.number).filter(Boolean);
-  const tickets = {
-    単勝: nums[0] != null ? `${nums[0]}` : "—",
-    馬連:
-      nums.length >= 2 ? `${nums[0]}-${nums[1]}` : nums[0] != null ? `${nums[0]}` : "—",
-    ワイド:
-      nums.length >= 2 ? `${nums[0]}-${nums[1]}` : "—",
-    三連複:
-      nums.length >= 3
-        ? `${nums[0]}-${nums[1]}-${nums[2]}`
-        : nums.slice(0, 3).join("-") || "—",
-    三連単:
-      nums.length >= 3
-        ? `${nums[0]}→${nums[1]}→${nums[2]}`
-        : nums.slice(0, 3).join("→") || "—",
+  const marks = [];
+  const used = new Set();
+  ranked.forEach((v) => {
+    if (marks.length >= 4) return;
+    used.add(v.horse.number);
+    marks.push(v.horse);
+  });
+  (reports || []).forEach((h) => {
+    if (marks.length >= 4) return;
+    if (used.has(h.number)) return;
+    marks.push(h);
+  });
+
+  const nums = marks.map((h) => h.number);
+  return {
+    top,
+    confidence,
+    marks: MARKS.map((m, i) => ({ mark: m, horse: marks[i] || null })),
+    tickets: {
+      単勝: nums[0] != null ? String(nums[0]) : "—",
+      馬連: nums.length >= 2 ? `${nums[0]}-${nums[1]}` : "—",
+      ワイド: nums.length >= 2 ? `${nums[0]}-${nums[1]}` : "—",
+      三連複:
+        nums.length >= 3 ? `${nums[0]}-${nums[1]}-${nums[2]}` : "—",
+      三連単:
+        nums.length >= 3 ? `${nums[0]}→${nums[1]}→${nums[2]}` : "—",
+    },
+    reason: [
+      `${agree}/4 AIが${top?.horse || "軸馬"}を本命支持。合意の中心です。`,
+      `GPT Racing / Horse Vision は能力と展開の両面で軸を評価しました。`,
+      `Deep Odds / Value Hunter は相手・穴に妙味を見出し、ヒモ構成を補強しています。`,
+      `よって最終本命は${top?.horse || "上位馬"}、信頼度${confidence}%とします。`,
+    ],
   };
-
-  const why = [
-    `5つのAIのうち${agreeCount}つが${top?.horse || "軸馬"}を支持し、合意率は${agreement}%です。`,
-    `本命AIとデータAIは能力・指数面で一致し、展開AIも${result?.paceForecast?.advantage || "想定展開"}と噛み合うと判断しました。`,
-    `一方で穴馬AIとオッズAIは${picks.ana?.horse?.horse || "人気薄"}の期待値を評価しており、相手候補として組み込んでいます。`,
-    `以上より、印は能力上位を軸に、妙味馬をヒモへ回す結論としました。`,
-  ];
-
-  return { agreement, stars, markList, tickets, why, top };
 }
 
 function renderFinalDecision(root, decision) {
@@ -500,32 +466,20 @@ function renderFinalDecision(root, decision) {
   root.hidden = false;
   root.classList.remove("is-hidden");
 
-  const stars = createElement("p", {
-    className: "debate-final__stars",
-    text: `${"★".repeat(decision.stars)}${"☆".repeat(5 - decision.stars)}`,
-  });
-
-  const agreeValue = createElement("span", {
-    className: "debate-final__agree-value",
-    text: "0%",
-  });
-
   const marks = createElement("div", { className: "debate-final__marks" });
-  decision.markList.forEach((item) => {
+  decision.marks.forEach((row) => {
     marks.appendChild(
       createElement("div", {
         className: "debate-final__mark-row",
         children: [
           createElement("span", {
-            className: `debate-final__mark mark--${markClass(item.mark)}`,
-            text: item.mark,
+            className: `debate-final__mark mark--${markClass(row.mark)}`,
+            text: row.mark,
           }),
           createElement("span", {
-            text: `${item.horse.number}番 ${item.horse.horse}`,
-          }),
-          createElement("span", {
-            className: "debate-final__votes",
-            text: `支持 ${item.votes}/5`,
+            text: row.horse
+              ? `${row.horse.number}番 ${row.horse.horse}`
+              : "—",
           }),
         ],
       })
@@ -533,34 +487,38 @@ function renderFinalDecision(root, decision) {
   });
 
   const tickets = createElement("ul", { className: "debate-final__tickets" });
-  Object.entries(decision.tickets).forEach(([type, combo]) => {
-    tickets.appendChild(
-      createElement("li", { text: `${type}：${combo}` })
-    );
+  Object.entries(decision.tickets).forEach(([k, v]) => {
+    tickets.appendChild(createElement("li", { text: `${k}：${v}` }));
   });
 
   const why = createElement("div", { className: "debate-final__why" });
-  why.appendChild(
-    createElement("h4", { text: "なぜこの結論になったのか" })
-  );
-  decision.why.forEach((line) => {
+  why.appendChild(createElement("h4", { text: "採用理由" }));
+  decision.reason.forEach((line) => {
     why.appendChild(createElement("p", { text: line }));
+  });
+
+  const confEl = createElement("span", {
+    className: "debate-final__agree-value",
+    text: "0%",
   });
 
   root.appendChild(
     createElement("div", {
-      className: "debate-final glass-card",
+      className: "debate-final glass-card v5-final-glow",
       children: [
         createElement("p", {
           className: "debate-final__eyebrow",
           text: "🤖 AI FINAL DECISION",
         }),
-        stars,
+        createElement("p", {
+          className: "debate-final__honmei",
+          text: `最終本命  ${decision.top?.number || "-"}番 ${decision.top?.horse || "—"}`,
+        }),
         createElement("p", {
           className: "debate-final__agree",
           children: [
-            createElement("span", { text: "AI合意率 " }),
-            agreeValue,
+            createElement("span", { text: "信頼度 " }),
+            confEl,
           ],
         }),
         createElement("div", {
@@ -581,18 +539,30 @@ function renderFinalDecision(root, decision) {
     })
   );
 
-  animateCountText(agreeValue, decision.agreement, "", "%", 1000);
-  const bar = document.getElementById("debate-agree-bar");
+  animateCountText(confEl, decision.confidence, "", "%", 900);
   requestAnimationFrame(() => {
-    if (bar) bar.style.width = `${decision.agreement}%`;
+    const bar = document.getElementById("debate-agree-bar");
+    if (bar) bar.style.width = `${decision.confidence}%`;
   });
+}
+
+function playGoldFinale() {
+  const flash = document.getElementById("v5-gold-flash");
+  if (flash) {
+    flash.classList.add("is-active");
+    window.setTimeout(() => flash.classList.remove("is-active"), 700);
+  }
+  try {
+    if (navigator.vibrate) navigator.vibrate([18, 30, 18]);
+  } catch {
+    /* ignore */
+  }
 }
 
 function markClass(mark) {
   if (mark === "◎") return "honmei";
   if (mark === "○") return "taikou";
   if (mark === "▲") return "ana";
-  if (mark === "△") return "ren";
   if (mark === "☆") return "hoshi";
   return "x";
 }
@@ -601,7 +571,7 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-async function typeText(el, text, speed = 18) {
+async function typeText(el, text, speed = 16) {
   if (!el) return;
   el.textContent = "";
   for (let i = 0; i < text.length; i += 1) {
@@ -610,7 +580,7 @@ async function typeText(el, text, speed = 18) {
   }
 }
 
-function animateCountText(el, target, prefix = "", suffix = "", duration = 800) {
+function animateCountText(el, target, prefix, suffix, duration) {
   return new Promise((resolve) => {
     if (!el) {
       resolve();
